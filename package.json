@@ -1,0 +1,15 @@
+{
+  "name": "kloudrouter",
+  "version": "1.0.0",
+  "description": "A router for the Kloud",
+  "main": "Router.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/es6-promise": "^3.3.0",
+    "typed-rest-client": "^1.1.2"
+  }
+}
