@@ -50,14 +50,14 @@ export class Renderer {
             }
         }
 
-        //Shortcircuit for simple html changes
-        //if(oldVTree.nodeName == newVTree.nodeName && oldVTree.attrs == newVTree.attrs) {
-            //return vNode => {
-                //console.log("chaning innerhtml: ", vNode);
-                //vNode.htmlElement.innerHTML = newVTree.innerHtml;
-                //return vNode;
-            //}
-        //}
+       // Shortcircuit for simple html changes
+        if(oldVTree.nodeName == newVTree.nodeName && arraysEquals(oldVTree.attrs, newVTree.attrs)) {
+            return vNode => {
+                console.log("chaning innerhtml: ", vNode);
+                vNode.htmlElement.innerHTML = newVTree.innerHtml;
+                return vNode;
+            }
+        }
 
         const attrPatches = this.diffAttrs(oldVTree.attrs, newVTree.attrs);
         const childPatches = this.diffChildren(oldVTree.children, newVTree.children);

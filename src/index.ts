@@ -40,7 +40,7 @@ function elemToVelem(html: Element): VNode {
     const n = Math.floor(Math.random() * 10);
     console.log("old rootnode: ", app.rootNode);
     const clone = transverseDom();
-    alterVApp(n, app);
+    alterVApp(3, app);
     const patch = renderer.diff(clone, app.rootNode);
     console.log("new rootnode: ", app.rootNode);
     patch(app.rootNode);
@@ -49,7 +49,7 @@ function elemToVelem(html: Element): VNode {
     const n = Math.floor(Math.random() * 10);
     console.log("old rootnode: ", app.rootNode);
     const clone = transverseDom();
-    alterVApp(n, app);
+    alterVApp(4, app);
     const patch = renderer.diff(clone, app.rootNode);
     console.log("new rootnode: ", app.rootNode);
     patch(app.rootNode);
