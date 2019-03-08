@@ -6,7 +6,7 @@ let app = new VApp("target");
 let renderer = new Renderer();
 let vRootDiv = app.createElement("div", "", app.rootNode, [new Attribute("vRootDiv", "test")]);
 
-renderer.render(app);
+//renderer.render(app);
 
 function alterVApp(n: number, app: VApp) {
     vRootDiv.children = [];

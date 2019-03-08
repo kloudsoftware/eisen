@@ -23,13 +23,19 @@ export class Renderer {
 
     private performDOMRender(node: VNode) {
         console.log("rendering: ", node);
+        let $elem = this.performDOMelCreation(node);
+        node.parent.htmlElement.appendChild($elem);
+    }
+
+    private performDOMelCreation(node: VNode):HTMLElement {
         let $elem = document.createElement(node.nodeName);
         node.htmlElement = $elem;
         $elem.innerHTML = node.innerHtml;
         if(node.attrs != undefined) {
             node.attrs.forEach(attr => $elem.setAttribute(attr.attrName, attr.attrValue));
         }
-        node.parent.htmlElement.appendChild($elem);
+
+        return $elem;
     }
 
     public diff(oldVTree: VNode, newVTree?: VNode): (node: VNode) => VNode {
@@ -42,10 +48,15 @@ export class Renderer {
             }
         }
 
+        const attrPatches = this.diffAttrs(oldVTree.attrs, newVTree.attrs);
+        const childPatches = this.diffChildren(oldVTree.children, newVTree.children);
+
         if(oldVTree.nodeName != newVTree.nodeName) {
             return vNode => {
                 console.log("replacing: ", vNode)
                 vNode.replaceWith(newVTree);
+                attrPatches(vNode);
+                childPatches(vNode);
                 return this.renderNode(newVTree);
             }
         }
@@ -53,14 +64,13 @@ export class Renderer {
        // Shortcircuit for simple html changes
         if(oldVTree.nodeName == newVTree.nodeName && arraysEquals(oldVTree.attrs, newVTree.attrs)) {
             return vNode => {
-                console.log("chaning innerhtml: ", vNode);
-                vNode.htmlElement.innerHTML = newVTree.innerHtml;
+                vNode.replaceWith(newVTree);
+                attrPatches(vNode);
+                childPatches(vNode);
                 return vNode;
             }
         }
 
-        const attrPatches = this.diffAttrs(oldVTree.attrs, newVTree.attrs);
-        const childPatches = this.diffChildren(oldVTree.children, newVTree.children);
 
         return vNode => {
             attrPatches(vNode);
