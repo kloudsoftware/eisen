@@ -6,7 +6,8 @@ export class VApp {
     constructor(targetId: string) {
         let $root = document.getElementById(targetId);
         let $tagName = $root.tagName;
-        this.rootNode = new VNode($tagName, new Array(), "", new Array(), undefined);
+        this.rootNode = new VNode($tagName, new Array(), "", [new Attribute("id" ,$root.id)], undefined);
+
         this.rootNode.htmlElement = $root;
     }
 

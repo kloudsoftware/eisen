@@ -21,7 +21,7 @@ export class Renderer {
     }
 
     private performDOMRender(node: VNode) {
-        console.log("rendering: ", node);;
+        console.log("rendering: ", node);
         let $elem = document.createElement(node.nodeName);
         node.htmlElement = $elem;
         $elem.innerHTML = node.innerHtml;

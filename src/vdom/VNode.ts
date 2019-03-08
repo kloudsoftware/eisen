@@ -20,7 +20,7 @@ export class VNode {
     }
 
     public remove() {
-        console.log("Removing!!!")
+        console.log("Removing!!!", this);
         this.htmlElement.remove();
         this.children.forEach(child => child.htmlElement.remove());
         this.parent.children.splice(this.parent.children.indexOf(this), 1);
