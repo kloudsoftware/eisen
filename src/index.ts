@@ -20,7 +20,7 @@ function transverseDom(): VNode {
 }
 
 function elemToVelem(html: Element): VNode {
-    let node = new VNode(html.tagName, []);
+    let node = new VNode(html.tagName.toLowerCase(), []);
     node.innerHtml = html.innerHTML;
     for(let i = 0; i < html.attributes.length; i++) {
         let attribute = html.attributes[i];
@@ -36,14 +36,21 @@ function elemToVelem(html: Element): VNode {
     return node;
 }
 
-setInterval(() => {
+//setInterval(() => {
     const n = Math.floor(Math.random() * 10);
     console.log("old rootnode: ", app.rootNode);
     const clone = transverseDom();
-    console.log("status before: ", clone == app.rootNode)
     alterVApp(n, app);
-    console.log("status after: ", clone == app.rootNode)
     const patch = renderer.diff(clone, app.rootNode);
     console.log("new rootnode: ", app.rootNode);
     patch(app.rootNode);
-}, 1000)
+//}, 1000)
+{
+    const n = Math.floor(Math.random() * 10);
+    console.log("old rootnode: ", app.rootNode);
+    const clone = transverseDom();
+    alterVApp(n, app);
+    const patch = renderer.diff(clone, app.rootNode);
+    console.log("new rootnode: ", app.rootNode);
+    patch(app.rootNode);
+}

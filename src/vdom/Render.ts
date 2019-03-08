@@ -1,5 +1,6 @@
 import { VNode, Attribute } from './VNode';
 import {VApp} from './VApp';
+import {Comparable, arraysEquals} from './Common'
 
 export class Renderer {
     public render(app: VApp): VNode{
@@ -69,6 +70,11 @@ export class Renderer {
     }
 
     private diffAttrs(oldAttrs: Attribute[], newAttrs: Attribute[]): (node: VNode) => VNode {
+        //Shortcircuit for same attributes
+        if(arraysEquals(oldAttrs, newAttrs)) {
+            return node => node;
+        }
+
         const patches = [];
         newAttrs.forEach(attr => {
             patches.push((node: VNode) => {

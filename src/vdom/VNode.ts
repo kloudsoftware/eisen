@@ -1,3 +1,5 @@
+import {Comparable} from './Common';
+
 export class VNode {
     attrs: Attribute[];
     nodeName: string;
@@ -53,7 +55,7 @@ export class VNode {
     }
 }
 
-export class Attribute {
+export class Attribute implements Comparable<Attribute> {
     public attrName: string;
     public attrValue: string;
 
@@ -64,5 +66,9 @@ export class Attribute {
 
     public clone(attr: Attribute): Attribute {
         return new Attribute(attr.attrName, attr.attrValue);
+    }
+
+    public equals(attribute: Attribute): boolean {
+        return this.attrName == attribute.attrName && this.attrValue == attribute.attrValue;
     }
 }
