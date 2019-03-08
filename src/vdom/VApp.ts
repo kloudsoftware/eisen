@@ -17,6 +17,8 @@ export class VApp {
 
         let newNode = new VNode(tagName,  new Array<VNode>(), content, attrs,  parentNode);
         parentNode.children.push(newNode);
+
+        //console.log("Adding node: ", newNode)
         return newNode;
     }
 }
