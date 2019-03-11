@@ -69,6 +69,13 @@ export class VNode implements Comparable<VNode> {
             && this.innerHtml == o.innerHtml
             && attrSame;
     }
+
+    equalsWithoutHTML(o: VNode): boolean {
+        if (o == undefined) return false;
+
+        return this.nodeName == o.nodeName
+            && arraysEquals(this.attrs, o.attrs);
+    }
 }
 
 export class Attribute implements Comparable<Attribute> {

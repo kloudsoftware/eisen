@@ -110,6 +110,7 @@ export class SimpleRenderer {
     }
 
     public updateElement($parent: Element, newNode?: VNode, oldNode?: VNode, index = 0) {
+        console.log("Processing: ", newNode, oldNode);
         if (oldNode == undefined) {
             const $newHtmlElement = this.performDOMelCreation(newNode);
             console.log("newHTLMElement", $newHtmlElement);
@@ -118,13 +119,21 @@ export class SimpleRenderer {
         }
 
         if (newNode == undefined) {
+            console.log("Removing");
             $parent.removeChild(
-                $parent.childNodes[index]
+                oldNode.htmlElement
             );
             return;
         }
 
-        if (!newNode.equals(oldNode)) {
+        if (newNode.equalsWithoutHTML(oldNode)) {
+            if (oldNode.htmlElement == undefined) {
+                debugger;
+            }
+            oldNode.htmlElement.innerHTML = newNode.innerHtml;
+        } else if (!newNode.equals(oldNode)) {
+            console.log(newNode, oldNode, newNode.equals(oldNode));
+            console.log("Replace node")
             $parent.replaceChild(
                 this.performDOMelCreation(newNode),
                 $parent.childNodes[index]
@@ -132,13 +141,14 @@ export class SimpleRenderer {
             return;
         }
 
+
         if (newNode.nodeName != undefined && newNode.nodeName != "") {
+            console.log("TARGET")
             this.updateAttributes(
                 $parent.children.item(index),
                 newNode.attrs,
                 oldNode == undefined ? [] : oldNode.attrs
             );
-            console.log("foo");
             oldNode.children.forEach((_, i) => {
                 this.updateElement(
                     $parent.children[index],
