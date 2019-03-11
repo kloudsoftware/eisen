@@ -1,17 +1,18 @@
 import {VApp} from './vdom/VApp';
-import {Renderer} from './vdom/Render'
+//import {Renderer} from './vdom/Render'
+import {SimpleRenderer} from "./vdom/SimpleRenderer"
 import { VNode, Attribute } from './vdom/VNode';
 
 let app = new VApp("target");
-let renderer = new Renderer();
-let vRootDiv = app.createElement("div", "", app.rootNode, [new Attribute("vRootDiv", "test")]);
+let renderer = new SimpleRenderer();
+let vRootDiv = app.createElement("div", "", app.rootNode, [new Attribute("vrootdiv", "test")]);
 
 //renderer.render(app);
 
 function alterVApp(n: number, app: VApp) {
     vRootDiv.children = [];
     for(let i = 0; i <= n; i++) {
-        app.createElement("p", String(n), vRootDiv);
+        app.createElement("div", String(n), vRootDiv);
     }
 }
 
@@ -31,26 +32,40 @@ function elemToVelem(html: Element): VNode {
         console.log(html.children[i]);
         let child = elemToVelem(html.children[i]);
         child.parent = node;
+        node.children.push(child);
     }
 
     return node;
 }
 
+const $root = app.rootNode.htmlElement;
+alterVApp(12, app);
+console.log("vRootDiv", vRootDiv);
+renderer.updateElement($root, vRootDiv);
+alterVApp(3, app);
+console.log("new vApp", app);
+renderer.updateElement($root, vRootDiv);
+
+
+/*
 //setInterval(() => {
     const n = Math.floor(Math.random() * 10);
     console.log("old rootnode: ", app.rootNode);
     const clone = transverseDom();
+    
     alterVApp(3, app);
     const patch = renderer.diff(clone, app.rootNode);
     console.log("new rootnode: ", app.rootNode);
     patch(app.rootNode);
+     
 //}, 1000)
 {
     const n = Math.floor(Math.random() * 10);
     console.log("old rootnode: ", app.rootNode);
     const clone = transverseDom();
+    console.log("cloned real dom", clone); 
     alterVApp(4, app);
     const patch = renderer.diff(clone, app.rootNode);
     console.log("new rootnode: ", app.rootNode);
     patch(app.rootNode);
-}
+}*/

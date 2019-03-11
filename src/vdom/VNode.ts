@@ -1,6 +1,6 @@
-import {Comparable} from './Common';
+import { Comparable, arraysEquals } from './Common';
 
-export class VNode {
+export class VNode implements Comparable<VNode> {
     attrs: Attribute[];
     nodeName: string;
     innerHtml: string;
@@ -9,7 +9,7 @@ export class VNode {
     htmlElement?: HTMLElement;
 
     constructor(nodeName: string, children: VNode[], innerHtml?: string, attrs?: Attribute[], parent?: VNode) {
-        if(attrs == undefined) {
+        if (attrs == undefined) {
             this.attrs = new Array();
         } else {
             this.attrs = attrs;
@@ -29,20 +29,26 @@ export class VNode {
     }
 
     public replaceWith(node: VNode) {
+        if (node.htmlElement == undefined || this.htmlElement == undefined) {
+            //debugger;
+        }
         this.nodeName = node.nodeName;
         this.innerHtml = node.innerHtml;
         this.attrs = node.attrs;
-        this.htmlElement.replaceWith(node.htmlElement);
+        if (this.htmlElement != undefined) {
+            this.htmlElement.replaceWith(node.htmlElement);
+        }
+
         this.htmlElement = node.htmlElement;
     }
 
     public static clone(node?: VNode, child?: VNode): VNode {
-        if(node == undefined || parent == undefined) {
+        if (node == undefined || parent == undefined) {
             console.log("Test")
             return undefined;
         }
 
-        if(node.children.indexOf(child) != 0) {
+        if (node.children.indexOf(child) != 0) {
             return node;
         }
 
@@ -52,6 +58,16 @@ export class VNode {
         node.attrs.forEach(attr => copy.attrs.push(attr.clone(attr)));
         node.children.forEach(child => copy.children.push(VNode.clone(child)));
         return copy;
+    }
+
+
+    equals(o: VNode): boolean {
+        if (o == undefined) return false;
+        const attrSame = arraysEquals(this.attrs, o.attrs);
+
+        return this.nodeName == o.nodeName
+            && this.innerHtml == o.innerHtml
+            && attrSame;
     }
 }
 
