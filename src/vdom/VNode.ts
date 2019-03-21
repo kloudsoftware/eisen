@@ -84,6 +84,22 @@ export class VNode implements Comparable<VNode> {
         return clonedNode;
     }
 
+    //Sets a new id for every item
+    public copy(parent: VNode): VNode {
+        const id = uuid();
+        const nodeName = this.nodeName;
+        const innerHtml = this.innerHtml;
+
+        const htmlElement = this.htmlElement;
+        const attrs = this.attrs.map(a => a.clone());
+
+        const clonedNode = new VNode(this.app, nodeName, [], innerHtml, attrs, parent, id);
+        const children = this.children.map(c => c.clone(clonedNode));
+
+        clonedNode.children = children;
+        clonedNode.htmlElement = htmlElement;
+        return clonedNode;
+    }
     equals(o: VNode): boolean {
         if (o == undefined) return false;
 
