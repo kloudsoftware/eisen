@@ -1,6 +1,6 @@
 import { VApp } from './vdom/VApp';
 import { VNode, Attribute } from './vdom/VNode';
-import { Renderer } from './vdom/Render';
+import { Renderer } from './vdom/render';
 
 let app = new VApp("target");
 const renderer = new Renderer();
@@ -38,48 +38,12 @@ function elemToVelem(html: Element): VNode {
     return node;
 }
 
-alterVApp(12, app);
-console.log("1st new vApp", app);
-let clone = transverseDom();
-let patch = renderer.diff(clone, app.rootNode);
-patch(app.rootNode.htmlElement);
-alterVApp(3, app);
-console.log("new vApp", app);
-clone = transverseDom();
-patch = renderer.diff(clone, app.rootNode);
-patch(app.rootNode.htmlElement);
+app.createElement("h1", "Hello world", vRootDiv);
+app.createElement("input", undefined, vRootDiv);
+app.createElement("p", "this will be removed", vRootDiv);
 
-setTimeout(function() {
-    alterVApp(7, app);
-    const clone = transverseDom();
-    let patch = renderer.diff(clone, app.rootNode);
+setTimeout(() => {
+    let patch = renderer.diff(new VApp("target"), app);
     patch(app.rootNode.htmlElement);
-}, 2000)
-setTimeout(function() {
-    alterVApp(2, app);
-    const clone = transverseDom();
-    let patch = renderer.diff(clone, app.rootNode);
-    patch(app.rootNode.htmlElement);
-}, 4000)
-/*
-//setInterval(() => {
-    const n = Math.floor(Math.random() * 10);
-    console.log("old rootnode: ", app.rootNode);
-    const clone = transverseDom();
+}, 1000)
 
-    alterVApp(3, app);
-    const patch = renderer.diff(clone, app.rootNode);
-    console.log("new rootnode: ", app.rootNode);
-    patch(app.rootNode);
-
-//}, 1000)
-{
-    const n = Math.floor(Math.random() * 10);
-    console.log("old rootnode: ", app.rootNode);
-    const clone = transverseDom();
-    console.log("cloned real dom", clone);
-    alterVApp(4, app);
-    const patch = renderer.diff(clone, app.rootNode);
-    console.log("new rootnode: ", app.rootNode);
-    patch(app.rootNode);
-}*/
