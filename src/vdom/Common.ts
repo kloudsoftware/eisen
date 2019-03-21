@@ -2,7 +2,6 @@ export interface Comparable <T> {
     equals (o: T): boolean;
 }
 
-
 export function arraysEquals <T extends Comparable<T>> (arrayA: T[], arrayB: T[]): boolean {
     if(arrayA.length != arrayB.length) {
         return false;

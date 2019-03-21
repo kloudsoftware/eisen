@@ -49,9 +49,10 @@ setTimeout(() => {
 }, 1000)
 
 setTimeout(() => {
-    toRemove.parent.children.splice(toRemove.parent.children.indexOf(toRemove), 1);
     let app2 = new VApp("target");
     app2.rootNode = transverseDom();
+    vRootDiv.removeChild(toRemove);
+    debugger;
     let patch = renderer.diff(app2, app);
     patch(app.rootNode.htmlElement);
 }, 3000)
