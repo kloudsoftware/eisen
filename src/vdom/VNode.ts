@@ -2,6 +2,7 @@ import { Comparable, arraysEquals } from './Common';
 import { VApp } from './VApp'
 import { v4 as uuid } from 'uuid';
 
+export const kloudAppId = "kloudappid";
 
 export class VNode implements Comparable<VNode> {
     app: VApp;
@@ -13,6 +14,7 @@ export class VNode implements Comparable<VNode> {
     children: VNode[];
     htmlElement?: HTMLElement;
     text?: string;
+    eventListeners: EventListener[];
 
     constructor(app: VApp, nodeName: string, children: VNode[], innerHtml?: string, attrs?: Attribute[], parent?: VNode, id?: string) {
         if (attrs == undefined) {
@@ -31,6 +33,8 @@ export class VNode implements Comparable<VNode> {
         } else {
             this.id = uuid();
         }
+
+        this.attrs.push(new Attribute(kloudAppId, id));
     }
 
     public setInnerHtml(str: string) {
@@ -41,17 +45,26 @@ export class VNode implements Comparable<VNode> {
     public getInnerHtml(): string {
         return this.innerHtml;
     }
+
+    public replaceChild(old: VNode, node: VNode) {
+        this.replaceWith(old, node);
+    }
+
     public removeChild(toRemove: VNode) {
+        this.replaceWith(toRemove, undefined);
+    }
+
+    private replaceWith(toReplace: VNode, replacement?: VNode): void {
         this.app.notifyDirty();
-        let removeIndex = -1;
-        for(let i = 0; i < this.children.length; i++) {
-            if (this.children[i].id == toRemove.id) {
-                removeIndex = i;
+        let replaceIndex = -1;
+        for (let i = 0; i < this.children.length; i++) {
+            if (this.children[i].id == toReplace.id) {
+                replaceIndex = i;
                 break;
             }
         }
-        if (removeIndex != -1) {
-            this.children[removeIndex] = undefined;
+        if (replaceIndex != -1) {
+            this.children[replaceIndex] = replacement;
         }
     }
 
@@ -73,7 +86,6 @@ export class VNode implements Comparable<VNode> {
 
     equals(o: VNode): boolean {
         if (o == undefined) return false;
-        const attrSame = arraysEquals(this.attrs, o.attrs);
 
         return this.nodeName == o.nodeName;
     }

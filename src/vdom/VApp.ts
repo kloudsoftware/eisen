@@ -1,4 +1,4 @@
-import {VNode, Attribute} from './VNode'
+import { VNode, Attribute } from './VNode'
 
 export class VApp {
     rootNode: VNode;
@@ -14,13 +14,13 @@ export class VApp {
         if (rootNode != undefined) {
             this.rootNode = rootNode.clone(undefined);
         } else {
-            this.rootNode = new VNode(this, $tagName, new Array(), "", [new Attribute("id" ,$root.id)], undefined);
+            this.rootNode = new VNode(this, $tagName, new Array(), "", [new Attribute("id", $root.id)], undefined);
             this.rootNode.htmlElement = $root;
         }
     }
 
     public notifyDirty() {
-        if(this.dirty) {
+        if (this.dirty) {
             return;
         }
         this.dirty = true;
@@ -28,14 +28,14 @@ export class VApp {
     }
 
     public getLatestSnapshot(): VApp {
-        if(this.snapshots.length < 1) {
+        if (this.snapshots.length < 1) {
             return undefined;
         }
         return this.snapshots[this.snapshots.length - 1];
     }
 
     public getPreviousSnapshot(): VApp {
-        if(this.snapshots.length < 2) {
+        if (this.snapshots.length < 2) {
             return undefined;
         }
         return this.snapshots[this.snapshots.length - 2]
@@ -47,11 +47,11 @@ export class VApp {
 
     public createElement(tagName: string, content = "", parentNode?: VNode, attrs?: [Attribute]): VNode {
         this.notifyDirty();
-        if(parentNode == undefined) {
+        if (parentNode == undefined) {
             parentNode = this.rootNode;
         }
 
-        let newNode = new VNode(this, tagName,  new Array<VNode>(), content, attrs,  parentNode);
+        let newNode = new VNode(this, tagName, new Array<VNode>(), content, attrs, parentNode);
         parentNode.children.push(newNode);
 
         //console.log("Adding node: ", newNode)
