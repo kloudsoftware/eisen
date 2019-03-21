@@ -31,7 +31,10 @@ export class Renderer {
         }
 
         if(!oldVNode.equals(newVNode)) {
+            console.log(oldVNode, newVNode);
+            console.log(oldVNode.nodeName == newVNode.nodeName);
             return el => {
+                debugger;
                 el.replaceChild(this.renderTree(newVNode), oldVNode.htmlElement);
                 return el;
             }
@@ -44,12 +47,15 @@ export class Renderer {
 
         newVNode.children.slice(oldVNode.children.length).forEach(child => {
             childPatches.push(parent => {
-                parent.appendChild(this.renderTree(newVNode));
+                parent.appendChild(this.renderTree(child));
                 return parent;
             });
         });
 
         childPatches.forEach(patch => patch(newVNode.htmlElement));
+        if (newVNode.htmlElement == undefined) {
+            debugger;
+        }
         Array.from(newVNode.htmlElement.attributes).forEach(attribute => {
             newVNode.htmlElement.removeAttribute(attribute.name);
         });

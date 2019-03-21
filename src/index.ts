@@ -24,6 +24,7 @@ function transverseDom(): VNode {
 function elemToVelem(html: Element): VNode {
     let node = new VNode(html.tagName.toLowerCase(), []);
     node.innerHtml = html.innerHTML;
+    node.htmlElement = html as HTMLElement;
     for (let i = 0; i < html.attributes.length; i++) {
         let attribute = html.attributes[i];
         node.attrs.push(new Attribute(attribute.name, attribute.value));
@@ -39,11 +40,19 @@ function elemToVelem(html: Element): VNode {
 }
 
 app.createElement("h1", "Hello world", vRootDiv);
-app.createElement("input", undefined, vRootDiv);
+let toRemove =app.createElement("input", undefined, vRootDiv);
 app.createElement("p", "this will be removed", vRootDiv);
 
 setTimeout(() => {
     let patch = renderer.diff(new VApp("target"), app);
     patch(app.rootNode.htmlElement);
 }, 1000)
+
+setTimeout(() => {
+    toRemove.parent.children.splice(toRemove.parent.children.indexOf(toRemove));
+    let app2 = new VApp("target");
+    app2.rootNode = transverseDom();
+    let patch = renderer.diff(app2, app);
+    patch(app.rootNode.htmlElement);
+}, 3000)
 
