@@ -51,8 +51,10 @@ setTimeout(() => {
 setTimeout(() => {
     let app2 = new VApp("target");
     app2.rootNode = transverseDom();
-    vRootDiv.removeChild(toRemove);
-    debugger;
+    //vRootDiv.removeChild(toRemove);
+    toRemove.innerHtml = "Hello fred";
+    const div = app.createElement("div", "hello", vRootDiv);
+    app.createElement("p", "world", div);
     let patch = renderer.diff(app2, app);
     patch(app.rootNode.htmlElement);
 }, 3000)
