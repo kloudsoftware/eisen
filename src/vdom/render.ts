@@ -7,8 +7,21 @@ type PatchFunction = (parent: HTMLElement) => HTMLElement;
 export class Renderer {
 
     //Proxy for calling
-    public diff(oldVapp: VApp, newVApp: VApp): PatchFunction {
-        return this.diffElement(oldVapp.rootNode, newVApp.rootNode);
+    public diffAgainstLatest(app: VApp): PatchFunction {
+        let latest = app.getLatestSnapshot();
+        if(latest == undefined) {
+            return el => {
+                return el;
+            }
+        }
+
+        return this.diff(latest, app);
+    }
+
+    public diff(snapshot: VApp, vApp: VApp): PatchFunction {
+        let patch = this.diffElement(snapshot.rootNode, vApp.rootNode);
+        vApp.dirty = false;
+        return patch;
     }
 
     private removeElement(parent: HTMLElement, toRemove: VNode) {
@@ -59,9 +72,8 @@ export class Renderer {
             newVNode.htmlElement.setAttribute(attr.attrName, attr.attrValue);
         });
 
-        if (newVNode.innerHtml != oldVNode.innerHtml ) {
-            debugger;
-            newVNode.htmlElement.innerHTML = newVNode.innerHtml;
+        if (newVNode.getInnerHtml() != oldVNode.getInnerHtml() ) {
+            newVNode.htmlElement.innerHTML = newVNode.getInnerHtml();
         }
 
         return $node => $node;
@@ -70,7 +82,7 @@ export class Renderer {
     private renderTree(node: VNode): HTMLElement {
         let $elem = document.createElement(node.nodeName);
         node.htmlElement = $elem;
-        $elem.innerHTML = node.innerHtml;
+        $elem.innerHTML = node.getInnerHtml();
         if(node.attrs != undefined) {
             node.attrs.forEach(attr => $elem.setAttribute(attr.attrName, attr.attrValue));
         }

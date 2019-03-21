@@ -1,24 +1,27 @@
 import { Comparable, arraysEquals } from './Common';
+import { VApp } from './VApp'
 import { v4 as uuid } from 'uuid';
 
 
 export class VNode implements Comparable<VNode> {
+    app: VApp;
     id: string;
     attrs: Attribute[];
     nodeName: string;
-    innerHtml: string;
+    private innerHtml: string;
     parent?: VNode;
     children: VNode[];
     htmlElement?: HTMLElement;
     text?: string;
 
-    constructor(nodeName: string, children: VNode[], innerHtml?: string, attrs?: Attribute[], parent?: VNode, id?: string) {
+    constructor(app: VApp, nodeName: string, children: VNode[], innerHtml?: string, attrs?: Attribute[], parent?: VNode, id?: string) {
         if (attrs == undefined) {
             this.attrs = new Array();
         } else {
             this.attrs = attrs;
         }
 
+        this.app = app;
         this.nodeName = nodeName;
         this.innerHtml = innerHtml;
         this.parent = parent;
@@ -30,7 +33,16 @@ export class VNode implements Comparable<VNode> {
         }
     }
 
+    public setInnerHtml(str: string) {
+        this.app.notifyDirty();
+        this.innerHtml = str;
+    }
+
+    public getInnerHtml(): string {
+        return this.innerHtml;
+    }
     public removeChild(toRemove: VNode) {
+        this.app.notifyDirty();
         let removeIndex = -1;
         for(let i = 0; i < this.children.length; i++) {
             if (this.children[i].id == toRemove.id) {
@@ -39,7 +51,7 @@ export class VNode implements Comparable<VNode> {
             }
         }
         if (removeIndex != -1) {
-            this.children[i] = undefined;
+            this.children[removeIndex] = undefined;
         }
     }
 
@@ -51,7 +63,7 @@ export class VNode implements Comparable<VNode> {
         const htmlElement = this.htmlElement;
         const attrs = this.attrs.map(a => a.clone());
 
-        const clonedNode = new VNode(nodeName, [], innerHtml, attrs, parent, id);
+        const clonedNode = new VNode(this.app, nodeName, [], innerHtml, attrs, parent, id);
         const children = this.children.map(c => c.clone(clonedNode));
 
         clonedNode.children = children;
