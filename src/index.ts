@@ -39,8 +39,8 @@ function elemToVelem(html: Element): VNode {
     return node;
 }
 
-app.createElement("h1", "Hello world", vRootDiv);
-let toRemove =app.createElement("input", undefined, vRootDiv);
+let toRemove =app.createElement("h1", "Hello world", vRootDiv);
+app.createElement("input", undefined, vRootDiv);
 app.createElement("p", "this will be removed", vRootDiv);
 
 setTimeout(() => {
@@ -49,7 +49,7 @@ setTimeout(() => {
 }, 1000)
 
 setTimeout(() => {
-    toRemove.parent.children.splice(toRemove.parent.children.indexOf(toRemove));
+    toRemove.parent.children.splice(toRemove.parent.children.indexOf(toRemove), 1);
     let app2 = new VApp("target");
     app2.rootNode = transverseDom();
     let patch = renderer.diff(app2, app);
