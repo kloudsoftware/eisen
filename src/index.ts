@@ -4,7 +4,7 @@ import { Renderer } from './vdom/render';
 
 let app = new VApp("target");
 const renderer = new Renderer();
-let vRootDiv = app.createElement("div", "", app.rootNode, [new Attribute("vrootdiv", "test")]);
+let vRootDiv = app.createElement("div", undefined, app.rootNode, [new Attribute("vrootdiv", "test")]);
 
 //renderer.render(app);
 
@@ -14,7 +14,7 @@ function alterVApp(n: number, app: VApp) {
         app.createElement("div", String(n), vRootDiv);
     }
 
-    app.createElement("input", "",  vRootDiv);
+    app.createElement("input", undefined,  vRootDiv);
 }
 
 function transverseDom(): VNode {
@@ -49,12 +49,10 @@ setTimeout(() => {
 }, 1000)
 
 setTimeout(() => {
-    let app2 = new VApp("target");
-    app2.rootNode = transverseDom();
-    //vRootDiv.removeChild(toRemove);
+    let app2 = app.clone();
     toRemove.innerHtml = "Hello fred";
-    const div = app.createElement("div", "hello", vRootDiv);
-    app.createElement("p", "world", div);
+    const div = app2.createElement("div", "hello", vRootDiv);
+    app2.createElement("p", "world", div);
     let patch = renderer.diff(app2, app);
     patch(app.rootNode.htmlElement);
 }, 3000)

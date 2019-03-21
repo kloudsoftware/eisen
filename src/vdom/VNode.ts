@@ -10,6 +10,7 @@ export class VNode implements Comparable<VNode> {
     parent?: VNode;
     children: VNode[];
     htmlElement?: HTMLElement;
+    text?: string;
 
     constructor(nodeName: string, children: VNode[], innerHtml?: string, attrs?: Attribute[], parent?: VNode, id?: string) {
         if (attrs == undefined) {
@@ -54,6 +55,7 @@ export class VNode implements Comparable<VNode> {
         const children = this.children.map(c => c.clone(clonedNode));
 
         clonedNode.children = children;
+        clonedNode.htmlElement = htmlElement;
         return clonedNode;
     }
 

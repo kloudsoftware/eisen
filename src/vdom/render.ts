@@ -12,6 +12,7 @@ export class Renderer {
     }
 
     private removeElement(parent: HTMLElement, toRemove: VNode) {
+        if (toRemove.htmlElement == undefined) debugger;
         parent.removeChild(toRemove.htmlElement);
     }
 
@@ -57,6 +58,11 @@ export class Renderer {
         newVNode.attrs.forEach(attr => {
             newVNode.htmlElement.setAttribute(attr.attrName, attr.attrValue);
         });
+
+        if (newVNode.innerHtml != oldVNode.innerHtml ) {
+            debugger;
+            newVNode.htmlElement.innerHTML = newVNode.innerHtml;
+        }
 
         return $node => $node;
     }

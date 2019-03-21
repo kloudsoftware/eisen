@@ -9,7 +9,7 @@ export class VApp {
         let $root = document.getElementById(targetId);
         let $tagName = $root.tagName.toLowerCase();
         if (rootNode != undefined) {
-            this.rootNode = rootNode.clone();
+            this.rootNode = rootNode.clone(undefined);
         } else {
             this.rootNode = new VNode($tagName, new Array(), "", [new Attribute("id" ,$root.id)], undefined);
             this.rootNode.htmlElement = $root;
