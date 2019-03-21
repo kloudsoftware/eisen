@@ -58,9 +58,7 @@ export class SimpleRenderer {
     }
 
     private setAttributes($elem: HTMLElement, attrs: Attribute[]) {
-        attrs.forEach(att => {
-            this.setAttribute($elem, att.attrName, att.attrValue);
-        });
+        console.log("Setting: ", attrs);
     }
 
 
@@ -95,13 +93,19 @@ export class SimpleRenderer {
 
     private performDOMelCreation(node: VNode): HTMLElement {
         let $elem = document.createElement(node.nodeName);
+        node.attrs.forEach(att => {
+            $elem.setAttribute(att.attrName, att.attrValue);
+        });
         node.htmlElement = $elem;
         $elem.innerHTML = node.innerHtml;
+
+
         if (node.attrs != undefined) {
             node.attrs.forEach(attr => $elem.setAttribute(attr.attrName, attr.attrValue));
         }
 
         node.children.forEach(child => {
+            console.log("creating: ", child)
             const $child = this.performDOMelCreation(child);
             $elem.appendChild($child);
         });
@@ -119,19 +123,14 @@ export class SimpleRenderer {
         }
 
         if (newNode == undefined) {
-            console.log("Removing");
+            console.log("Removing: ", oldNode);
             $parent.removeChild(
                 oldNode.htmlElement
             );
             return;
         }
 
-        if (newNode.equalsWithoutHTML(oldNode)) {
-            if (oldNode.htmlElement == undefined) {
-                debugger;
-            }
-            oldNode.htmlElement.innerHTML = newNode.innerHtml;
-        } else if (!newNode.equals(oldNode)) {
+        if (!newNode.equalsWithoutHTML(oldNode)) {
             console.log(newNode, oldNode, newNode.equals(oldNode));
             console.log("Replace node")
             $parent.replaceChild(

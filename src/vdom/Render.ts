@@ -22,7 +22,6 @@ export class Renderer {
     }
 
     private performDOMRender(node: VNode) {
-        console.log("rendering: ", node);
         let $elem = this.performDOMelCreation(node);
         node.parent.htmlElement.appendChild($elem);
     }
@@ -38,48 +37,35 @@ export class Renderer {
         return $elem;
     }
 
-    public diff(oldVTree: VNode, newVTree?: VNode): (node: VNode) => VNode {
+    public diff(oldVTree: VNode, newVTree?: VNode): (node: Element) => Element {
         if(newVTree == undefined) {
             //Assume DOM is destroyed, return undefined node
-            return vNode => {
-                console.log("removing: ", vNode)
-                vNode.remove();
+            return $node => {
+                $node.remove();
                 return undefined;
+            }
+        }
+
+        if(oldVTree.nodeName != newVTree.nodeName) {
+            return $node => {
+                console.log("replacing: ", $node)
+                const $newTree = this.performDOMelCreation(newVTree);
+                $node.replaceWith($newTree);
+                return $node;
             }
         }
 
         const attrPatches = this.diffAttrs(oldVTree.attrs, newVTree.attrs);
         const childPatches = this.diffChildren(oldVTree.children, newVTree.children);
 
-        if(oldVTree.nodeName != newVTree.nodeName) {
-            return vNode => {
-                console.log("replacing: ", vNode)
-                vNode.replaceWith(newVTree);
-                attrPatches(vNode);
-                childPatches(vNode);
-                return this.renderNode(newVTree);
-            }
-        }
-
-       // Shortcircuit for simple html changes
-        if(oldVTree.nodeName == newVTree.nodeName && arraysEquals(oldVTree.attrs, newVTree.attrs)) {
-            return vNode => {
-                vNode.replaceWith(newVTree);
-                attrPatches(vNode);
-                childPatches(vNode);
-                return vNode;
-            }
-        }
-
-
-        return vNode => {
-            attrPatches(vNode);
-            childPatches(vNode);
-            return vNode;
+        return $node => {
+            attrPatches($node);
+            childPatches($node);
+            return $node;
         }
     }
 
-    private diffAttrs(oldAttrs: Attribute[], newAttrs: Attribute[]): (node: VNode) => VNode {
+    private diffAttrs(oldAttrs: Attribute[], newAttrs: Attribute[]): (node: Element) => void {
         //Shortcircuit for same attributes
         if(arraysEquals(oldAttrs, newAttrs)) {
             return node => node;
@@ -87,50 +73,46 @@ export class Renderer {
 
         const patches = [];
         newAttrs.forEach(attr => {
-            patches.push((node: VNode) => {
-                node.htmlElement.setAttribute(attr.attrName, attr.attrValue)
-                return node;
+            patches.push(($node: Element) => {
+                $node.setAttribute(attr.attrName, attr.attrValue)
             })
         })
 
         oldAttrs.forEach(attr => {
-            patches.push((node: VNode) => {
-                node.htmlElement.removeAttribute(attr.attrName);
-                return node;
+            patches.push(($node: Element) => {
+                $node.removeAttribute(attr.attrName);
             })
         })
 
-        return node => {
-            patches.forEach(patch => patch(node));
-            return node;
+        return $node => {
+            patches.forEach(patch => patch($node));
         }
     }
 
-    private diffChildren(oldChildren: VNode[], newChildren: VNode[]) {
+    private diffChildren(oldChildren: VNode[], newChildren: VNode[]): ($node:Element ) => void {
         const patches = [];
         //This handles every child that is contained in oldChildren
         oldChildren.forEach((child, i) => {
             patches.push(this.diff(child, newChildren[i]))
         })
 
-        console.log(newChildren.length - oldChildren.length);
+        console.log(newChildren, newChildren.length - oldChildren.length)
+
         const additionalPatches = [];
         //This handles every child that is NOT in oldChildren
         newChildren.slice(oldChildren.length).forEach((child) => {
-            (additionalPatches.push((node: VNode) => {
+            (additionalPatches.push((node: Element) => {
                 console.log("new child added to dom: ", node)
-                const vNode = this.renderNode(child);
-                node.children.push(vNode);
-                return vNode;
+                const $node = this.performDOMelCreation(child);
+                node.appendChild($node)
+                return node;
             }));
         })
 
-        return (parent: VNode) => {
-            parent.children.forEach((child, i) => {
-                if(patches[i] != undefined) {
-                    patches[i](child);
-                }
-            })
+        return (parent: Element) => {
+            for(let i = 0; i < parent.children.length; i++) {
+                patches[i](parent.children[i]);
+            }
 
             additionalPatches.forEach(patch => patch(parent));
         }
