@@ -11,10 +11,29 @@ let vRootDiv = app.createElement("div", undefined, app.rootNode, [new Attribute(
 let eventHandler = new EventHandler(app);
 
 
-/*let toRemove = app.createElement("h1", "Hello world", vRootDiv);
+app.createElement("h1", "Hello world", vRootDiv);
 app.createElement("input", undefined, vRootDiv);
-app.createElement("p", "this will be removed", vRootDiv);
-*
+let toRemove = app.createElement("p", "this will be removed", vRootDiv);
+let btn = app.createElement("button", "click me!", vRootDiv);
+
+const addPTag = (_, __) => {
+    let container = app.createElement("div", "", vRootDiv);
+    app.createElement("p", "This was added dynamicially", container)
+    let rmBtn = app.createElement("button", "Remove this container", container);
+    eventHandler.registerEventListener("click", rmfunc, rmBtn)
+}
+
+let rmfunc = (_, rmobj: VNode) => {
+    rmobj.parent.parent.removeChild(rmobj.parent);
+}
+
+const remove = (event) => {
+    toRemove.parent.removeChild(toRemove);
+}
+
+eventHandler.registerEventListener("click", addPTag, btn);
+eventHandler.registerEventListener("click", remove, toRemove);
+
 /*setTimeout(() => {
     let patch = renderer.diff(new VApp("target"), app);
     patch(app.rootNode.htmlElement);
@@ -44,27 +63,4 @@ setTimeout(() => {
     backPatch(app.rootNode.htmlElement);
 }, 6000)
 */
-
-
-
-let hwComponent = new Component(app);
-hwComponent.addChild("h1", "hello world!");
-let container = hwComponent.addChild("div");
-hwComponent.addChild("p", String(Math.floor(Math.random() * 10)));
-let btn = hwComponent.addChild("button", "Click me!")
-
-let helloWorldFunc = (event) => {
-    app.createElement("h1", "test", container);
-    console.log(app);
-}
-
-console.log("About to call registerEventListener");
-eventHandler.registerEventListener("click", helloWorldFunc, btn);
-
-console.log(btn.id);
-
-hwComponent.mount(vRootDiv);
-
-hwComponent.mount(vRootDiv);
-
 

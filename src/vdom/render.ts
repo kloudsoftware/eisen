@@ -1,4 +1,4 @@
-import { VApp } from "./VApp"
+import { VApp, unmanagedNode } from "./VApp"
 import { VNode } from "./VNode"
 import { arraysEquals } from "./Common"
 
@@ -25,10 +25,14 @@ export class Renderer {
 
     private removeElement(parent: HTMLElement, toRemove: VNode) {
         parent.removeChild(toRemove.htmlElement);
+        toRemove.parent.children.splice(toRemove.parent.children.indexOf(toRemove), 1);
     }
 
     private diffElement(oldVNode?: VNode, newVNode?: VNode): PatchFunction {
         if (newVNode == undefined) {
+            if (oldVNode == undefined) {
+                return el => el;
+            }
             return (el: HTMLElement) => {
                 this.removeElement(el, oldVNode);
                 return el;
@@ -40,6 +44,10 @@ export class Renderer {
                 el.appendChild(this.renderTree(newVNode))
                 return el;
             }
+        }
+
+        if (newVNode.id == unmanagedNode) {
+            return el => el;
         }
 
         if (!oldVNode.equals(newVNode)) {
@@ -73,7 +81,7 @@ export class Renderer {
     }
 
     private diffInnerHtml(oldVNode: VNode, newVNode: VNode): PatchFunction {
-        if (newVNode.getInnerHtml() != oldVNode.getInnerHtml() ) {
+        if (newVNode.getInnerHtml() != oldVNode.getInnerHtml()) {
             return $node => {
                 $node.innerHTML = newVNode.getInnerHtml();
                 return $node;
@@ -91,6 +99,7 @@ export class Renderer {
                 $node.removeAttribute(attribute.name);
                 return $node;
             })
+            newVNode.htmlElement.removeAttribute(attribute.name);
         });
 
         newVNode.attrs.forEach(attr => {
@@ -106,7 +115,7 @@ export class Renderer {
         }
     }
 
-    private renderTree(node: VNode): HTMLElement {
+    public renderTree(node: VNode): HTMLElement {
         let $elem = document.createElement(node.nodeName);
         node.htmlElement = $elem;
         $elem.innerHTML = node.getInnerHtml();

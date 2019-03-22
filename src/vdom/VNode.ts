@@ -28,7 +28,7 @@ export class VNode implements Comparable<VNode> {
         }
 
         this.app = app;
-        if(props == undefined) {
+        if (props == undefined) {
             props = new Props(app);
         }
         this.props = props;
@@ -70,6 +70,7 @@ export class VNode implements Comparable<VNode> {
     }
 
     public removeChild(toRemove: VNode) {
+        this.app.notifyDirty();
         this.replaceWith(toRemove, undefined);
     }
 
@@ -77,11 +78,13 @@ export class VNode implements Comparable<VNode> {
         this.app.notifyDirty();
         let replaceIndex = -1;
         for (let i = 0; i < this.children.length; i++) {
+            if (this.children[i] == undefined) continue;
             if (this.children[i].id == toReplace.id) {
                 replaceIndex = i;
                 break;
             }
         }
+
         if (replaceIndex != -1) {
             this.children[replaceIndex] = replacement;
         }
@@ -97,7 +100,15 @@ export class VNode implements Comparable<VNode> {
         const attrs = this.attrs.map(a => a.clone());
 
         const clonedNode = new VNode(this.app, nodeName, [], innerHtml, props, attrs, parent, id);
-        const children = this.children.map(c => c.clone(clonedNode));
+        const children = [];
+
+        this.children.forEach(child => {
+            if (child == undefined) {
+                children.push(undefined);
+            } else {
+                children.push(child.clone(clonedNode))
+            }
+        })
 
         clonedNode.children = children;
         clonedNode.htmlElement = htmlElement;

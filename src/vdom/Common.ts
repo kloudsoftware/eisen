@@ -1,16 +1,16 @@
 import { Props } from "./Props";
 
-export interface Comparable <T> {
-    equals (o: T): boolean;
+export interface Comparable<T> {
+    equals(o: T): boolean;
 }
 
-export function arraysEquals <T extends Comparable<T>> (arrayA: T[], arrayB: T[]): boolean {
-    if(arrayA.length != arrayB.length) {
+export function arraysEquals<T extends Comparable<T>>(arrayA: T[], arrayB: T[]): boolean {
+    if (arrayA.length != arrayB.length) {
         return false;
     }
 
-    for(let i = 0; i < arrayA.length; i++) {
-        if(!arrayA[i].equals(arrayB[i])) {
+    for (let i = 0; i < arrayA.length; i++) {
+        if (!arrayA[i].equals(arrayB[i])) {
             return false;
         }
     }
@@ -18,8 +18,8 @@ export function arraysEquals <T extends Comparable<T>> (arrayA: T[], arrayB: T[]
     return true;
 }
 
-export interface Cloneable <T> {
-    clone (): T;
+export interface Cloneable<T> {
+    clone(): T;
 }
 
 export class Stringparser {
@@ -30,7 +30,7 @@ export class Stringparser {
 
     public parse(str: string, props: Props) {
         const parsed = this.regex.exec(str)
-        if(parsed.length == 0) {
+        if (parsed == null || parsed.length == 0) {
             return str;
         }
         let currStr = "";

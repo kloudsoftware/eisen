@@ -1,5 +1,8 @@
 import { VNode, Attribute } from './VNode'
 import { Renderer } from './render';
+import { Props } from './Props';
+
+export const unmanagedNode: string = "__UNMANAGED__"
 
 export class VApp {
     rootNode: VNode;
@@ -17,11 +20,9 @@ export class VApp {
         if (rootNode != undefined) {
             this.rootNode = rootNode.clone(undefined);
         } else {
-            this.rootNode = new VNode(this, $tagName, new Array(), "", [new Attribute("id", $root.id)], undefined);
+            this.rootNode = new VNode(this, $tagName, new Array(), "", new Props(this), [new Attribute("id", $root.id)], undefined);
             this.rootNode.htmlElement = $root;
         }
-
-
     }
 
 
@@ -41,6 +42,7 @@ export class VApp {
             patch.apply(this.rootNode.htmlElement)
             this.dirty = false;
             this.snapshots.push(this.clone());
+            console.log(this);
         }, 50);
     }
 
@@ -66,16 +68,25 @@ export class VApp {
         return new VApp(this.targetId, this.renderer, this.rootNode);
     }
 
-    public createElement(tagName: string, content = "", parentNode?: VNode, attrs?: [Attribute]): VNode {
+    public createElement(tagName: string, content = "", parentNode?: VNode, attrs?: [Attribute], props?: Props): VNode {
         this.notifyDirty();
+        if (props == undefined) {
+            props = new Props(this);
+        }
         if (parentNode == undefined) {
             parentNode = this.rootNode;
         }
 
-        let newNode = new VNode(this, tagName, new Array<VNode>(), content, attrs, parentNode);
+        let newNode = new VNode(this, tagName, new Array<VNode>(), content, props, attrs, parentNode);
         parentNode.children.push(newNode);
 
         //console.log("Adding node: ", newNode)
         return newNode;
+    }
+
+    public createUnmanagedNode(mount: VNode): HTMLElement {
+        let unmanagedNode = new VNode(this, "div", [], "", new Props(this), [], mount, "__UNMANAGED__");
+        mount.children.push(unmanagedNode);
+        return new Renderer().renderTree(unmanagedNode);
     }
 }

@@ -6,7 +6,7 @@ type EvtType = "click" | "close" | "complete" | "copy" | "cut" | "deviceorientat
     "mouseup" | "offline" | "online" | "open" | "orientationchange" | "pagehide" | "pageshow" | "paste" | "pause" | "play" | "playing" | "progress" | "readystatechange" | "reset" | "scroll" | "seeked" | "seeking" | "select" | "show" | "stalled" |
     "storage" | "submit" | "success" | "suspend" | "timeout" | "timeupdate" | "touchcancel" | "touchend" | "touchenter" | "touchleave" | "touchmove" | "touchstart" | "visibilitychange" | "volumechange" | "waiting" | "wheel"
 
-type EvtHandlerFunc = (ev: Event) => void;
+type EvtHandlerFunc = (ev: Event, node?: VNode) => void;
 
 export class EventHandler {
     events = ["click", "close", "complete", "copy", "cut", "deviceorientation", "DOMContentLoaded", "drag", "dragend", "dragenter", "dragleave", "dragover", "dragstart", "drop", "durationchange",
@@ -14,7 +14,7 @@ export class EventHandler {
         "mouseup", "offline", "online", "open", "orientationchange", "pagehide", "pageshow", "paste", "pause", "play", "playing", "progress", "readystatechange", "reset", "scroll", "seeked", "seeking", "select", "show", "stalled",
         "storage", "submit", "success", "suspend", "timeout", "timeupdate", "touchcancel", "touchend", "touchenter", "touchleave", "touchmove", "touchstart", "visibilitychange", "volumechange", "waiting", "wheel"];
 
-    handlers: Map<EvtType, Map<string, Array<EvtHandlerFunc>>>;
+    handlers: Map<EvtType, Map<VNode, Array<EvtHandlerFunc>>>;
 
 
     constructor(app: VApp) {
@@ -26,7 +26,7 @@ export class EventHandler {
 
     registerEventListener(evt: EvtType, handler: EvtHandlerFunc, target: VNode) {
         if (this.handlers == undefined) {
-            this.handlers = new Map<EvtType, Map<string, Array<EvtHandlerFunc>>>();
+            this.handlers = new Map<EvtType, Map<VNode, Array<EvtHandlerFunc>>>();
         }
 
         let handlerMap = this.handlers.get(evt);
@@ -34,10 +34,10 @@ export class EventHandler {
             handlerMap = new Map();
         }
 
-        if (handlerMap.get(target.id) != undefined) {
-            handlerMap.get(target.id).push(handler)
+        if (handlerMap.get(target) != undefined) {
+            handlerMap.get(target).push(handler)
         } else {
-            handlerMap.set(target.id, Array.of(handler));
+            handlerMap.set(target, Array.of(handler));
         }
 
         this.handlers.set(evt, handlerMap)
@@ -75,7 +75,24 @@ export class EventHandler {
             };
 
             const result = Array.from(scopedHandlers.keys());
-            result.filter(res => res == $targetAppId).flatMap(res => scopedHandlers.get(res)).forEach(func => func.apply(event));
+            result.filter(res => res.id == $targetAppId).forEach(it => {
+                let evtHandlers = scopedHandlers.get(it);
+                evtHandlers.forEach(func => {
+                    console.log("Applying ", it, " to: ", func)
+                    func(event, it)
+                });
+            })
+            //result.filter(res => res.id == $targetAppId).map(res => new Tuple<VNode, EvtHandlerFunc[]>(res, scopedHandlers.get(res))).forEach(tp => tp.v.forEach(f => f.apply(event, tp.k)));
         }
+    }
+}
+
+class Tuple<K, V> {
+    k: K;
+    v: V;
+
+    constructor(k: K, v: V) {
+        this.k = k;
+        this.v = v;
     }
 }
