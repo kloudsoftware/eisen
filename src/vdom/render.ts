@@ -20,7 +20,6 @@ export class Renderer {
 
     public diff(snapshot: VApp, vApp: VApp): PatchFunction {
         let patch = this.diffElement(snapshot.rootNode, vApp.rootNode);
-        vApp.dirty = false;
         return patch;
     }
 

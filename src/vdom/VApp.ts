@@ -1,13 +1,16 @@
 import { VNode, Attribute } from './VNode'
+import { Renderer } from './render';
 
 export class VApp {
     rootNode: VNode;
     targetId: string;
     dirty: boolean;
     snapshots: VApp[] = [];
+    renderer: Renderer;
 
-    constructor(targetId: string, rootNode?: VNode) {
+    constructor(targetId: string, renderer: Renderer, rootNode?: VNode) {
         this.targetId = targetId;
+        this.renderer = renderer;
         let $root = document.getElementById(targetId);
         let $tagName = $root.tagName.toLowerCase();
         this.dirty = false;
@@ -17,14 +20,32 @@ export class VApp {
             this.rootNode = new VNode(this, $tagName, new Array(), "", [new Attribute("id", $root.id)], undefined);
             this.rootNode.htmlElement = $root;
         }
+
+
+    }
+
+
+    public init() {
+        this.snapshots.push(this.clone());
+        this.tick();
+    }
+
+    private tick() {
+        setInterval(() => {
+            if (!this.dirty) {
+                return;
+            }
+
+            console.log("Redrawing");
+            let patch = this.renderer.diffAgainstLatest(this);
+            patch.apply(this.rootNode.htmlElement)
+            this.dirty = false;
+            this.snapshots.push(this.clone());
+        }, 50);
     }
 
     public notifyDirty() {
-        if (this.dirty) {
-            return;
-        }
         this.dirty = true;
-        this.snapshots.push(this.clone());
     }
 
     public getLatestSnapshot(): VApp {
@@ -42,7 +63,7 @@ export class VApp {
     }
 
     public clone(): VApp {
-        return new VApp(this.targetId, this.rootNode);
+        return new VApp(this.targetId, this.renderer, this.rootNode);
     }
 
     public createElement(tagName: string, content = "", parentNode?: VNode, attrs?: [Attribute]): VNode {

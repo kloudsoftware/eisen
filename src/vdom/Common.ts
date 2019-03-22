@@ -1,3 +1,5 @@
+import { Props } from "./Props";
+
 export interface Comparable <T> {
     equals (o: T): boolean;
 }
@@ -14,4 +16,35 @@ export function arraysEquals <T extends Comparable<T>> (arrayA: T[], arrayB: T[]
     }
 
     return true;
+}
+
+export interface Cloneable <T> {
+    clone (): T;
+}
+
+export class Stringparser {
+    private regex = new RegExp('{{(.*?)}}');
+
+    constructor() {
+    }
+
+    public parse(str: string, props: Props) {
+        const parsed = this.regex.exec(str)
+        if(parsed.length == 0) {
+            return str;
+        }
+        let currStr = "";
+        parsed.forEach(it => currStr = this.buildStringFunc(it, props, currStr))
+        return currStr;
+    }
+
+    private getFromProps(uncleanKey: string, props: Props): string {
+        let key = uncleanKey.split("{{")[1].split("}}")[0].trim();
+        return props.getProp(key);
+    }
+
+    private buildStringFunc(splitter: string, props: Props, orig: string): string {
+        let parts = orig.split(splitter);
+        return parts.join(this.getFromProps(splitter, props));
+    }
 }

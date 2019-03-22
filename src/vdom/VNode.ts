@@ -1,8 +1,11 @@
-import { Comparable, arraysEquals } from './Common';
+import { Comparable, arraysEquals, Stringparser } from './Common';
 import { VApp } from './VApp'
 import { v4 as uuid } from 'uuid';
+import { Props } from './Props';
 
 export const kloudAppId = "kloudappid";
+
+const parser = new Stringparser();
 
 export class VNode implements Comparable<VNode> {
     app: VApp;
@@ -15,8 +18,9 @@ export class VNode implements Comparable<VNode> {
     htmlElement?: HTMLElement;
     text?: string;
     eventListeners: EventListener[];
+    props: Props;
 
-    constructor(app: VApp, nodeName: string, children: VNode[], innerHtml?: string, attrs?: Attribute[], parent?: VNode, id?: string) {
+    constructor(app: VApp, nodeName: string, children: VNode[], innerHtml?: string, props?: Props, attrs?: Attribute[], parent?: VNode, id?: string) {
         if (attrs == undefined) {
             this.attrs = new Array();
         } else {
@@ -24,6 +28,10 @@ export class VNode implements Comparable<VNode> {
         }
 
         this.app = app;
+        if(props == undefined) {
+            props = new Props(app);
+        }
+        this.props = props;
         this.nodeName = nodeName;
         this.innerHtml = innerHtml;
         this.parent = parent;
@@ -38,14 +46,14 @@ export class VNode implements Comparable<VNode> {
     }
 
     public setAttribute(name: string, value: string): boolean {
-        const isSet = this.attrs.filter(a => a.name == name).length > 0;
+        const isSet = this.attrs.filter(a => a.attrName == name).length > 0;
 
         if (!isSet) {
             this.attrs.push(new Attribute(name, value));
             return;
         }
 
-        this.attrs.filter(a => a.name == name)[0].attrValue = value;
+        this.attrs.filter(a => a.attrName == name)[0].attrValue = value;
     }
 
     public setInnerHtml(str: string) {
@@ -54,7 +62,7 @@ export class VNode implements Comparable<VNode> {
     }
 
     public getInnerHtml(): string {
-        return this.innerHtml;
+        return parser.parse(this.innerHtml, this.props);
     }
 
     public replaceChild(old: VNode, node: VNode) {
@@ -83,11 +91,12 @@ export class VNode implements Comparable<VNode> {
         const id = this.id;
         const nodeName = this.nodeName;
         const innerHtml = this.innerHtml;
+        const props = Object.assign(this.props, {}) as Props;
 
         const htmlElement = this.htmlElement;
         const attrs = this.attrs.map(a => a.clone());
 
-        const clonedNode = new VNode(this.app, nodeName, [], innerHtml, attrs, parent, id);
+        const clonedNode = new VNode(this.app, nodeName, [], innerHtml, props, attrs, parent, id);
         const children = this.children.map(c => c.clone(clonedNode));
 
         clonedNode.children = children;
@@ -100,12 +109,13 @@ export class VNode implements Comparable<VNode> {
         const id = uuid();
         const nodeName = this.nodeName;
         const innerHtml = this.innerHtml;
+        const props = Object.assign(this.props, {}) as Props;
 
         const htmlElement = this.htmlElement;
         const attrs = this.attrs.map(a => a.clone());
 
-        const clonedNode = new VNode(this.app, nodeName, [], innerHtml, attrs, parent, id);
-        const children = this.children.map(c => c.clone(clonedNode));
+        const clonedNode = new VNode(this.app, nodeName, [], innerHtml, props, attrs, parent, id);
+        const children = this.children.map(c => c.copy(clonedNode));
 
         clonedNode.children = children;
         clonedNode.htmlElement = htmlElement;

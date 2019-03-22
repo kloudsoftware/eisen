@@ -38,11 +38,11 @@ export class Component {
     }
 
     public mount(mountpoint: VNode) {
+        this.app.notifyDirty();
         let copied = this.componentRoot.copy(this.componentRoot);
         copied.parent = mountpoint;
         mountpoint.children.push(copied);
         //console.log("mounting: ", copied);
-        this.app.notifyDirty();
     }
 
     public unmount(mountpoint: VNode) {

@@ -14,7 +14,7 @@ export class EventHandler {
         "mouseup", "offline", "online", "open", "orientationchange", "pagehide", "pageshow", "paste", "pause", "play", "playing", "progress", "readystatechange", "reset", "scroll", "seeked", "seeking", "select", "show", "stalled",
         "storage", "submit", "success", "suspend", "timeout", "timeupdate", "touchcancel", "touchend", "touchenter", "touchleave", "touchmove", "touchstart", "visibilitychange", "volumechange", "waiting", "wheel"];
 
-    handlers: Map<EvtType, Map<VNode, Array<EvtHandlerFunc>>>;
+    handlers: Map<EvtType, Map<string, Array<EvtHandlerFunc>>>;
 
 
     constructor(app: VApp) {
@@ -26,7 +26,7 @@ export class EventHandler {
 
     registerEventListener(evt: EvtType, handler: EvtHandlerFunc, target: VNode) {
         if (this.handlers == undefined) {
-            this.handlers = new Map<EvtType, Map<VNode, Array<EvtHandlerFunc>>>();
+            this.handlers = new Map<EvtType, Map<string, Array<EvtHandlerFunc>>>();
         }
 
         let handlerMap = this.handlers.get(evt);
@@ -34,15 +34,13 @@ export class EventHandler {
             handlerMap = new Map();
         }
 
-        if (handlerMap.get(target) != undefined) {
-            handlerMap.get(target).push(handler)
+        if (handlerMap.get(target.id) != undefined) {
+            handlerMap.get(target.id).push(handler)
         } else {
-            handlerMap.set(target, Array.of(handler));
-            console.log("adding handler: ", handlerMap.get(target));
+            handlerMap.set(target.id, Array.of(handler));
         }
 
         this.handlers.set(evt, handlerMap)
-        console.log(this.handlers);
     }
 
     handleEvent(handler: EventHandler) {
@@ -55,7 +53,7 @@ export class EventHandler {
             }
 
             if (handler.handlers == undefined) {
-                handler.handlers = new Map<EvtType, Map<VNode, Array<EvtHandlerFunc>>>();
+                return;
             }
 
             if (!(event.target instanceof HTMLElement)) return;
@@ -77,7 +75,7 @@ export class EventHandler {
             };
 
             const result = Array.from(scopedHandlers.keys());
-            result.filter(res => res.id == $targetAppId).flatMap(res => scopedHandlers.get(res)).forEach(func => func.apply(event));
+            result.filter(res => res == $targetAppId).flatMap(res => scopedHandlers.get(res)).forEach(func => func.apply(event));
         }
     }
 }
