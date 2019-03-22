@@ -1,6 +1,7 @@
 import { VNode, Attribute } from './VNode'
 import { Renderer } from './render';
 import { Props } from './Props';
+import { Component } from './IComponent';
 
 export const unmanagedNode: string = "__UNMANAGED__"
 
@@ -10,6 +11,7 @@ export class VApp {
     dirty: boolean;
     snapshots: VApp[] = [];
     renderer: Renderer;
+    components: Map<Component, VNode> = new Map();
 
     constructor(targetId: string, renderer: Renderer, rootNode?: VNode) {
         this.targetId = targetId;
@@ -25,6 +27,17 @@ export class VApp {
         }
     }
 
+    public mountComponent(component: Component, mount: VNode, props: Props) {
+        if (props == undefined) {
+            props = new Props(this);
+        }
+        component.beforeMount();
+        component.build()(mount, props);
+        component.mounted();
+    }
+
+    //TODO: Unmount
+
 
     public init() {
         this.snapshots.push(this.clone());
@@ -37,7 +50,7 @@ export class VApp {
                 return;
             }
 
-            console.log("Redrawing");
+            console.log("Redrawing dom");
             let patch = this.renderer.diffAgainstLatest(this);
             patch.apply(this.rootNode.htmlElement)
             this.dirty = false;
