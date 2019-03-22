@@ -4,12 +4,16 @@ import { Props } from './Props';
 
 export const unmanagedNode: string = "__UNMANAGED__"
 
+type AppEvent = () => void;
+
 export class VApp {
     rootNode: VNode;
     targetId: string;
     dirty: boolean;
     snapshots: VApp[] = [];
     renderer: Renderer;
+    eventListeners: AppEvent[] = [];
+    initial = true;
 
     constructor(targetId: string, renderer: Renderer, rootNode?: VNode) {
         this.targetId = targetId;
@@ -25,6 +29,9 @@ export class VApp {
         }
     }
 
+    public addInitialRenderEventlistener(listener: AppEvent) {
+        this.eventListeners.push(listener);
+    }
 
     public init() {
         this.snapshots.push(this.clone());
@@ -43,6 +50,13 @@ export class VApp {
             this.dirty = false;
             this.snapshots.push(this.clone());
             console.log(this);
+
+
+            if (this.initial) {
+                this.initial = false;
+                console.log("inital");
+                //this.eventListeners.forEach(f => f())
+            }
         }, 50);
     }
 
@@ -84,9 +98,10 @@ export class VApp {
         return newNode;
     }
 
-    public createUnmanagedNode(mount: VNode): HTMLElement {
+    public createUnmanagedNode(mount: VNode): VNode {
+        this.notifyDirty();
         let unmanagedNode = new VNode(this, "div", [], "", new Props(this), [], mount, "__UNMANAGED__");
         mount.children.push(unmanagedNode);
-        return new Renderer().renderTree(unmanagedNode);
+        return unmanagedNode;
     }
 }

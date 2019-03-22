@@ -4,6 +4,8 @@ import { Renderer } from './vdom/render';
 import { Component } from './vdom/Component'
 import { EventHandler } from './vdom/EventHandler';
 
+
+
 const renderer = new Renderer();
 const app = new VApp("target", renderer);
 app.init();
@@ -33,6 +35,31 @@ const remove = (event) => {
 
 eventHandler.registerEventListener("click", addPTag, btn);
 eventHandler.registerEventListener("click", remove, toRemove);
+
+
+import { schema } from "prosemirror-schema-basic"
+import { EditorState } from "prosemirror-state"
+import { EditorView } from "prosemirror-view"
+let mount = app.createUnmanagedNode(app.rootNode);
+
+
+setTimeout(() => {
+    let $mount = mount.htmlElement;
+    console.log("prose mounting to: ", $mount);
+
+    let state = EditorState.create({ schema })
+    let view = new EditorView($mount, {
+        state,
+        dispatchTransaction(transaction) {
+            console.log("Document size went from", transaction.before.content.size,
+                "to", transaction.doc.content.size)
+            let newState = view.state.apply(transaction)
+            view.updateState(newState)
+        }
+    });
+}, 100);
+
+
 
 /*setTimeout(() => {
     let patch = renderer.diff(new VApp("target"), app);

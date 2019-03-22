@@ -25,7 +25,6 @@ export class Renderer {
 
     private removeElement(parent: HTMLElement, toRemove: VNode) {
         parent.removeChild(toRemove.htmlElement);
-        toRemove.parent.children.splice(toRemove.parent.children.indexOf(toRemove), 1);
     }
 
     private diffElement(oldVNode?: VNode, newVNode?: VNode): PatchFunction {
