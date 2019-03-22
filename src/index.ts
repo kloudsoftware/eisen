@@ -30,6 +30,7 @@ setTimeout(() => {
 
 setTimeout(() => {
     vRootDiv.attrs.push(new Attribute("id", "targetmod"));
+    //app.notifyDirty();
     let patch = renderer.diffAgainstLatest(app);
     patch(app.rootNode.htmlElement);
 }, 6000)
