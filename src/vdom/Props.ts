@@ -8,7 +8,7 @@ export class Props implements Cloneable<Props>{
     private app: VApp;
 
     constructor(app: VApp, props?: Map<string, any>) {
-        if(props == undefined) {
+        if (props == undefined) {
             props = new Map();
         }
         this.props = props;
@@ -22,9 +22,9 @@ export class Props implements Cloneable<Props>{
 
     public clone(): Props {
         const clone = new Props(this.app);
-        Array.from(this.props.keys()).forEach (it =>{
+        Array.from(this.props.keys()).forEach(it => {
             let value = this.props.get(it);
-            if(typeof value == 'string' || typeof value == 'number') {
+            if (typeof value == 'string' || typeof value == 'number') {
                 clone.setProp(it, value);
             } else {
                 clone.setProp(it, value.clone());
@@ -34,9 +34,9 @@ export class Props implements Cloneable<Props>{
         return clone;
     }
 
-    public getProp(key: string): PropValue{
+    public getProp(key: string): PropValue {
         let value = this.props.get(key);
-        if(typeof value == 'string' || typeof value == 'number') {
+        if (typeof value == 'string' || typeof value == 'number') {
             return value;
         }
 

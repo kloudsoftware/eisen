@@ -1,6 +1,7 @@
 import { VNode, Attribute } from './VNode'
 import { Renderer } from './render';
 import { Props } from './Props';
+import { Component, ComponentScriptFunc } from './IComponent';
 
 export const unmanagedNode: string = "__UNMANAGED__"
 
@@ -14,6 +15,8 @@ export class VApp {
     renderer: Renderer;
     eventListeners: AppEvent[] = [];
     initial = true;
+    components: Map<Component, VNode> = new Map();
+    notifyComponents: ComponentScriptFunc[] = [];
 
     constructor(targetId: string, renderer: Renderer, rootNode?: VNode) {
         this.targetId = targetId;
@@ -33,6 +36,18 @@ export class VApp {
         this.eventListeners.push(listener);
     }
 
+    public mountComponent(component: Component, mount: VNode, props: Props) {
+        if (props == undefined) {
+            props = new Props(this);
+        }
+
+        let mountFunc = component.build(this)(mount, props);
+        this.notifyComponents.push(mountFunc);
+    }
+
+    //TODO: Unmount
+
+
     public init() {
         this.snapshots.push(this.clone());
         this.tick();
@@ -44,7 +59,7 @@ export class VApp {
                 return;
             }
 
-            console.log("Redrawing");
+            console.log("Redrawing dom");
             let patch = this.renderer.diffAgainstLatest(this);
             patch.apply(this.rootNode.htmlElement)
             this.dirty = false;
@@ -54,9 +69,11 @@ export class VApp {
 
             if (this.initial) {
                 this.initial = false;
-                console.log("inital");
-                //this.eventListeners.forEach(f => f())
+                this.eventListeners.forEach(f => f())
             }
+
+            this.notifyComponents.forEach(f => f());
+            this.notifyComponents = [];
         }, 50);
     }
 
