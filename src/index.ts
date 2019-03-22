@@ -10,7 +10,7 @@ let vRootDiv = app.createElement("div", undefined, app.rootNode, [new Attribute(
 let eventHandler = new EventHandler(app);
 
 
-/*let toRemove = app.createElement("h1", "Hello world", vRootDiv);
+let toRemove = app.createElement("h1", "Hello world", vRootDiv);
 app.createElement("input", undefined, vRootDiv);
 app.createElement("p", "this will be removed", vRootDiv);
 
@@ -20,6 +20,7 @@ setTimeout(() => {
 }, 1000)
 
 setTimeout(() => {
+    vRootDiv.attrs.push(new Attribute("id", "target"));
     toRemove.setInnerHtml("Hello fred");
     const div = app.createElement("div", "hello", vRootDiv);
     app.createElement("p", "world", div);
@@ -28,15 +29,20 @@ setTimeout(() => {
 }, 3000)
 
 setTimeout(() => {
+    vRootDiv.attrs.push(new Attribute("id", "targetmod"));
+    let patch = renderer.diffAgainstLatest(app);
+    patch(app.rootNode.htmlElement);
+}, 6000)
+
+/*setTimeout(() => {
     console.log(app.snapshots);
     console.log(app)
     let backPatch = renderer.diff(app, app.snapshots[1])
     backPatch(app.rootNode.htmlElement);
 }, 6000)
-
 */
 
-let helloWorldFunc = (event) => {
+/*let helloWorldFunc = (event) => {
     alert("hello world");
 }
 
@@ -57,5 +63,5 @@ hwComponent.mount(vRootDiv);
 let patch = renderer.diffAgainstLatest(app);
 patch(app.rootNode.htmlElement);
 console.log(app);
-
+*/
 
