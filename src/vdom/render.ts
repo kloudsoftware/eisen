@@ -1,6 +1,6 @@
-import {VApp} from "./VApp"
-import {VNode} from "./VNode"
-import {arraysEquals} from "./Common"
+import { VApp } from "./VApp"
+import { VNode } from "./VNode"
+import { arraysEquals } from "./Common"
 
 type PatchFunction = (parent: HTMLElement) => HTMLElement;
 
@@ -9,7 +9,7 @@ export class Renderer {
     //Proxy for calling
     public diffAgainstLatest(app: VApp): PatchFunction {
         let latest = app.getLatestSnapshot();
-        if(latest == undefined) {
+        if (latest == undefined) {
             return el => {
                 return el;
             }
@@ -30,21 +30,21 @@ export class Renderer {
     }
 
     private diffElement(oldVNode?: VNode, newVNode?: VNode): PatchFunction {
-        if(newVNode == undefined) {
+        if (newVNode == undefined) {
             return (el: HTMLElement) => {
                 this.removeElement(el, oldVNode);
                 return el;
             }
         }
 
-        if(oldVNode == undefined) {
+        if (oldVNode == undefined) {
             return el => {
                 el.appendChild(this.renderTree(newVNode))
                 return el;
             }
         }
 
-        if(!oldVNode.equals(newVNode)) {
+        if (!oldVNode.equals(newVNode)) {
             return el => {
                 el.replaceChild(this.renderTree(newVNode), oldVNode.htmlElement);
                 return el;
@@ -72,7 +72,7 @@ export class Renderer {
             newVNode.htmlElement.setAttribute(attr.attrName, attr.attrValue);
         });
 
-        if (newVNode.getInnerHtml() != oldVNode.getInnerHtml() ) {
+        if (newVNode.getInnerHtml() != oldVNode.getInnerHtml()) {
             newVNode.htmlElement.innerHTML = newVNode.getInnerHtml();
         }
 
@@ -83,7 +83,7 @@ export class Renderer {
         let $elem = document.createElement(node.nodeName);
         node.htmlElement = $elem;
         $elem.innerHTML = node.getInnerHtml();
-        if(node.attrs != undefined) {
+        if (node.attrs != undefined) {
             node.attrs.forEach(attr => $elem.setAttribute(attr.attrName, attr.attrValue));
         }
 

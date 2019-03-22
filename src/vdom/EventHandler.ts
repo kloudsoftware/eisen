@@ -14,8 +14,7 @@ export class EventHandler {
         "mouseup", "offline", "online", "open", "orientationchange", "pagehide", "pageshow", "paste", "pause", "play", "playing", "progress", "readystatechange", "reset", "scroll", "seeked", "seeking", "select", "show", "stalled",
         "storage", "submit", "success", "suspend", "timeout", "timeupdate", "touchcancel", "touchend", "touchenter", "touchleave", "touchmove", "touchstart", "visibilitychange", "volumechange", "waiting", "wheel"];
 
-    handlers: Map<EvtType, Map<VNode, Array<EvtHandlerFunc>>> = new Map()
-    addedHandlers: Set<VNode> = new Set()
+    handlers: Map<EvtType, Map<VNode, Array<EvtHandlerFunc>>>;
 
 
     constructor(app: VApp) {
@@ -26,20 +25,56 @@ export class EventHandler {
     }
 
     registerEventListener(evt: EvtType, handler: EvtHandlerFunc, target: VNode) {
+        if (this.handlers == undefined) {
+            this.handlers = new Map<EvtType, Map<VNode, Array<EvtHandlerFunc>>>();
+        }
+
         let handlerMap = this.handlers.get(evt);
         if (handlerMap == undefined) {
             handlerMap = new Map();
         }
 
-        handlerMap.get(target) != undefined ? handlerMap.get(target).push(handler) : handlerMap.set(target, [handler]);
+        if (handlerMap.get(target) != undefined) {
+            handlerMap.get(target).push(handler)
+        } else {
+            handlerMap.set(target, Array.of(handler));
+            console.log("adding handler: ", handlerMap.get(target));
+        }
+
+        this.handlers.set(evt, handlerMap)
+        console.log(this.handlers);
     }
 
     handleEvent(event: Event) {
+        if (this.handlers == undefined) {
+            console.log("no handlers set");
+        }
+        if (event.type == "click") {
+            console.log(event.type, event.target)
+        }
+
+        if (this.handlers == undefined) {
+            this.handlers = new Map<EvtType, Map<VNode, Array<EvtHandlerFunc>>>();
+        }
+
         if (!(event.target instanceof HTMLElement)) return;
+
         const $target = event.target as HTMLElement;
+
         if (!$target.hasAttribute(kloudAppId)) return;
+
         const $targetAppId = $target.getAttribute(kloudAppId);
         const scopedHandlers = this.handlers.get(event.type as EvtType);
+
+        if (scopedHandlers == undefined) {
+            if (event.type == "click") {
+                console.log("undefined click")
+                console.log(this.handlers);
+            }
+
+            return;
+        };
+
         let result: IteratorResult<VNode>;
         do {
             result = scopedHandlers.keys().return();
