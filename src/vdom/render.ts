@@ -63,20 +63,37 @@ export class Renderer {
             });
         });
 
-        childPatches.forEach(patch => patch(newVNode.htmlElement));
+        let attributePatch = this.diffAttributes(oldVNode, newVNode);
+
+        return $node => {
+            childPatches.forEach(patch => patch(newVNode.htmlElement));
+            attributePatch($node);
+            return $node;
+        };
+    }
+
+    private diffAttributes(node: VNode, newVNode: VNode): PatchFunction {
+        let patches: PatchFunction[] = [];
+
         Array.from(newVNode.htmlElement.attributes).forEach(attribute => {
+            patches.push($node => {
+                $node.removeAttribute(attribute.name);
+                return $node;
+            })
             newVNode.htmlElement.removeAttribute(attribute.name);
         });
 
         newVNode.attrs.forEach(attr => {
-            newVNode.htmlElement.setAttribute(attr.attrName, attr.attrValue);
+            patches.push($node => {
+                $node.setAttribute(attr.attrName, attr.attrValue)
+                return $node;
+            })
         });
 
-        if (newVNode.getInnerHtml() != oldVNode.getInnerHtml()) {
-            newVNode.htmlElement.innerHTML = newVNode.getInnerHtml();
+        return $node => {
+            patches.forEach(p => p($node))
+            return $node;
         }
-
-        return $node => $node;
     }
 
     private renderTree(node: VNode): HTMLElement {
