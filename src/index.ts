@@ -44,7 +44,7 @@ setTimeout(() => {
 }, 6000)
 */
 
-/*let helloWorldFunc = (event) => {
+let helloWorldFunc = (event) => {
     alert("hello world");
 }
 
@@ -54,6 +54,7 @@ hwComponent.addChild("h1", "hello world!");
 hwComponent.addChild("p", String(Math.floor(Math.random() * 10)));
 let btn = hwComponent.addChild("button", "Click me!")
 
+console.log("About to call registerEventListener");
 eventHandler.registerEventListener("click", helloWorldFunc, btn);
 
 console.log(btn.id);
@@ -65,5 +66,5 @@ hwComponent.mount(vRootDiv);
 let patch = renderer.diffAgainstLatest(app);
 patch(app.rootNode.htmlElement);
 console.log(app);
-*/
+
 

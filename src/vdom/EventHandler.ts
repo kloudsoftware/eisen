@@ -20,7 +20,7 @@ export class EventHandler {
     constructor(app: VApp) {
         const $root = app.rootNode.htmlElement
         this.events.forEach(evt => {
-            $root.addEventListener(evt, this.handleEvent)
+            $root.addEventListener(evt, this.handleEvent(this));
         })
     }
 
@@ -45,42 +45,39 @@ export class EventHandler {
         console.log(this.handlers);
     }
 
-    handleEvent(event: Event) {
-        if (this.handlers == undefined) {
-            console.log("no handlers set");
-        }
-        if (event.type == "click") {
-            console.log(event.type, event.target)
-        }
-
-        if (this.handlers == undefined) {
-            this.handlers = new Map<EvtType, Map<VNode, Array<EvtHandlerFunc>>>();
-        }
-
-        if (!(event.target instanceof HTMLElement)) return;
-
-        const $target = event.target as HTMLElement;
-
-        if (!$target.hasAttribute(kloudAppId)) return;
-
-        const $targetAppId = $target.getAttribute(kloudAppId);
-        const scopedHandlers = this.handlers.get(event.type as EvtType);
-
-        if (scopedHandlers == undefined) {
+    handleEvent(handler: EventHandler) {
+        return (event: Event) => {
+            if (handler.handlers == undefined) {
+                console.log("no handlers set");
+            }
             if (event.type == "click") {
-                console.log("undefined click")
-                console.log(this.handlers);
+                console.log(event.type, event.target)
             }
 
-            return;
-        };
-
-        let result: IteratorResult<VNode>;
-        do {
-            result = scopedHandlers.keys().return();
-            if (result.value.id == $targetAppId) {
-                scopedHandlers.get(result.value).forEach(it => it.apply(event));
+            if (handler.handlers == undefined) {
+                handler.handlers = new Map<EvtType, Map<VNode, Array<EvtHandlerFunc>>>();
             }
-        } while (!result.done)
+
+            if (!(event.target instanceof HTMLElement)) return;
+
+            const $target = event.target as HTMLElement;
+
+            if (!$target.hasAttribute(kloudAppId)) return;
+
+            const $targetAppId = $target.getAttribute(kloudAppId);
+            const scopedHandlers = handler.handlers.get(event.type as EvtType);
+
+            if (scopedHandlers == undefined) {
+                if (event.type == "click") {
+                    console.log("undefined click")
+                    console.log(handler.handlers);
+                }
+
+                return;
+            };
+
+            const result = Array.from(scopedHandlers.keys());
+            result.filter(res => res.id == $targetAppId).flatMap(res => scopedHandlers.get(res)).forEach(func => func.apply(event));
+        }
     }
 }
