@@ -34,7 +34,18 @@ export class VNode implements Comparable<VNode> {
             this.id = uuid();
         }
 
-        this.attrs.push(new Attribute(kloudAppId, id));
+        this.attrs.push(new Attribute(kloudAppId, this.id));
+    }
+
+    public setAttribute(name: string, value: string): boolean {
+        const isSet = this.attrs.filter(a => a.name == name).length > 0;
+
+        if (!isSet) {
+            this.attrs.push(new Attribute(name, value));
+            return;
+        }
+
+        this.attrs.filter(a => a.name == name)[0].attrValue = value;
     }
 
     public setInnerHtml(str: string) {

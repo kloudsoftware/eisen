@@ -20,7 +20,7 @@ setTimeout(() => {
 }, 1000)
 
 setTimeout(() => {
-    vRootDiv.attrs.push(new Attribute("id", "target"));
+    vRootDiv.setAttribute("foo", "fred");
     toRemove.setInnerHtml("Hello fred");
     const div = app.createElement("div", "hello", vRootDiv);
     app.createElement("p", "world", div);
@@ -29,7 +29,8 @@ setTimeout(() => {
 }, 3000)
 
 setTimeout(() => {
-    vRootDiv.attrs.push(new Attribute("id", "targetmod"));
+    vRootDiv.setAttribute("foo", "targetMod");
+    toRemove.setInnerHtml("lol");
     app.notifyDirty();
     let patch = renderer.diffAgainstLatest(app);
     patch(app.rootNode.htmlElement);

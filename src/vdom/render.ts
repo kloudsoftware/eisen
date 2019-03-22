@@ -25,7 +25,6 @@ export class Renderer {
     }
 
     private removeElement(parent: HTMLElement, toRemove: VNode) {
-        if (toRemove.htmlElement == undefined) debugger;
         parent.removeChild(toRemove.htmlElement);
     }
 
@@ -64,12 +63,25 @@ export class Renderer {
         });
 
         let attributePatch = this.diffAttributes(oldVNode, newVNode);
+        let innerHtmlPatch = this.diffInnerHtml(oldVNode, newVNode);
 
         return $node => {
             childPatches.forEach(patch => patch(newVNode.htmlElement));
-            attributePatch($node);
+            attributePatch(newVNode.htmlElement);
+            innerHtmlPatch(newVNode.htmlElement);
             return $node;
         };
+    }
+
+    private diffInnerHtml(oldVNode: VNode, newVNode: VNode): PatchFunction {
+        if (newVNode.getInnerHtml() != oldVNode.getInnerHtml() ) {
+            return $node => {
+                $node.innerHTML = newVNode.getInnerHtml();
+                return $node;
+            }
+        }
+
+        return $node => $node;
     }
 
     private diffAttributes(node: VNode, newVNode: VNode): PatchFunction {
@@ -80,7 +92,6 @@ export class Renderer {
                 $node.removeAttribute(attribute.name);
                 return $node;
             })
-            newVNode.htmlElement.removeAttribute(attribute.name);
         });
 
         newVNode.attrs.forEach(attr => {
