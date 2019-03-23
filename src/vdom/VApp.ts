@@ -80,7 +80,7 @@ export class VApp {
                 invokeIfDefined(prop.mounted)
             });
             this.compProps = [];
-        }, 1);
+        }, 50);
     }
 
     public notifyDirty() {
@@ -130,6 +130,7 @@ export class VApp {
     }
 
     public k: ElemFunc = (type: string, value: string, attrs?: Array<Attribute>, ...children: Array<VNode>): VNode => {
+        this.notifyDirty();
         if (children == undefined) {
             children = [];
         }
