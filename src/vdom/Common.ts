@@ -22,19 +22,22 @@ export interface Cloneable<T> {
     clone(): T;
 }
 
-export class Stringparser {
-    private regex = new RegExp('{{(.*?)}}');
+export const dataRegex = /{{(.*?)}}/g;
 
+export class Stringparser {
     constructor() {
     }
 
     public parse(str: string, props: Props) {
-        const parsed = this.regex.exec(str)
+        let parsed = dataRegex.exec(str)
         if (parsed == null || parsed.length == 0) {
             return str;
         }
-        let currStr = "";
-        parsed.forEach(it => currStr = this.buildStringFunc(it, props, currStr))
+
+        let parse = str.match(dataRegex);
+
+        let currStr = ""; parsed
+        parse.forEach(it => currStr = this.buildStringFunc(it, props, str))
         return currStr;
     }
 

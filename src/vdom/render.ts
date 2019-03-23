@@ -80,7 +80,7 @@ export class Renderer {
     }
 
     private diffInnerHtml(oldVNode: VNode, newVNode: VNode): PatchFunction {
-        if (newVNode.getInnerHtml() != oldVNode.getInnerHtml()) {
+        if (newVNode.modifiedInnerHtml || newVNode.dynamicContent) {
             return $node => {
                 $node.innerHTML = newVNode.getInnerHtml();
                 return $node;

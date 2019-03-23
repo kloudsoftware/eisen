@@ -1,7 +1,8 @@
 import { VNode, Attribute } from './VNode'
 import { Renderer } from './render';
 import { Props } from './Props';
-import { Component, ComponentProps } from './IComponent';
+import { Component, ComponentProps } from './Component';
+import { EventHandler } from './EventHandler';
 
 export const unmanagedNode: string = "__UNMANAGED__"
 
@@ -16,6 +17,7 @@ export class VApp {
     eventListeners: AppEvent[] = [];
     initial = true;
     compProps: ComponentProps[] = [];
+    eventHandler: EventHandler;
 
     constructor(targetId: string, renderer: Renderer, rootNode?: VNode) {
         this.targetId = targetId;
@@ -29,6 +31,8 @@ export class VApp {
             this.rootNode = new VNode(this, $tagName, new Array(), "", new Props(this), [new Attribute("id", $root.id)], undefined);
             this.rootNode.htmlElement = $root;
         }
+
+        this.eventHandler = new EventHandler(this);
     }
 
     public addInitialRenderEventlistener(listener: AppEvent) {
@@ -71,7 +75,9 @@ export class VApp {
                 this.eventListeners.forEach(f => f())
             }
 
-            this.compProps.forEach(prop => prop.mounted());
+            this.compProps.forEach(prop => {
+                if (prop.mounted) prop.mounted;
+            });
             this.compProps = [];
         }, 50);
     }

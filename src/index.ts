@@ -1,10 +1,10 @@
 import { VApp } from './vdom/VApp';
 import { VNode, Attribute } from './vdom/VNode';
 import { Renderer } from './vdom/render';
-import { Component } from './vdom/Component'
 import { EventHandler } from './vdom/EventHandler';
 import { ProsemirrorComponent } from './components/prosemirror/ProsemirrorComponent';
 import { Props } from './vdom/Props';
+import BtnCounter from './components/btncounter/BtnCounter';
 
 
 
@@ -12,8 +12,15 @@ const renderer = new Renderer();
 const app = new VApp("target", renderer);
 app.init();
 let vRootDiv = app.createElement("div", undefined, app.rootNode, [new Attribute("vrootdiv", "test")]);
-let eventHandler = new EventHandler(app);
+let eventHandler = app.eventHandler;
 
+const btnContainer = app.createElement("div", undefined, vRootDiv);
+
+const btnComponent = new BtnCounter();
+
+app.mountComponent(btnComponent, btnContainer, new Props(app));
+app.mountComponent(btnComponent, btnContainer, new Props(app));
+app.mountComponent(btnComponent, btnContainer, new Props(app));
 
 app.createElement("h1", "Hello world", vRootDiv);
 app.createElement("input", undefined, vRootDiv);
@@ -38,8 +45,10 @@ const remove = (event) => {
 eventHandler.registerEventListener("click", addPTag, btn);
 eventHandler.registerEventListener("click", remove, toRemove);
 
-let prose = new ProsemirrorComponent();
-app.mountComponent(prose, app.rootNode, new Props(app));
+
+
+//let prose = new ProsemirrorComponent();
+//app.mountComponent(prose, app.rootNode, new Props(app));
 
 
 

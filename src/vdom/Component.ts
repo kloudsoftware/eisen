@@ -10,7 +10,7 @@ export abstract class Component {
 }
 
 export interface ComponentProps {
-    mounted(): void;
+    mounted?(): void;
     beforeUnmount?(): void;
     unmounted?(): void;
 }

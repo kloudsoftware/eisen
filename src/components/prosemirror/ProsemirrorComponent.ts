@@ -1,4 +1,4 @@
-import { Component, ComponentBuildFunc, ComponentProps } from "../../vdom/IComponent";
+import { Component, ComponentBuildFunc, ComponentProps } from "../../vdom/Component";
 import { VNode } from "../../vdom/VNode";
 import { Props } from "../../vdom/Props";
 import { VApp } from "../../vdom/VApp";
@@ -29,12 +29,17 @@ export class ProsemirrorComponent extends Component {
             marks: schema.spec.marks
           })
 
-          new EditorView($mount, {
+          const editor = new EditorView($mount, {
             state: EditorState.create({
               doc: DOMParser.fromSchema(mySchema).parse($mount),
               plugins: exampleSetup({ schema: mySchema })
             })
           })
+
+          let btn = app.createElement("button", "getTextFromEditor", root);
+          app.eventHandler.registerEventListener("click", (_, button) => {
+            console.log(editor.props.state.doc);
+          }, btn);
         }
       }
     }

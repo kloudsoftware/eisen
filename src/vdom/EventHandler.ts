@@ -46,10 +46,6 @@ export class EventHandler {
     handleEvent(handler: EventHandler) {
         return (event: Event) => {
             if (handler.handlers == undefined) {
-                console.log("no handlers set");
-            }
-
-            if (handler.handlers == undefined) {
                 return;
             }
 
