@@ -98,7 +98,6 @@ export class Renderer {
                 $node.removeAttribute(attribute.name);
                 return $node;
             })
-            newVNode.htmlElement.removeAttribute(attribute.name);
         });
 
         newVNode.attrs.forEach(attr => {
