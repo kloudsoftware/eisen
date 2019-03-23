@@ -3,7 +3,7 @@ import { VNode, Attribute } from './vdom/VNode';
 import { Renderer } from './vdom/render';
 import { Component } from './vdom/Component'
 import { EventHandler } from './vdom/EventHandler';
-import { ProsemirrorComponent } from './components/ProsemirrorComponent';
+import { ProsemirrorComponent } from './components/prosemirror/ProsemirrorComponent';
 import { Props } from './vdom/Props';
 
 
