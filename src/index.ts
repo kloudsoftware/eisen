@@ -64,7 +64,7 @@ let node = app.k("ol", "My list", undefined, undefined,
 );
 
 node.parent = vRootDiv;
-vRootDiv.children.push(node);
+vRootDiv.appendChild(node);
 
 
 

@@ -14,7 +14,7 @@ export class VNode implements Comparable<VNode> {
     nodeName: string;
     private innerHtml: string;
     parent?: VNode;
-    children: VNode[];
+    private children: VNode[];
     htmlElement?: HTMLElement;
     text?: string;
     eventListeners: EventListener[];
@@ -84,6 +84,12 @@ export class VNode implements Comparable<VNode> {
         this.replaceWith(toRemove, undefined);
     }
 
+    public appendChild(node: VNode) {
+        this.app.notifyDirty();
+        node.parent = this;
+        this.children.push(node);
+    }
+
     private replaceWith(toReplace: VNode, replacement?: VNode): void {
         this.app.notifyDirty();
         let replaceIndex = -1;
@@ -147,7 +153,6 @@ export class VNode implements Comparable<VNode> {
 
         return this.nodeName == o.nodeName;
     }
-
 }
 
 export class Attribute implements Comparable<Attribute> {

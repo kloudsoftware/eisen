@@ -116,7 +116,7 @@ export class VApp {
         }
 
         let newNode = new VNode(this, tagName, new Array<VNode>(), content, props, attrs, parentNode);
-        parentNode.children.push(newNode);
+        parentNode.appendChild(newNode);
 
         //console.log("Adding node: ", newNode)
         return newNode;
@@ -125,12 +125,11 @@ export class VApp {
     public createUnmanagedNode(mount: VNode): VNode {
         this.notifyDirty();
         let unmanagedNode = new VNode(this, "div", [], "", new Props(this), [], mount, "__UNMANAGED__");
-        mount.children.push(unmanagedNode);
+        mount.appendChild(unmanagedNode);
         return unmanagedNode;
     }
 
     public k: ElemFunc = (type: string, value: string, attrs?: Array<Attribute>, ...children: Array<VNode>): VNode => {
-        this.notifyDirty();
         if (children == undefined) {
             children = [];
         }
