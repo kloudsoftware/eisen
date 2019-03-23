@@ -46,13 +46,6 @@ export class EventHandler {
     handleEvent(handler: EventHandler) {
         return (event: Event) => {
             if (handler.handlers == undefined) {
-                console.log("no handlers set");
-            }
-            if (event.type == "click") {
-                console.log(event.type, event.target)
-            }
-
-            if (handler.handlers == undefined) {
                 return;
             }
 
@@ -66,11 +59,6 @@ export class EventHandler {
             const scopedHandlers = handler.handlers.get(event.type as EvtType);
 
             if (scopedHandlers == undefined) {
-                if (event.type == "click") {
-                    console.log("undefined click")
-                    console.log(handler.handlers);
-                }
-
                 return;
             };
 
@@ -78,7 +66,7 @@ export class EventHandler {
             result.filter(res => res.id == $targetAppId).forEach(it => {
                 let evtHandlers = scopedHandlers.get(it);
                 evtHandlers.forEach(func => {
-                    console.log("Applying ", it, " to: ", func)
+                    //console.log("Applying ", it, " to: ", func)
                     func(event, it)
                 });
             })

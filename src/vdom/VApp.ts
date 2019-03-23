@@ -1,8 +1,12 @@
 import { VNode, Attribute } from './VNode'
 import { Renderer } from './render';
 import { Props } from './Props';
+import { Component, ComponentProps } from './Component';
+import { EventHandler } from './EventHandler';
 
 export const unmanagedNode: string = "__UNMANAGED__"
+
+type AppEvent = () => void;
 
 export class VApp {
     rootNode: VNode;
@@ -10,6 +14,10 @@ export class VApp {
     dirty: boolean;
     snapshots: VApp[] = [];
     renderer: Renderer;
+    eventListeners: AppEvent[] = [];
+    initial = true;
+    compProps: ComponentProps[] = [];
+    eventHandler: EventHandler;
 
     constructor(targetId: string, renderer: Renderer, rootNode?: VNode) {
         this.targetId = targetId;
@@ -23,7 +31,24 @@ export class VApp {
             this.rootNode = new VNode(this, $tagName, new Array(), "", new Props(this), [new Attribute("id", $root.id)], undefined);
             this.rootNode.htmlElement = $root;
         }
+
+        this.eventHandler = new EventHandler(this);
     }
+
+    public addInitialRenderEventlistener(listener: AppEvent) {
+        this.eventListeners.push(listener);
+    }
+
+    public mountComponent(component: Component, mount: VNode, props: Props) {
+        if (props == undefined) {
+            props = new Props(this);
+        }
+
+        let compProps = component.build(this)(mount, props);
+        this.compProps.push(compProps);
+    }
+
+    //TODO: Unmount
 
 
     public init() {
@@ -37,12 +62,23 @@ export class VApp {
                 return;
             }
 
-            console.log("Redrawing");
+            //console.log("Redrawing dom");
             let patch = this.renderer.diffAgainstLatest(this);
             patch.apply(this.rootNode.htmlElement)
             this.dirty = false;
             this.snapshots.push(this.clone());
-            console.log(this);
+            //console.log(this);
+
+
+            if (this.initial) {
+                this.initial = false;
+                this.eventListeners.forEach(f => f())
+            }
+
+            this.compProps.forEach(prop => {
+                if (prop.mounted) prop.mounted;
+            });
+            this.compProps = [];
         }, 50);
     }
 
@@ -84,9 +120,10 @@ export class VApp {
         return newNode;
     }
 
-    public createUnmanagedNode(mount: VNode): HTMLElement {
+    public createUnmanagedNode(mount: VNode): VNode {
+        this.notifyDirty();
         let unmanagedNode = new VNode(this, "div", [], "", new Props(this), [], mount, "__UNMANAGED__");
         mount.children.push(unmanagedNode);
-        return new Renderer().renderTree(unmanagedNode);
+        return unmanagedNode;
     }
 }

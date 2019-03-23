@@ -25,7 +25,6 @@ export class Renderer {
 
     private removeElement(parent: HTMLElement, toRemove: VNode) {
         parent.removeChild(toRemove.htmlElement);
-        toRemove.parent.children.splice(toRemove.parent.children.indexOf(toRemove), 1);
     }
 
     private diffElement(oldVNode?: VNode, newVNode?: VNode): PatchFunction {
@@ -81,7 +80,7 @@ export class Renderer {
     }
 
     private diffInnerHtml(oldVNode: VNode, newVNode: VNode): PatchFunction {
-        if (newVNode.getInnerHtml() != oldVNode.getInnerHtml()) {
+        if (newVNode.modifiedInnerHtml || newVNode.dynamicContent) {
             return $node => {
                 $node.innerHTML = newVNode.getInnerHtml();
                 return $node;
@@ -99,7 +98,6 @@ export class Renderer {
                 $node.removeAttribute(attribute.name);
                 return $node;
             })
-            newVNode.htmlElement.removeAttribute(attribute.name);
         });
 
         newVNode.attrs.forEach(attr => {

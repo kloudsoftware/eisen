@@ -1,4 +1,4 @@
-import { Comparable, arraysEquals, Stringparser } from './Common';
+import { Comparable, arraysEquals, Stringparser, dataRegex } from './Common';
 import { VApp } from './VApp'
 import { v4 as uuid } from 'uuid';
 import { Props } from './Props';
@@ -19,6 +19,8 @@ export class VNode implements Comparable<VNode> {
     text?: string;
     eventListeners: EventListener[];
     props: Props;
+    dynamicContent = false;
+    modifiedInnerHtml = false;
 
     constructor(app: VApp, nodeName: string, children: VNode[], innerHtml?: string, props?: Props, attrs?: Attribute[], parent?: VNode, id?: string) {
         if (attrs == undefined) {
@@ -42,6 +44,13 @@ export class VNode implements Comparable<VNode> {
             this.id = uuid();
         }
 
+        if (innerHtml != undefined) {
+            let parsed = innerHtml.match(dataRegex)
+            if (parsed != null && parsed.length != 0) {
+                this.dynamicContent = true;
+            }
+        }
+
         this.attrs.push(new Attribute(kloudAppId, this.id));
     }
 
@@ -58,6 +67,7 @@ export class VNode implements Comparable<VNode> {
 
     public setInnerHtml(str: string) {
         this.app.notifyDirty();
+        this.modifiedInnerHtml = true;
         this.innerHtml = str;
     }
 
@@ -93,7 +103,7 @@ export class VNode implements Comparable<VNode> {
     public clone(parent: VNode): VNode {
         const id = this.id;
         const nodeName = this.nodeName;
-        const innerHtml = this.innerHtml;
+        const innerHtml = this.innerHtmlCached;
         const props = Object.assign(this.props, {}) as Props;
 
         const htmlElement = this.htmlElement;
