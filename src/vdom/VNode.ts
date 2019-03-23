@@ -13,7 +13,6 @@ export class VNode implements Comparable<VNode> {
     attrs: Attribute[];
     nodeName: string;
     private innerHtml: string;
-    innerHtmlCached: string;
     parent?: VNode;
     children: VNode[];
     htmlElement?: HTMLElement;
