@@ -103,7 +103,7 @@ export class VNode implements Comparable<VNode> {
     public clone(parent: VNode): VNode {
         const id = this.id;
         const nodeName = this.nodeName;
-        const innerHtml = this.innerHtmlCached;
+        const innerHtml = this.innerHtml;
         const props = Object.assign(this.props, {}) as Props;
 
         const htmlElement = this.htmlElement;
