@@ -3,6 +3,7 @@ import { Renderer } from './render';
 import { Props } from './Props';
 import { Component, ComponentProps } from './Component';
 import { EventHandler } from './EventHandler';
+import { invokeIfDefined } from './Common';
 
 export const unmanagedNode: string = "__UNMANAGED__"
 
@@ -62,12 +63,11 @@ export class VApp {
                 return;
             }
 
-            //console.log("Redrawing dom");
+            console.log("Redraw");
             let patch = this.renderer.diffAgainstLatest(this);
             patch.apply(this.rootNode.htmlElement)
             this.dirty = false;
             this.snapshots.push(this.clone());
-            //console.log(this);
 
 
             if (this.initial) {
@@ -76,10 +76,10 @@ export class VApp {
             }
 
             this.compProps.forEach(prop => {
-                if (prop.mounted) prop.mounted;
+                invokeIfDefined(prop.mounted)
             });
             this.compProps = [];
-        }, 50);
+        }, 1);
     }
 
     public notifyDirty() {
@@ -90,6 +90,7 @@ export class VApp {
         if (this.snapshots.length < 1) {
             return undefined;
         }
+
         return this.snapshots[this.snapshots.length - 1];
     }
 

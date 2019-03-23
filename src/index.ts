@@ -23,7 +23,14 @@ app.mountComponent(btnComponent, btnContainer, new Props(app));
 app.mountComponent(btnComponent, btnContainer, new Props(app));
 
 app.createElement("h1", "Hello world", vRootDiv);
-app.createElement("input", undefined, vRootDiv);
+let inputElem = app.createElement("input", undefined, vRootDiv);
+let textElem = app.createElement("p", "", vRootDiv);
+
+eventHandler.registerEventListener("input", (ev, node) => {
+    textElem.setInnerHtml((node.htmlElement as HTMLInputElement).value);
+}, inputElem)
+
+
 let toRemove = app.createElement("p", "this will be removed", vRootDiv);
 let btn = app.createElement("button", "click me!", vRootDiv);
 
@@ -44,6 +51,7 @@ const remove = (event) => {
 
 eventHandler.registerEventListener("click", addPTag, btn);
 eventHandler.registerEventListener("click", remove, toRemove);
+
 
 
 

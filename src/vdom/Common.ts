@@ -51,3 +51,9 @@ export class Stringparser {
         return parts.join(this.getFromProps(splitter, props));
     }
 }
+
+export const invokeIfDefined = (fun: () => void) => {
+    if (fun != undefined) {
+        fun();
+    }
+}
