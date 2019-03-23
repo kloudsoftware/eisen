@@ -6,8 +6,6 @@ import { ProsemirrorComponent } from './components/prosemirror/ProsemirrorCompon
 import { Props } from './vdom/Props';
 import BtnCounter from './components/btncounter/BtnCounter';
 
-
-
 const renderer = new Renderer();
 const app = new VApp("target", renderer);
 app.init();
@@ -51,6 +49,22 @@ const remove = (event) => {
 
 eventHandler.registerEventListener("click", addPTag, btn);
 eventHandler.registerEventListener("click", remove, toRemove);
+
+let node = app.k("ol", "My list", undefined, undefined,
+    app.k("li", "first"),
+    app.k("li", "second"),
+    app.k("li", "third"),
+    app.k("li", "fourth"),
+    app.k("li", "fifth"),
+    app.k("li", "sixth"),
+    app.k("ul", "Unordered list", undefined,
+        app.k("li", "item 1"),
+        app.k("li", "item 2")
+    )
+);
+
+node.parent = vRootDiv;
+vRootDiv.children.push(node);
 
 
 

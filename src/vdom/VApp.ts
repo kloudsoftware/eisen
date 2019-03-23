@@ -7,6 +7,7 @@ import { invokeIfDefined } from './Common';
 
 export const unmanagedNode: string = "__UNMANAGED__"
 
+type ElemFunc = (type: string, value: string, attrs?: Array<Attribute>, ...children: Array<VNode>) => VNode
 type AppEvent = () => void;
 
 export class VApp {
@@ -126,5 +127,21 @@ export class VApp {
         let unmanagedNode = new VNode(this, "div", [], "", new Props(this), [], mount, "__UNMANAGED__");
         mount.children.push(unmanagedNode);
         return unmanagedNode;
+    }
+
+    public k: ElemFunc = (type: string, value: string, attrs?: Array<Attribute>, ...children: Array<VNode>): VNode => {
+        if (children == undefined) {
+            children = [];
+        }
+
+        let cleaned = children.filter(child => child != undefined);
+
+        const node = new VNode(this, type, cleaned, value, new Props(this), []);
+
+        cleaned.forEach(child => {
+            child.parent = node;
+        });
+
+        return node;
     }
 }
