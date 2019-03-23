@@ -2,21 +2,15 @@ import { VNode } from './VNode';
 import { Props } from './Props';
 import { VApp } from './VApp';
 
-export type ComponentScriptFunc = () => void
-export type ComponentBuildFunc = (root: VNode, props: Props) => ComponentScriptFunc
+
+export type ComponentBuildFunc = (root: VNode, props: Props) => ComponentProps
 
 export abstract class Component {
     abstract build(app: VApp): ComponentBuildFunc;
+}
 
-    beforeMount(): ComponentScriptFunc {
-        return () => { };
-    }
-
-    mounted(): ComponentScriptFunc {
-        return () => { };
-    }
-
-    unmounted(): ComponentScriptFunc {
-        return () => { };
-    }
+export interface ComponentProps {
+    mounted(): void;
+    beforeUnmount?(): void;
+    unmounted?(): void;
 }
