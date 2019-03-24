@@ -63,7 +63,7 @@ export class EventHandler {
             };
 
             const result = Array.from(scopedHandlers.keys());
-            result.filter(res => res.id == $targetAppId).forEach(it => {
+            result.filter(res => res.htmlElement == $target).forEach(it => {
                 let evtHandlers = scopedHandlers.get(it);
                 evtHandlers.forEach(func => {
                     //console.log("Applying ", it, " to: ", func)

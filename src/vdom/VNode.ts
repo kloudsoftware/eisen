@@ -3,7 +3,7 @@ import { VApp } from './VApp'
 import { v4 as uuid } from 'uuid';
 import { Props } from './Props';
 
-export const kloudAppId = "kloudappid";
+export const kloudAppId = "data-kloudappid";
 
 const parser = new Stringparser();
 
@@ -40,8 +40,6 @@ export class VNode implements Comparable<VNode> {
         this.children = children;
         if (id != undefined) {
             this.id = id;
-        } else {
-            this.id = uuid();
         }
 
         if (innerHtml != undefined) {
@@ -95,7 +93,7 @@ export class VNode implements Comparable<VNode> {
         let replaceIndex = -1;
         for (let i = 0; i < this.children.length; i++) {
             if (this.children[i] == undefined) continue;
-            if (this.children[i].id == toReplace.id) {
+            if (this.children[i] == toReplace) {
                 replaceIndex = i;
                 break;
             }
