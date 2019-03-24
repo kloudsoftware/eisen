@@ -17,7 +17,6 @@ export class VNode implements Comparable<VNode> {
     private children: VNode[];
     htmlElement?: HTMLElement;
     text?: string;
-    eventListeners: EventListener[];
     props: Props;
     dynamicContent = false;
     modifiedInnerHtml = false;
@@ -61,6 +60,10 @@ export class VNode implements Comparable<VNode> {
         }
 
         this.attrs.filter(a => a.attrName == name)[0].attrValue = value;
+    }
+
+    public $getChildren() {
+        return this.children;
     }
 
     public setInnerHtml(str: string) {
@@ -168,5 +171,14 @@ export class Attribute implements Comparable<Attribute> {
 
     public equals(attribute: Attribute): boolean {
         return this.attrName == attribute.attrName && this.attrValue == attribute.attrValue;
+    }
+}
+
+export class VInputNode extends VNode {
+
+    bind(object: Props, propKey: string) {
+        this.app.eventHandler.registerEventListener("input", (ev, node) => {
+            object.setProp(propKey, (node.htmlElement as HTMLInputElement).value);
+        }, this);
     }
 }

@@ -1,5 +1,5 @@
 import { VApp } from './vdom/VApp';
-import { VNode, Attribute } from './vdom/VNode';
+import { VNode, Attribute, VInputNode } from './vdom/VNode';
 import { Renderer } from './vdom/render';
 import { EventHandler } from './vdom/EventHandler';
 import { ProsemirrorComponent } from './components/prosemirror/ProsemirrorComponent';
@@ -22,11 +22,13 @@ app.mountComponent(btnComponent, btnContainer, new Props(app));
 
 app.createElement("h1", "Hello world", vRootDiv);
 let inputElem = app.createElement("input", undefined, vRootDiv);
-let textElem = app.createElement("p", "", vRootDiv);
 
-eventHandler.registerEventListener("input", (ev, node) => {
-    textElem.setInnerHtml((node.htmlElement as HTMLInputElement).value);
-}, inputElem)
+let myProps = new Props(app);
+
+myProps.setProp("val", "");
+let textElem = app.createElement("p", "{{ val }}", vRootDiv, undefined, myProps);
+
+(inputElem as VInputNode).bind(myProps, "val");
 
 
 let toRemove = app.createElement("p", "this will be removed", vRootDiv);

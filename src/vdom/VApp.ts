@@ -1,4 +1,4 @@
-import { VNode, Attribute } from './VNode'
+import { VNode, Attribute, VInputNode } from './VNode'
 import { Renderer } from './render';
 import { Props } from './Props';
 import { Component, ComponentProps } from './Component';
@@ -106,7 +106,7 @@ export class VApp {
         return new VApp(this.targetId, this.renderer, this.rootNode);
     }
 
-    public createElement(tagName: string, content = "", parentNode?: VNode, attrs?: [Attribute], props?: Props): VNode {
+    public createElement(tagName: string, content = "", parentNode?: VNode, attrs?: [Attribute], props?: Props): VNode | VInputNode {
         this.notifyDirty();
         if (props == undefined) {
             props = new Props(this);
@@ -115,7 +115,14 @@ export class VApp {
             parentNode = this.rootNode;
         }
 
-        let newNode = new VNode(this, tagName, new Array<VNode>(), content, props, attrs, parentNode);
+        let newNode: VNode | VInputNode;
+
+        if (tagName == "input") {
+            newNode = new VInputNode(this, tagName, new Array<VNode>(), content, props, attrs, parentNode);
+        } else {
+            newNode = new VNode(this, tagName, new Array<VNode>(), content, props, attrs, parentNode);
+        }
+
         parentNode.appendChild(newNode);
 
         //console.log("Adding node: ", newNode)
@@ -136,7 +143,13 @@ export class VApp {
 
         let cleaned = children.filter(child => child != undefined);
 
-        const node = new VNode(this, type, cleaned, value, new Props(this), []);
+        let node: VInputNode | VNode;
+
+        if (type == "input") {
+            node = new VInputNode(this, type, cleaned, value, new Props(this), [])
+        }
+
+        node = new VNode(this, type, cleaned, value, new Props(this), []);
 
         cleaned.forEach(child => {
             child.parent = node;

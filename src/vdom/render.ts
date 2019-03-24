@@ -57,11 +57,11 @@ export class Renderer {
         }
 
         let childPatches: PatchFunction[] = [];
-        oldVNode.children.forEach((child, i) => {
-            childPatches.push(this.diffElement(child, newVNode.children[i]));
+        oldVNode.$getChildren().forEach((child, i) => {
+            childPatches.push(this.diffElement(child, newVNode.$getChildren()[i]));
         });
 
-        newVNode.children.slice(oldVNode.children.length).forEach(child => {
+        newVNode.$getChildren().slice(oldVNode.$getChildren().length).forEach(child => {
             childPatches.push(parent => {
                 parent.appendChild(this.renderTree(child));
                 return parent;
@@ -122,7 +122,7 @@ export class Renderer {
             node.attrs.forEach(attr => $elem.setAttribute(attr.attrName, attr.attrValue));
         }
 
-        node.children.forEach(child => {
+        node.$getChildren().forEach(child => {
             $elem.appendChild(this.renderTree(child))
         })
 
