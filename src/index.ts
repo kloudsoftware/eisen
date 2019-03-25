@@ -18,7 +18,9 @@ const btnComponent = new BtnCounter();
 
 app.mountComponent(btnComponent, btnContainer, new Props(app));
 app.mountComponent(btnComponent, btnContainer, new Props(app));
-app.mountComponent(btnComponent, btnContainer, new Props(app));
+let rmo = app.mountComponent(btnComponent, btnContainer, new Props(app));
+
+app.unmountComponent(rmo);
 
 app.createElement("h1", "Hello world", vRootDiv);
 let inputElem = app.createElement("input", undefined, vRootDiv);

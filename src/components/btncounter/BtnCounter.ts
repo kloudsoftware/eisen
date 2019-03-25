@@ -15,6 +15,13 @@ export default class BtnCounter extends Component {
             }, btn)
 
             return {
+                mounted: () => {
+                    console.log("Mounted");
+                },
+
+                unmounted: () => {
+                    console.log("unmounted");
+                }
             }
         }
     }

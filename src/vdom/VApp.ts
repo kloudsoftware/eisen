@@ -1,14 +1,15 @@
 import { VNode, Attribute, VInputNode } from './VNode'
 import { Renderer } from './render';
 import { Props } from './Props';
-import { Component, ComponentProps } from './Component';
+import { Component, ComponentProps, ComponentEventHolder } from './Component';
 import { EventHandler } from './EventHandler';
 import { invokeIfDefined } from './Common';
 
 export const unmanagedNode: string = "__UNMANAGED__"
 
 type ElemFunc = (type: string, value: string, attrs?: Array<Attribute>, ...children: Array<VNode>) => VNode
-type AppEvent = () => void;
+export type AppEvent = () => void;
+export type FunctionHolder = [boolean, AppEvent];
 
 export class VApp {
     rootNode: VNode;
@@ -18,7 +19,8 @@ export class VApp {
     renderer: Renderer;
     eventListeners: AppEvent[] = [];
     initial = true;
-    compProps: ComponentProps[] = [];
+    compProps: Array<ComponentEventHolder> = new Array<ComponentEventHolder>();
+    compsToNotifyUnmount: Array<AppEvent> = new Array<AppEvent>();
     eventHandler: EventHandler;
 
     constructor(targetId: string, renderer: Renderer, rootNode?: VNode) {
@@ -41,17 +43,34 @@ export class VApp {
         this.eventListeners.push(listener);
     }
 
-    public mountComponent(component: Component, mount: VNode, props: Props) {
+    public mountComponent(component: Component, mount: VNode, props: Props): VNode {
         if (props == undefined) {
             props = new Props(this);
         }
 
-        let compProps = component.build(this)(mount, props);
-        this.compProps.push(compProps);
+        let compMount = this.createElement("div", undefined, mount);
+        let compProps = component.build(this)(compMount, props);
+        this.compProps.push(new ComponentEventHolder(compProps, compMount));
+        return compMount;
     }
 
-    //TODO: Unmount
+    public unmountComponent(mount: VNode) {
+        const filteredComps = this.compProps.filter(it => it.mount == mount);
 
+        if(filteredComps.length == 0) {
+            console.error("Node is not component mount")
+            return;
+        } else if(!filteredComps[0].mount[0]) {
+            console.error("Component cannot be unmounted before it was mounted")
+            return;
+        }
+
+        let target = filteredComps[0];
+
+        target.mount.parent.removeChild(target.mount);
+        this.compProps.splice(this.compProps.indexOf(target), 1);
+        this.compsToNotifyUnmount.push(target.unmounted);
+    }
 
     public init() {
         this.snapshots.push(this.clone());
@@ -76,10 +95,14 @@ export class VApp {
                 this.eventListeners.forEach(f => f())
             }
 
-            this.compProps.forEach(prop => {
-                invokeIfDefined(prop.mounted)
+            this.compProps.filter(prop => !prop.mounted[0]).forEach(prop => {
+                invokeIfDefined(prop.mounted[1])
+                prop.mounted[0] = true;
             });
-            this.compProps = [];
+
+            this.compsToNotifyUnmount.forEach(f => invokeIfDefined(f));
+            this.compsToNotifyUnmount = [];
+
         }, 50);
     }
 
