@@ -6,7 +6,7 @@ type EvtType = "click" | "close" | "complete" | "copy" | "cut" | "deviceorientat
     "mouseup" | "offline" | "online" | "open" | "orientationchange" | "pagehide" | "pageshow" | "paste" | "pause" | "play" | "playing" | "progress" | "readystatechange" | "reset" | "scroll" | "seeked" | "seeking" | "select" | "show" | "stalled" |
     "storage" | "submit" | "success" | "suspend" | "timeout" | "timeupdate" | "touchcancel" | "touchend" | "touchenter" | "touchleave" | "touchmove" | "touchstart" | "visibilitychange" | "volumechange" | "waiting" | "wheel"
 
-type EvtHandlerFunc = (ev: Event, node?: VNode) => void;
+export type EvtHandlerFunc = (ev: Event, node?: VNode) => void;
 
 export class EventHandler {
     events = ["click", "close", "complete", "copy", "cut", "deviceorientation", "DOMContentLoaded", "keyup", "drag", "dragend", "dragenter", "dragleave", "dragover", "dragstart", "drop", "durationchange",
