@@ -164,15 +164,19 @@ export class VApp {
             children = [];
         }
 
+        if (attrs == undefined) {
+            attrs = [];
+        }
+
         let cleaned = children.filter(child => child != undefined);
 
         let node: VInputNode | VNode;
 
         if (type == "input") {
-            node = new VInputNode(this, type, cleaned, value, new Props(this), [])
+            node = new VInputNode(this, type, cleaned, value, new Props(this), attrs)
         }
 
-        node = new VNode(this, type, cleaned, value, new Props(this), []);
+        node = new VNode(this, type, cleaned, value, new Props(this), attrs);
 
         cleaned.forEach(child => {
             child.parent = node;
