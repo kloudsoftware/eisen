@@ -1,11 +1,12 @@
-import { VNode, Attribute, VInputNode } from './VNode'
+import { VNode, Attribute, VInputNode, VNodeType } from './VNode'
 import { Renderer } from './render';
 import { Props } from './Props';
-import { Component, ComponentProps, ComponentEventHolder } from './Component';
+import { Component, ComponentEventHolder } from './Component';
 import { EventHandler } from './EventHandler';
 import { invokeIfDefined } from './Common';
 
 export const unmanagedNode: string = "__UNMANAGED__"
+
 
 type ElemFunc = (type: string, value: string, attrs?: Array<Attribute>, ...children: Array<VNode>) => VNode
 export type AppEvent = () => void;
@@ -27,7 +28,7 @@ export class VApp {
         this.targetId = targetId;
         this.renderer = renderer;
         let $root = document.getElementById(targetId);
-        let $tagName = $root.tagName.toLowerCase();
+        let $tagName = $root.tagName.toLowerCase() as VNodeType;
         this.dirty = false;
         if (rootNode != undefined) {
             this.rootNode = rootNode.clone(undefined);
@@ -129,7 +130,7 @@ export class VApp {
         return new VApp(this.targetId, this.renderer, this.rootNode);
     }
 
-    public createElement(tagName: string, content = "", parentNode?: VNode, attrs?: [Attribute], props?: Props): VNode | VInputNode {
+    public createElement(tagName: VNodeType, content = "", parentNode?: VNode, attrs?: [Attribute], props?: Props): VNode | VInputNode {
         this.notifyDirty();
         if (props == undefined) {
             props = new Props(this);
@@ -159,7 +160,7 @@ export class VApp {
         return unmanagedNode;
     }
 
-    public k: ElemFunc = (type: string, value?: string, attrs?: Array<Attribute>, ...children: Array<VNode>): VInputNode | VNode => {
+    public k: ElemFunc = (type: VNodeType, value?: string, attrs?: Array<Attribute>, ...children: Array<VNode>): VInputNode | VNode => {
         if (children == undefined) {
             children = [];
         }
