@@ -25,7 +25,9 @@ export class Router {
         }
 
         if (this.resolvedRouterMap.has(path)) {
+            this.mount.$getChildren().forEach(child => this.mount.removeChild(child));
             this.app.remountComponent(this.resolvedRouterMap.get(path), this.mount);
+            this.currPath = path;
             return true;
         }
 
@@ -35,17 +37,25 @@ export class Router {
         }
 
         this.mount.$getChildren().forEach(child => this.mount.removeChild(child));
-
+        this.currPath = path;
         let cmp = this.componentMap.get(path);
         this.app.routerMountComponent(cmp, this.mount, new Props(this.app));
     }
 }
 
 export class RouterLink extends VNode {
+    target: string;
 
-    constructor(app: VApp, nodeName: VNodeType, children: VNode[], innerHtml?: string, props?: Props, attrs?: Attribute[], parent?: VNode, id?: string) {
+    constructor(app: VApp, target: string, children: VNode[], innerHtml?: string, props?: Props, attrs?: Attribute[], parent?: VNode, id?: string) {
         super(app, "a", children, innerHtml, props, attrs, parent, id);
+        this.target = target;
 
-        //this.app.router.registerRoute()
+        this.addEventlistener("click", (event, link) => {
+            if (!this.app.router.resolveRoute(this.target)) {
+                return;
+            }
+
+            event.preventDefault();
+        });
     }
 }
