@@ -18,6 +18,12 @@ export class AdminRegister extends Component {
             let pwInput = app.k("input", undefined, [id("iPassword"), password()]) as VInputNode;
             let pwConfirm =  app.k("input", undefined, [id("iPasswordConfirm"), password()]) as VInputNode;
             let userName = app.k("input", undefined, [id("iUserName")]) as VInputNode;
+            let confirmBtn = app.k("button", "Register", [cssClass("btn", "btn-confirm")]);
+
+            confirmBtn.addEventlistener("click", (_, btn) => {
+                console.log(userInfo);
+            });
+
 
             userName.bindObject(userInfo, "userName");
             pwInput.bindObject(userInfo, "password");
@@ -32,6 +38,7 @@ export class AdminRegister extends Component {
                                     pwInput,
                                     app.k("label", "Confirm password", [labelFor("iPasswordConfirm")]),
                                     pwConfirm,
+                                    confirmBtn,
                                    )
                              );
 

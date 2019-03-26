@@ -2,7 +2,7 @@ import { Comparable, arraysEquals, Stringparser, dataRegex } from './Common';
 import { VApp, AppEvent } from './VApp'
 import { v4 as uuid } from 'uuid';
 import { Props } from './Props';
-import { EvtHandlerFunc } from './EventHandler';
+import { EvtHandlerFunc, EvtType } from './EventHandler';
 
 export const kloudAppId = "data-kloudappid";
 
@@ -98,6 +98,10 @@ export class VNode implements Comparable<VNode> {
         this.app.notifyDirty();
         node.parent = this;
         this.children.push(node);
+    }
+
+    public addEventlistener(evt: EvtType, func: EvtHandlerFunc) {
+        this.app.eventHandler.registerEventListener(evt, func, this);
     }
 
     private replaceWith(toReplace: VNode, replacement?: VNode): void {

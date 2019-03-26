@@ -10,4 +10,11 @@ h1 {
     padding-right: 2em;
 }
 
+.btn {
+    margin-top: .5em;
+}
+
+.btn-confirm {
+    color: green;
+}
 `;
