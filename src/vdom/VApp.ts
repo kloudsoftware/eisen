@@ -159,7 +159,7 @@ export class VApp {
         return unmanagedNode;
     }
 
-    public k: ElemFunc = (type: string, value?: string, attrs?: Array<Attribute>, ...children: Array<VNode>): VNode => {
+    public k: ElemFunc = (type: string, value?: string, attrs?: Array<Attribute>, ...children: Array<VNode>): VInputNode | VNode => {
         if (children == undefined) {
             children = [];
         }
@@ -178,9 +178,9 @@ export class VApp {
 
         if (type == "input") {
             node = new VInputNode(this, type, cleaned, value, new Props(this), attrs)
+        } else {
+            node = new VNode(this, type, cleaned, value, new Props(this), attrs);
         }
-
-        node = new VNode(this, type, cleaned, value, new Props(this), attrs);
 
         cleaned.forEach(child => {
             child.parent = node;
