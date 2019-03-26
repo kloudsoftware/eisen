@@ -207,6 +207,7 @@ export const cssClass = (...classNames: string[]) => {
 export const id = (id: string) => new Attribute("id", id);
 export const labelFor = (idFor: string) => new Attribute("for", idFor);
 export const password = () => new Attribute("type", "password");
+export const src = (srcStr: string) => new Attribute("src", srcStr);
 
 export class Attribute implements Comparable<Attribute> {
     public attrName: string;

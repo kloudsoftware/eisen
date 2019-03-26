@@ -44,7 +44,7 @@ export class AdminRegister extends Component {
             pwConfirm.bindObject(userInfo, "passwordConfirm");
 
             const div = app.k("div", undefined, undefined,
-                              app.k("h1", "Create admin account"),
+                              app.k("h1", "Create admin account", [cssClass("admin-register-heading")]),
                               app.k("div", undefined, [cssClass("form-holder")],
                                     app.k("label", "Enter user name", [labelFor("iUserNam"), cssClass("user-input-label")]),
                                     userName,
