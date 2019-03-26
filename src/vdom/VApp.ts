@@ -8,7 +8,7 @@ import { invokeIfDefined } from './Common';
 export const unmanagedNode: string = "__UNMANAGED__"
 
 
-type ElemFunc = (type: string, value: string, attrs?: Array<Attribute>, ...children: Array<VNode>) => VNode
+type ElemFunc = (type: VNodeType, value: string, attrs?: Array<Attribute>, ...children: Array<VNode>) => VNode
 export type AppEvent = () => void;
 export type FunctionHolder = [boolean, AppEvent];
 
@@ -160,7 +160,7 @@ export class VApp {
         return unmanagedNode;
     }
 
-    public k: ElemFunc = (type: VNodeType, value?: string, attrs?: Array<Attribute>, ...children: Array<VNode>): VInputNode | VNode => {
+    public k: ElemFunc = (nodeName: VNodeType, value?: string, attrs?: Array<Attribute>, ...children: Array<VNode>): VInputNode | VNode => {
         if (children == undefined) {
             children = [];
         }
@@ -177,10 +177,10 @@ export class VApp {
 
         let node: VInputNode | VNode;
 
-        if (type == "input") {
-            node = new VInputNode(this, type, cleaned, value, new Props(this), attrs)
+        if (nodeName == "input") {
+            node = new VInputNode(this, nodeName, cleaned, value, new Props(this), attrs)
         } else {
-            node = new VNode(this, type, cleaned, value, new Props(this), attrs);
+            node = new VNode(this, nodeName, cleaned, value, new Props(this), attrs);
         }
 
         cleaned.forEach(child => {
