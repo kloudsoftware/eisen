@@ -30,7 +30,7 @@ export class AdminRegister extends Component {
                     pwConfirm.addClass("error");
                     errorAdded = true;
                     return;
-                } else if(userInfo.password == userInfo.passwordConfirm) {
+                } else if(userInfo.password == userInfo.passwordConfirm && errorAdded) {
                     errorAdded = false;
                     pwConfirm.removeClass("error")
                 }
