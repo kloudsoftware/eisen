@@ -25,16 +25,19 @@ export class Router {
         }
 
         if (this.resolvedRouterMap.has(path)) {
-            //this.app.unmountComponent()
+            this.app.remountComponent(this.resolvedRouterMap.get(path), this.mount);
             return true;
         }
 
         if(!this.componentMap.has(path)) {
+            console.error("No component registered with the router for ", path)
             return false;
         }
 
+        this.mount.$getChildren().forEach(child => this.mount.removeChild(child));
+
         let cmp = this.componentMap.get(path);
-        this.app.mountComponent(cmp, this.mount, new Props(this.app));
+        this.app.routerMountComponent(cmp, this.mount, new Props(this.app));
     }
 }
 

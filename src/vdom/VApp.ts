@@ -42,8 +42,8 @@ export class VApp {
         this.eventHandler = new EventHandler(this);
     }
 
-    public useRouter(): Router {
-        this.router = new Router(this);
+    public useRouter(mount: VNode): Router {
+        this.router = new Router(this, mount);
         return this.router;
     }
 
@@ -60,6 +60,28 @@ export class VApp {
         let compProps = component.build(this)(compMount, props);
         this.compProps.push(new ComponentHolder(compProps, compMount));
         return compMount;
+    }
+
+    public routerMountComponent(component: Component, mount: VNode, props: Props): ComponentHolder {
+        if(this.router == undefined) {
+            console.error("No router mounted")
+            return undefined;
+        }
+        if (props == undefined) {
+            props = new Props(this);
+        }
+
+        let compMount = this.createElement("div", undefined, mount);
+        let compProps = component.build(this)(compMount, props);
+        const holder = new ComponentHolder(compProps, compMount);
+        this.compProps.push(holder);
+        return holder;
+    }
+
+    public remountComponent(holder: ComponentHolder, mount) {
+        holder.remount[0] = false;
+        mount.appendChild(holder.mount);
+        this.compProps.push(holder);
     }
 
     public unmountComponent(mount: VNode) {
@@ -106,6 +128,11 @@ export class VApp {
             this.compProps.filter(prop => !prop.mounted[0]).forEach(prop => {
                 invokeIfDefined(prop.mounted[1])
                 prop.mounted[0] = true;
+            });
+
+            this.compProps.filter(prop => !prop.remount[0]).forEach(prop => {
+                invokeIfDefined(prop.remount[1])
+                prop.remount[0] = true;
             });
 
             this.compsToNotifyUnmount.forEach(f => invokeIfDefined(f));
