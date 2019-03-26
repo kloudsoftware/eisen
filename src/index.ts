@@ -4,6 +4,7 @@ import { Renderer } from './vdom/render';
 import { EventHandler } from './vdom/EventHandler';
 import { Props } from './vdom/Props';
 import { AdminRegister } from './components/adminregister/AdminRegisterComponent';
+import { Navbar } from './components/navbar/Navbar';
 
 const renderer = new Renderer();
 const app = new VApp("target", renderer);
@@ -25,6 +26,7 @@ html, body {
 `;
 app.createElement("style", css, app.rootNode);
 
+app.mountComponent(new Navbar(), app.rootNode, new Props(app));
 const container = app.createElement("div", undefined, app.rootNode, [cssClass("container", "center-container")]);
 app.mountComponent(new AdminRegister(), container, new Props(app));
 
