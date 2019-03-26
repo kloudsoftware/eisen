@@ -165,6 +165,15 @@ export class VNode implements Comparable<VNode> {
     }
 }
 
+export const cssClass = (...classNames: string[]) => {
+    const val = classNames.reduce((acc, curr) => acc + curr + " ", "").trim();
+    return new Attribute("class", val);
+}
+
+export const id = (id: string) => new Attribute("id", id);
+export const labelFor = (idFor: string) => new Attribute("for", idFor);
+export const password = () => new Attribute("type", "password");
+
 export class Attribute implements Comparable<Attribute> {
     public attrName: string;
     public attrValue: string;
