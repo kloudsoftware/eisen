@@ -171,8 +171,10 @@ export class VNode implements Comparable<VNode> {
     }
 
     public addClass = (name: string) => {
+        this.app.notifyDirty();
         let classAttr = this.attrs.filter(el => el.attrName == "class")[0];
         if(classAttr == undefined) {
+            console.log("debug")
             classAttr = new Attribute("class", name);
             this.attrs.push(classAttr);
             return;
@@ -182,6 +184,7 @@ export class VNode implements Comparable<VNode> {
     }
 
     public removeClass = (name: string) => {
+        this.app.notifyDirty();
         const classAttr = this.attrs.filter(el => el.attrName == "class")[0];
 
         if(classAttr == undefined) {

@@ -12,10 +12,15 @@ h1 {
 
 .btn {
     margin-top: .5em;
+    border-radius: 5%
 }
 
 .btn-confirm {
     background-color: green;
     color: white;
+}
+
+.error {
+    border-color: red;
 }
 `;

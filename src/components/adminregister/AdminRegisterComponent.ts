@@ -20,8 +20,14 @@ export class AdminRegister extends Component {
             let userName = app.k("input", undefined, [id("iUserName")]) as VInputNode;
             let confirmBtn = app.k("button", "Register", [cssClass("btn", "btn-confirm")]);
 
+            let errorAdded = false;
+
             confirmBtn.addEventlistener("click", (_, btn) => {
-                console.log(userInfo);
+                if(userInfo.password != userInfo.passwordConfirm && !errorAdded) {
+                    pwConfirm.addClass("error");
+                    errorAdded = true;
+                    console.log("error")
+                }
             });
 
             userName.bindObject(userInfo, "userName");
