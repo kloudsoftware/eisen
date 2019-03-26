@@ -159,13 +159,17 @@ export class VApp {
         return unmanagedNode;
     }
 
-    public k: ElemFunc = (type: string, value: string, attrs?: Array<Attribute>, ...children: Array<VNode>): VNode => {
+    public k: ElemFunc = (type: string, value?: string, attrs?: Array<Attribute>, ...children: Array<VNode>): VNode => {
         if (children == undefined) {
             children = [];
         }
 
         if (attrs == undefined) {
             attrs = [];
+        }
+
+        if (value == undefined) {
+            value = "";
         }
 
         let cleaned = children.filter(child => child != undefined);
