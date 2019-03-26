@@ -15,6 +15,7 @@ h1 {
 }
 
 .btn-confirm {
-    color: green;
+    background-color: green;
+    color: white;
 }
 `;

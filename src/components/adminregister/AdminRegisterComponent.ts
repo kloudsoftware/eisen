@@ -24,7 +24,6 @@ export class AdminRegister extends Component {
                 console.log(userInfo);
             });
 
-
             userName.bindObject(userInfo, "userName");
             pwInput.bindObject(userInfo, "password");
             pwConfirm.bindObject(userInfo, "passwordConfirm");
@@ -42,7 +41,6 @@ export class AdminRegister extends Component {
                                    )
                              );
 
-            //this is called when the component is mounted to the dom
             root.appendChild(div);
 
             return {}
