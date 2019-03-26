@@ -1,9 +1,10 @@
 import { VNode, Attribute, VInputNode, VNodeType } from './VNode'
 import { Renderer } from './render';
 import { Props } from './Props';
-import { Component, ComponentEventHolder } from './Component';
+import { Component, ComponentHolder } from './Component';
 import { EventHandler } from './EventHandler';
 import { invokeIfDefined } from './Common';
+import { Router } from '../Router';
 
 export const unmanagedNode: string = "__UNMANAGED__"
 
@@ -20,9 +21,10 @@ export class VApp {
     renderer: Renderer;
     eventListeners: AppEvent[] = [];
     initial = true;
-    compProps: Array<ComponentEventHolder> = new Array<ComponentEventHolder>();
+    compProps: Array<ComponentHolder> = new Array<ComponentHolder>();
     compsToNotifyUnmount: Array<AppEvent> = new Array<AppEvent>();
     eventHandler: EventHandler;
+    router?: Router;
 
     constructor(targetId: string, renderer: Renderer, rootNode?: VNode) {
         this.targetId = targetId;
@@ -40,6 +42,11 @@ export class VApp {
         this.eventHandler = new EventHandler(this);
     }
 
+    public useRouter(): Router {
+        this.router = new Router(this);
+        return this.router;
+    }
+
     public addInitialRenderEventlistener(listener: AppEvent) {
         this.eventListeners.push(listener);
     }
@@ -51,17 +58,17 @@ export class VApp {
 
         let compMount = this.createElement("div", undefined, mount);
         let compProps = component.build(this)(compMount, props);
-        this.compProps.push(new ComponentEventHolder(compProps, compMount));
+        this.compProps.push(new ComponentHolder(compProps, compMount));
         return compMount;
     }
 
     public unmountComponent(mount: VNode) {
         const filteredComps = this.compProps.filter(it => it.mount == mount);
 
-        if(filteredComps.length == 0) {
+        if (filteredComps.length == 0) {
             console.error("Node is not component mount")
             return;
-        } else if(!filteredComps[0].mount[0]) {
+        } else if (!filteredComps[0].mount[0]) {
             console.error("Component cannot be unmounted before it was mounted")
             return;
         }

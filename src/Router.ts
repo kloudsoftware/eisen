@@ -1,94 +1,48 @@
-import {HttpClient} from './HttpClient';
+import { HttpClient } from './HttpClient';
+import { VApp } from './vdom/VApp';
+import { Component, ComponentHolder } from './vdom/Component';
+import { VNode, Attribute, VNodeType } from './vdom/VNode';
+import { Props } from './vdom/Props';
 
 export class Router {
-    private routes: [Route];
-    private container: HTMLDivElement;
+    app: VApp;
+    resolvedRouterMap: Map<string, ComponentHolder> = new Map();
+    componentMap: Map<string, Component> = new Map();
+    mount: VNode;
+    currPath: string;
 
-    constructor(containerIdentifier: string) {
-        this.container = document.getElementById(containerIdentifier) as HTMLDivElement;
+    constructor(app: VApp, mount: VNode) {
+        this.app = app;
     }
 
-    public init() {
-        let router = this;
-​        window.onclick = function (e: any) {
-            if (e.target.localName == 'a') {
-                let anchor: HTMLAnchorElement = e.target;
-                if(checkResponsible(anchor)) {
-                    router.handleClick(anchor);
-                    e.preventDefault();
-                }
-            }
-        }​
+    registerRoute(path: string, component: Component) {
+        this.componentMap.set(path, component);
     }
 
-    //TODO: Find a better way to identify the route separator?
-    public handleClick(anchor: HTMLAnchorElement) {
-        const cleanedPath = anchor.href.split("/#/")[1];
-        const route = this.routes.filter(route => cleanedPath == route.path)[0];
-        if(!route) {
-            throw new Error("No applicable route found for: " + cleanedPath);
+    resolveRoute(path: string): boolean {
+        if (this.currPath == path) {
+            return true;
         }
 
-        const htmlContent = route.getContent();
-        this.container.innerHTML = htmlContent;
-    }
+        if (this.resolvedRouterMap.has(path)) {
+            //this.app.unmountComponent()
+            return true;
+        }
 
+        if(!this.componentMap.has(path)) {
+            return false;
+        }
 
-    public addRoute(route: Route) {
-        this.routes.push(route);
-    }
-}
-
-function checkResponsible(link: HTMLAnchorElement): boolean {
-    return link.href.indexOf("/#/") != -1;
-}
-
-export class Route {
-    public path: string;
-    private content: RouteContent;
-    constructor (path: string, content: RouteContent) {
-        this.path = path;
-        this.content = content;
-    }
-
-    public getContent(): string {
-        return this.content.getContent();
+        let cmp = this.componentMap.get(path);
+        this.app.mountComponent(cmp, this.mount, new Props(this.app));
     }
 }
 
-abstract class RouteContent {
-    public abstract getContent(): string;
-}
+export class RouterLink extends VNode {
 
-export class LocalRouteContent extends RouteContent {
-    private content: string;
+    constructor(app: VApp, nodeName: VNodeType, children: VNode[], innerHtml?: string, props?: Props, attrs?: Attribute[], parent?: VNode, id?: string) {
+        super(app, "a", children, innerHtml, props, attrs, parent, id);
 
-    public getContent(): string {
-        return this.content;
-    }
-
-    constructor(content: string) {
-        super();
-        this.content = content;
-    }
-}
-
-class RouteContentDTO {
-    htmlData: string;
-}
-
-export class RemoteRouteContent extends RouteContent {
-    private httpClient: HttpClient;
-    private path: string;
-
-    public getContent(): string {
-        let resp = this.httpClient.peformGet<RouteContentDTO>("/foo");
-        return resp.htmlData;
-    }
-
-    constructor(httpClient: HttpClient, path: string) {
-        super();
-        this.httpClient = httpClient;
-        this.path = path;
+        //this.app.router.registerRoute()
     }
 }

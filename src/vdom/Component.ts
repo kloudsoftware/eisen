@@ -11,16 +11,19 @@ export abstract class Component {
 
 export interface ComponentProps {
     mounted?(): void;
+    remount?(): void;
     unmounted?(): void;
 }
 
-export class ComponentEventHolder {
+export class ComponentHolder {
     mounted: FunctionHolder;
+    remount: FunctionHolder;
     unmounted: AppEvent;
     mount: VNode;
 
     constructor(props: ComponentProps, mount: VNode) {
         this.mounted = [false, props.mounted];
+        this.remount = [false, props.remount];
         this.unmounted = props.unmounted;
         this.mount = mount;
     }

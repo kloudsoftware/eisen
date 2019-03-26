@@ -29,8 +29,14 @@ export class AdminRegister extends Component {
                 if(userInfo.password != userInfo.passwordConfirm && !errorAdded) {
                     pwConfirm.addClass("error");
                     errorAdded = true;
-                    console.log("error")
+                    return;
+                } else if(userInfo.password == userInfo.passwordConfirm) {
+                    errorAdded = false;
+                    pwConfirm.removeClass("error")
                 }
+
+                console.log(userInfo)
+
             });
 
             userName.bindObject(userInfo, "userName");
