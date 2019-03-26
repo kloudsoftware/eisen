@@ -163,6 +163,27 @@ export class VNode implements Comparable<VNode> {
 
         return this.nodeName == o.nodeName;
     }
+
+    public addClass = (name: string) => {
+        let classAttr = this.attrs.filter(el => el.attrName == "class")[0];
+        if(classAttr == undefined) {
+            classAttr = new Attribute("class", name);
+            this.attrs.push(classAttr);
+            return;
+        }
+
+        classAttr.attrValue = classAttr.attrValue + " " + name;
+    }
+
+    public removeClass = (name: string) => {
+        const classAttr = this.attrs.filter(el => el.attrName == "class")[0];
+
+        if(classAttr == undefined) {
+            return;
+        }
+
+        classAttr.attrValue = classAttr.attrValue.replace(name, "");
+    }
 }
 
 export const cssClass = (...classNames: string[]) => {
@@ -197,6 +218,12 @@ export class Attribute implements Comparable<Attribute> {
 }
 
 export class VInputNode extends VNode {
+
+    bindObject(obj: any, key: string) {
+        this.app.eventHandler.registerEventListener("input", (ev, node) => {
+            obj[key] = (node.htmlElement as HTMLInputElement).value;
+        }, this);
+    }
 
     bind(object: Props, propKey: string) {
         this.app.eventHandler.registerEventListener("input", (ev, node) => {
