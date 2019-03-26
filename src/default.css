@@ -1,0 +1,10 @@
+h1, h2, h3, h4, h5, h6 {
+    margin: 1.2rem;
+    font-weight: 100;
+}
+
+body {
+    font-family: 'RobotoRegular';
+    font-weight: normal;
+    font-style: normal;
+}
