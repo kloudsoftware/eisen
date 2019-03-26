@@ -191,6 +191,10 @@ export class VNode implements Comparable<VNode> {
 }
 
 export const cssClass = (...classNames: string[]) => {
+    if (classNames.length == 1) {
+        return new Attribute("class", classNames[0]);
+    }
+
     const val = classNames.reduce((acc, curr) => acc + curr + " ", "").trim();
     return new Attribute("class", val);
 }
