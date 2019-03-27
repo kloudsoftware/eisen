@@ -18,25 +18,22 @@ export class AdminRegister extends Component {
 
             app.createElement("style", css, root);
             let userInfo = new UserRegisterInfo();
-            let pwInput = app.k("input", undefined, [id("iPassword"), password(),  cssClass("user-input")]) as VInputNode;
-            let pwConfirm =  app.k("input", undefined, [id("iPasswordConfirm"), password(),  cssClass("user-input")]) as VInputNode;
-            let userName = app.k("input", undefined, [id("iUserName"),  cssClass("user-input")]) as VInputNode;
+            let pwInput = app.k("input", undefined, [id("iPassword"), password(), cssClass("user-input")]) as VInputNode;
+            let pwConfirm = app.k("input", undefined, [id("iPasswordConfirm"), password(), cssClass("user-input")]) as VInputNode;
+            let userName = app.k("input", undefined, [id("iUserName"), cssClass("user-input")]) as VInputNode;
             let confirmBtn = app.k("button", "Register", [cssClass("btn", "btn-confirm")]);
 
             let errorAdded = false;
 
             confirmBtn.addEventlistener("click", (_, btn) => {
-                if(userInfo.password != userInfo.passwordConfirm && !errorAdded) {
+                if (userInfo.password != userInfo.passwordConfirm && !errorAdded) {
                     pwConfirm.addClass("error");
                     errorAdded = true;
                     return;
-                } else if(userInfo.password == userInfo.passwordConfirm) {
+                } else if (userInfo.password == userInfo.passwordConfirm && errorAdded) {
                     errorAdded = false;
                     pwConfirm.removeClass("error")
                 }
-
-                console.log(userInfo)
-
             });
 
             userName.bindObject(userInfo, "userName");
@@ -44,21 +41,28 @@ export class AdminRegister extends Component {
             pwConfirm.bindObject(userInfo, "passwordConfirm");
 
             const div = app.k("div", undefined, undefined,
-                              app.k("h1", "Create admin account", [cssClass("admin-register-heading")]),
-                              app.k("div", undefined, [cssClass("form-holder")],
-                                    app.k("label", "Enter user name", [labelFor("iUserNam"), cssClass("user-input-label")]),
-                                    userName,
-                                    app.k("label", "Enter password", [labelFor("iPassword"), cssClass("user-input-label")]),
-                                    pwInput,
-                                    app.k("label", "Confirm password", [labelFor("iPasswordConfirm"), cssClass("user-input-label")]),
-                                    pwConfirm,
-                                    confirmBtn,
-                                   )
-                             );
+                app.k("h1", "Create admin account", [cssClass("admin-register-heading")]),
+                app.k("div", undefined, [cssClass("form-holder")],
+                    app.k("label", "Enter user name", [labelFor("iUserNam"), cssClass("user-input-label")]),
+                    userName,
+                    app.k("label", "Enter password", [labelFor("iPassword"), cssClass("user-input-label")]),
+                    pwInput,
+                    app.k("label", "Confirm password", [labelFor("iPasswordConfirm"), cssClass("user-input-label")]),
+                    pwConfirm,
+                    confirmBtn,
+                )
+            );
 
             root.appendChild(div);
 
-            return {}
+            return {
+                remount: () => {
+                    (pwInput.htmlElement as HTMLInputElement).value = userInfo.password != undefined ? userInfo.password : "";
+                    (pwConfirm.htmlElement as HTMLInputElement).value = userInfo.passwordConfirm != undefined ? userInfo.passwordConfirm : "";
+                    (userName.htmlElement as HTMLInputElement).value = userInfo.userName != undefined ? userInfo.userName : "";
+
+                }
+            }
         }
     }
 }

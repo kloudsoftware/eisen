@@ -12,7 +12,12 @@ export class Router {
     currPath: string;
 
     constructor(app: VApp, mount: VNode) {
+        this.mount = mount;
         this.app = app;
+
+        window.onpopstate = (event) => {
+            this.resolveRoute(document.location.pathname)
+        }
     }
 
     registerRoute(path: string, component: Component) {
@@ -25,13 +30,14 @@ export class Router {
         }
 
         if (this.resolvedRouterMap.has(path)) {
+            console.log("remounting")
             this.mount.$getChildren().forEach(child => this.mount.removeChild(child));
             this.app.remountComponent(this.resolvedRouterMap.get(path), this.mount);
             this.currPath = path;
             return true;
         }
 
-        if(!this.componentMap.has(path)) {
+        if (!this.componentMap.has(path)) {
             console.error("No component registered with the router for ", path)
             return false;
         }
@@ -39,7 +45,7 @@ export class Router {
         this.mount.$getChildren().forEach(child => this.mount.removeChild(child));
         this.currPath = path;
         let cmp = this.componentMap.get(path);
-        this.app.routerMountComponent(cmp, this.mount, new Props(this.app));
+        this.resolvedRouterMap.set(path, this.app.routerMountComponent(cmp, this.mount, new Props(this.app)));
     }
 }
 

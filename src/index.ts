@@ -5,6 +5,7 @@ import { EventHandler } from './vdom/EventHandler';
 import { Props } from './vdom/Props';
 import { AdminRegister } from './components/adminregister/AdminRegisterComponent';
 import { Navbar } from './components/navbar/Navbar';
+import BtnCounter from './components/btncounter/BtnCounter';
 
 const renderer = new Renderer();
 const app = new VApp("target", renderer);
@@ -26,8 +27,28 @@ html, body {
 `;
 app.createElement("style", css, app.rootNode);
 
+
 app.mountComponent(new Navbar(), app.rootNode, new Props(app));
+
 const container = app.createElement("div", undefined, app.rootNode, [cssClass("container", "center-container")]);
-app.mountComponent(new AdminRegister(), container, new Props(app));
+
+const routerMnt = app.createElement("div", undefined, container);
+
+const router = app.useRouter(routerMnt);
+
+router.registerRoute(document.location.pathname, new AdminRegister())
+router.registerRoute("/foo", new BtnCounter());
+
+app.addInitialRenderEventlistener(() => {
+    router.resolveRoute(document.location.pathname);
+})
+
+setTimeout(() => {
+    history.pushState(null, "test", "/");
+    router.resolveRoute("/foo");
+    history.replaceState("", "", "/foo")
+
+}, 1000)
+//app.mountComponent(new AdminRegister(), container, new Props(app));
 
 
