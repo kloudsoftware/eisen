@@ -36,19 +36,6 @@ const routerMnt = app.createElement("div", undefined, container);
 
 const router = app.useRouter(routerMnt);
 
-router.registerRoute(document.location.pathname, new AdminRegister())
+router.registerRoute("/", new AdminRegister())
 router.registerRoute("/foo", new BtnCounter());
-
-app.addInitialRenderEventlistener(() => {
-    router.resolveRoute(document.location.pathname);
-})
-
-setTimeout(() => {
-    history.pushState(null, "test", "/");
-    router.resolveRoute("/foo");
-    history.replaceState("", "", "/foo")
-
-}, 1000)
-//app.mountComponent(new AdminRegister(), container, new Props(app));
-
-
+router.resolveRoute(document.location.pathname);

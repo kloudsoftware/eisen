@@ -25,12 +25,14 @@ export class Router {
     }
 
     resolveRoute(path: string): boolean {
+        history.replaceState(null, "", path)
+
+
         if (this.currPath == path) {
             return true;
         }
 
         if (this.resolvedRouterMap.has(path)) {
-            console.log("remounting")
             this.mount.$getChildren().forEach(child => this.mount.removeChild(child));
             this.app.remountComponent(this.resolvedRouterMap.get(path), this.mount);
             this.currPath = path;
@@ -56,12 +58,17 @@ export class RouterLink extends VNode {
         super(app, "a", children, innerHtml, props, attrs, parent, id);
         this.target = target;
 
-        this.addEventlistener("click", (event, link) => {
-            if (!this.app.router.resolveRoute(this.target)) {
-                return;
-            }
+        this.addEventlistener("click", this.clickFunction);
+    }
 
-            event.preventDefault();
-        });
+    clickFunction(event: Event, link: VNode) {
+        const ln = link as RouterLink;
+        if (ln.app.router.componentMap.has(ln.target)) {
+            history.pushState({}, "", document.location.pathname)
+            ln.app.router.resolveRoute(ln.target);
+            return;
+        }
+
+        event.preventDefault();
     }
 }

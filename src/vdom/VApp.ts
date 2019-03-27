@@ -63,7 +63,7 @@ export class VApp {
     }
 
     public routerMountComponent(component: Component, mount: VNode, props: Props): ComponentHolder {
-        if(this.router == undefined) {
+        if (this.router == undefined) {
             console.error("No router mounted")
             return undefined;
         }
@@ -78,7 +78,7 @@ export class VApp {
         return holder;
     }
 
-    public remountComponent(holder: ComponentHolder, mount) {
+    public remountComponent(holder: ComponentHolder, mount: VNode) {
         holder.remount[0] = false;
         mount.appendChild(holder.mount);
         this.compProps.push(holder);

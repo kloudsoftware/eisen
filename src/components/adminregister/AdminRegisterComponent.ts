@@ -3,6 +3,7 @@ import { VNode, Attribute, cssClass, id, labelFor, password, VInputNode } from "
 import { Props } from "../../vdom/Props";
 import { VApp } from "../../vdom/VApp";
 import { css } from './adminregistercss'
+import { RouterLink } from "../../Router";
 
 class UserRegisterInfo {
     userName: string;
@@ -21,7 +22,10 @@ export class AdminRegister extends Component {
             let pwInput = app.k("input", undefined, [id("iPassword"), password(), cssClass("user-input")]) as VInputNode;
             let pwConfirm = app.k("input", undefined, [id("iPasswordConfirm"), password(), cssClass("user-input")]) as VInputNode;
             let userName = app.k("input", undefined, [id("iUserName"), cssClass("user-input")]) as VInputNode;
-            let confirmBtn = app.k("button", "Register", [cssClass("btn", "btn-confirm")]);
+            let routerlnk = new RouterLink(app, "/foo", [], "")
+            routerlnk.addClass("router-link");
+
+            let confirmBtn = app.createElement("span", "Register", routerlnk, [cssClass("btn btn-confirm router-btn")]);
 
             let errorAdded = false;
 
@@ -29,11 +33,13 @@ export class AdminRegister extends Component {
                 if (userInfo.password != userInfo.passwordConfirm && !errorAdded) {
                     pwConfirm.addClass("error");
                     errorAdded = true;
-                    return;
+                    return false;
                 } else if (userInfo.password == userInfo.passwordConfirm && errorAdded) {
                     errorAdded = false;
                     pwConfirm.removeClass("error")
                 }
+
+                return true;
             });
 
             userName.bindObject(userInfo, "userName");
@@ -49,7 +55,7 @@ export class AdminRegister extends Component {
                     pwInput,
                     app.k("label", "Confirm password", [labelFor("iPasswordConfirm"), cssClass("user-input-label")]),
                     pwConfirm,
-                    confirmBtn,
+                    routerlnk,
                 )
             );
 
