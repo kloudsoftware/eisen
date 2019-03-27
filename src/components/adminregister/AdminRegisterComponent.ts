@@ -43,7 +43,7 @@ export class AdminRegister extends Component {
                 if (notify) {
                     pwConfirm.doValidation(false);
                 }
-                return userInfo.password == userInfo.passwordConfirm && isDefinedAndNotEmpty(userInfo.password);
+                return userInfo.password == userInfo.passwordConfirm && isDefinedAndNotEmpty(userInfo.password) && /((?=.*[a-z])(?=.*\d)(?=.*[A-Z])(?=.*[@#$%!]).{8,400})/.test(userInfo.password);
             }, "error")
 
             pwConfirm.validate((notify) => {
@@ -58,7 +58,7 @@ export class AdminRegister extends Component {
             }, "error")
 
             userName.validate(() => {
-                return isDefinedAndNotEmpty(userInfo.userName)
+                return isDefinedAndNotEmpty(userInfo.userName) && userInfo.userName.length > 3
             }, "error")
             confirmBtn.addEventlistener("click", (evt, btn) => {
                 evt.preventDefault();
@@ -70,6 +70,16 @@ export class AdminRegister extends Component {
                     return false;
                 }
 
+                const resp = http.performPost("/register", userInfo);
+
+                resp.then(resp => resp.json()).then(json => {
+                    window.localStorage.setItem("token", json.token);
+                    const path = window.sessionStorage.getItem("path");
+                    if (path != undefined) {
+                        window.sessionStorage.removeItem("path");
+                        app.router.resolveRoute(path);
+                    }
+                });
 
                 return true;
             });

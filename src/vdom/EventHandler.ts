@@ -72,6 +72,7 @@ export class EventHandler {
             result.filter(res => res.htmlElement == $target).forEach(it => {
                 let evtHandlers = scopedHandlers.get(it);
                 evtHandlers.forEach(func => {
+                    handled = true;
 
                     let cont = func(event, it);
                     cont = cont != undefined ? cont : false;
@@ -79,7 +80,6 @@ export class EventHandler {
                     if(!cont) {
                         event.preventDefault();
                     }
-                    handled = true;
                     //Handles propagation of buttons that already have click listeners
                     if (cont && it.parent instanceof RouterLink && event.type == "click") {
                         (it.parent as RouterLink).clickFunction(event, it.parent);

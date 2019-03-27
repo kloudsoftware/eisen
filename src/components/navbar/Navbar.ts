@@ -26,7 +26,11 @@ export class Navbar extends Component {
 
             root.appendChild(div);
 
-            return {}
+            return {
+                remount: () => {
+                    console.log("Navbar remounted")
+                }
+            }
         }
     }
 }

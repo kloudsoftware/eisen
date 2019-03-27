@@ -2,10 +2,14 @@ import { Component, ComponentBuildFunc } from "../../vdom/Component";
 import { VApp } from "../../vdom/VApp";
 import { VNode } from "../../vdom/VNode";
 import { Props } from "../../vdom/Props";
+import { HttpClient } from "../../HttpClient";
 
 export default class BtnCounter extends Component {
     build(app: VApp): ComponentBuildFunc {
         return (root: VNode, props: Props) => {
+
+            const http = app.get<HttpClient>("http");
+            http.peformGet("/test/403")
 
             props.setProp("times", 0);
             let btn = app.createElement("button", "You have clicked me {{ times }} times!", root, undefined, props);
@@ -21,6 +25,8 @@ export default class BtnCounter extends Component {
 
                 unmounted: () => {
                     console.log("unmounted");
+                },
+                remount: () => {
                 }
             }
         }

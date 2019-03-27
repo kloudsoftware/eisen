@@ -28,7 +28,7 @@ html, body {
 `;
 app.createElement("style", css, app.rootNode);
 
-app.use("http", new HttpClient("localhost:8083"));
+app.use("http", new HttpClient("http://192.168.111.118:8083", app));
 
 app.mountComponent(new Navbar(), app.rootNode, new Props(app));
 

@@ -3,6 +3,7 @@ import { VApp, AppEvent } from './VApp'
 import { v4 as uuid } from 'uuid';
 import { Props } from './Props';
 import { EvtHandlerFunc, EvtType } from './EventHandler';
+import { RouterLink } from '../Router';
 
 export const kloudAppId = "data-kloudappid";
 
@@ -89,6 +90,9 @@ export class VNode implements Comparable<VNode> {
     }
 
     public $getChildren() {
+        if(this.children.length != 0 && this.children[0] != undefined &&  this.children[0].nodeName == "img") {
+            //console.trace()
+        }
         return this.children;
     }
 

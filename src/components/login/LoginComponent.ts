@@ -4,6 +4,8 @@ import { Props } from "../../vdom/Props";
 import { VApp } from "../../vdom/VApp";
 import { css } from './logincss'
 import { RouterLink } from "../../Router";
+import { isDefinedAndNotEmpty } from "../../vdom/Common";
+import { HttpClient } from "../../HttpClient";
 
 class UserRegisterInfo {
     userName: string;
@@ -26,11 +28,6 @@ export class Login extends Component {
 
             let confirmBtn = app.createElement("span", "Register", routerlnk, [cssClass("btn btn-confirm router-btn")]);
 
-            let errorAdded = false;
-
-            confirmBtn.addEventlistener("click", (_, btn) => {
-                return true;
-            });
 
             userName.bindObject(userInfo, "userName");
             pwInput.bindObject(userInfo, "password");
@@ -45,6 +42,40 @@ export class Login extends Component {
                     routerlnk,
                 )
             );
+
+
+            userName.validate(() => {
+                return isDefinedAndNotEmpty(userInfo.userName) && userInfo.userName.length > 3
+            }, "error")
+
+            pwInput.validate(() => {
+                return isDefinedAndNotEmpty(userInfo.password) && /((?=.*[a-z])(?=.*\d)(?=.*[A-Z])(?=.*[@#$%!]).{8,400})/.test(userInfo.password);
+            }, "error")
+
+            confirmBtn.addEventlistener("click", (evt, btn) => {
+                evt.preventDefault();
+
+                if (!userName.doValidation(false) ||
+                    !pwInput.doValidation(false)) {
+
+                    return false;
+                }
+
+                const http = app.get<HttpClient>("http");
+                const resp = http.performPost("/token", userInfo);
+
+                resp.then(resp => resp.json()).then(json => {
+                    console.log(json);
+                    window.localStorage.setItem("token", json.token);
+                    const path = window.sessionStorage.getItem("path");
+                    if (path != undefined) {
+                        window.sessionStorage.removeItem("path");
+                        app.router.resolveRoute(path);
+                    }
+                });
+
+                return true;
+            });
 
             root.appendChild(div);
 
