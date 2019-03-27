@@ -16,6 +16,7 @@ export class HttpClient {
         let http = new XMLHttpRequest();
         http.setRequestHeader("Content-Type", contentType);
         http.send(data);
+        return http.response;
     }
 
 }

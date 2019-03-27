@@ -4,6 +4,7 @@ import { Props } from "../../vdom/Props";
 import { VApp } from "../../vdom/VApp";
 import { css } from './adminregistercss'
 import { RouterLink } from "../../Router";
+import { HttpClient } from "../../HttpClient";
 
 class UserRegisterInfo {
     userName: string;
@@ -42,6 +43,8 @@ export class AdminRegister extends Component {
                 if(errorAdded) {
                     return false;
                 }
+
+                const resp = http.performPost("/register", userInfo);
 
                 return true;
             });
