@@ -25,6 +25,8 @@ export class VApp {
     compsToNotifyUnmount: Array<AppEvent> = new Array<AppEvent>();
     eventHandler: EventHandler;
     router?: Router;
+    pluginMap: Map<string, any> = new Map();
+    oneTimeRenderCallbacks = new Array<AppEvent>();
 
     constructor(targetId: string, renderer: Renderer, rootNode?: VNode) {
         this.targetId = targetId;
@@ -125,6 +127,8 @@ export class VApp {
                 this.eventListeners.forEach(f => f())
             }
 
+            this.oneTimeRenderCallbacks
+
             this.compProps.filter(prop => !prop.mounted[0]).forEach(prop => {
                 invokeIfDefined(prop.mounted[1])
                 prop.mounted[0] = true;
@@ -222,5 +226,13 @@ export class VApp {
         });
 
         return node;
+    }
+
+    public use(key: string, obj: any) {
+        this.pluginMap.set(key, obj);
+    }
+
+    public get<T>(key: string) {
+        return this.pluginMap.get(key) as T;
     }
 }

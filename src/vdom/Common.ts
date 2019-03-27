@@ -1,4 +1,5 @@
 import { Props } from "./Props";
+import { VNode } from "./VNode";
 
 export interface Comparable<T> {
     equals(o: T): boolean;
@@ -56,4 +57,12 @@ export const invokeIfDefined = (fun: () => void) => {
     if (fun != undefined) {
         fun();
     }
+}
+
+export const isDefinedAndNotEmpty = (str: string) => {
+    return str != undefined && str != "";
+}
+
+export const toggleError = (node: VNode) => {
+    node.addClass("error");
 }

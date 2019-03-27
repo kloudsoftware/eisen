@@ -13,6 +13,7 @@ export class Navbar extends Component {
             let routerLinkHome = new RouterLink(app, "/", [
                 app.k("h2", "kloud-ms")
             ], "");
+
             routerlnk.addClass("loginIcon");
             app.createElement("img", undefined, routerlnk, [src("login.svg"), cssClass("loginIcon")])
 

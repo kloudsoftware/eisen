@@ -10,6 +10,8 @@ const parser = new Stringparser();
 
 export type VNodeType = '!--...--' | '!DOCTYPE ' | 'a' | 'abbr' | 'acronym' | 'address' | 'applet' | 'area' | 'article' | 'aside' | 'audio' | 'b' | 'base' | 'basefont' | 'bdi' | 'bdo' | 'big' | 'blockquote' | 'body' | 'br' | 'button' | 'canvas' | 'caption' | 'center' | 'cite' | 'code' | 'col' | 'colgroup' | 'data' | 'datalist' | 'dd' | 'del' | 'details' | 'dfn' | 'dialog' | 'dir' | 'div' | 'dl' | 'dt' | 'em' | 'embed' | 'fieldset' | 'figcaption' | 'figure' | 'font' | 'footer' | 'form' | 'frame' | 'frameset' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'head' | 'header' | 'hr' | 'html' | 'i' | 'iframe' | 'img' | 'input' | 'ins' | 'kbd' | 'label' | 'legend' | 'li' | 'link' | 'main' | 'map' | 'mark' | 'meta' | 'meter' | 'nav' | 'noframes' | 'noscript' | 'object' | 'ol' | 'optgroup' | 'option' | 'output' | 'p' | 'param' | 'picture' | 'pre' | 'progress' | 'q' | 'rp' | 'rt' | 'ruby' | 's' | 'samp' | 'script' | 'section' | 'select' | 'small' | 'source' | 'span' | 'strike' | 'strong' | 'style' | 'sub' | 'summary' | 'sup' | 'svg' | 'table' | 'tbody' | 'td' | 'template' | 'textarea' | 'tfoot' | 'th' | 'thead' | 'time' | 'title' | 'tr' | 'track' | 'tt' | 'u' | 'ul' | 'var' | 'video' | 'wbr';
 
+export type OnDomEvent = (html: HTMLElement) => void;
+
 export class VNode implements Comparable<VNode> {
     app: VApp;
     id: string;
@@ -23,6 +25,7 @@ export class VNode implements Comparable<VNode> {
     props: Props;
     dynamicContent = false;
     modifiedInnerHtml = false;
+    onDomEvenList = new Array<OnDomEvent>();
 
     constructor(app: VApp, nodeName: VNodeType, children: VNode[], innerHtml?: string, props?: Props, attrs?: Attribute[], parent?: VNode, id?: string) {
         if (attrs == undefined) {
@@ -58,7 +61,19 @@ export class VNode implements Comparable<VNode> {
         this.htmlElement.addEventListener("focus", func);
     }
 
+    public setHtmlElement(el: HTMLElement) {
+        this.htmlElement = el;
+        this.onDomEvenList.forEach(f => f(el));
+    }
+
     public addBlurListener(func: EvtHandlerFunc) {
+        if(this.htmlElement == undefined) {
+            this.onDomEvenList.push((el) => {
+                el.addEventListener("blur", func);
+            });
+
+            return;
+        }
         this.htmlElement.addEventListener("blur", func);
     }
 
@@ -183,6 +198,16 @@ export class VNode implements Comparable<VNode> {
         return this;
     }
 
+    public hasClass = (name: string): boolean => {
+        const classAttr = this.attrs.filter(el => el.attrName == "class")[0];
+
+        if (classAttr == undefined) {
+            return false;
+        }
+
+        return classAttr.attrValue.indexOf(name) != -1;
+    }
+
     public removeClass = (name: string) => {
         this.app.notifyDirty();
         const classAttr = this.attrs.filter(el => el.attrName == "class")[0];
@@ -290,6 +315,7 @@ export const cssClass = (...classNames: string[]) => {
 export const id = (id: string) => new Attribute("id", id);
 export const labelFor = (idFor: string) => new Attribute("for", idFor);
 export const password = () => new Attribute("type", "password");
+export const email = () => new Attribute("type", "email");
 export const src = (srcStr: string) => new Attribute("src", srcStr);
 
 export class Attribute implements Comparable<Attribute> {
@@ -310,7 +336,13 @@ export class Attribute implements Comparable<Attribute> {
     }
 }
 
+export type ValidationFunc = (shouldNotifyOthers: boolean) => boolean;
+export type ValidationHolder = [ValidationFunc, string];
+
 export class VInputNode extends VNode {
+    validationFuncs = new Array<ValidationHolder>();
+    hasError = false;
+    hasValidateBlurFunction = false;
 
     bindObject(obj: any, key: string) {
         this.app.eventHandler.registerEventListener("input", (ev, node) => {
@@ -322,5 +354,34 @@ export class VInputNode extends VNode {
         this.app.eventHandler.registerEventListener("input", (ev, node) => {
             object.setProp(propKey, (node.htmlElement as HTMLInputElement).value);
         }, this);
+    }
+
+    doValidation(shouldNotifyOthers: boolean) {
+        return !this.validationFuncs.map(holder => {
+            let result = holder[0](shouldNotifyOthers);
+
+            if(result == false) {
+                if(this.hasClass(holder[1])) {
+                    return result;
+                }
+                this.hasError = true;
+                this.addClass(holder[1])
+            } else if(this.hasClass(holder[1])) {
+                this.removeClass(holder[1])
+            }
+
+            return result;
+        }).some((el) => el == false);
+    }
+
+    validate(validateFunc: ValidationFunc, errorClass: string) {
+        this.validationFuncs.push([validateFunc, errorClass])
+        if(this.hasValidateBlurFunction) {
+            return;
+        }
+
+        this.addBlurListener((ev) => {
+            this.doValidation(true);
+        });
     }
 }
