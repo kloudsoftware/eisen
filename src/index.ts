@@ -6,6 +6,7 @@ import { AdminRegister } from './components/adminregister/AdminRegisterComponent
 import { Navbar } from './components/navbar/Navbar';
 import BtnCounter from './components/btncounter/BtnCounter';
 import { Login } from './components/login/LoginComponent';
+import { HttpClient } from './HttpClient';
 
 const renderer = new Renderer();
 const app = new VApp("target", renderer);
@@ -27,6 +28,7 @@ html, body {
 `;
 app.createElement("style", css, app.rootNode);
 
+app.use("http", new HttpClient("localhost:8083"));
 
 app.mountComponent(new Navbar(), app.rootNode, new Props(app));
 

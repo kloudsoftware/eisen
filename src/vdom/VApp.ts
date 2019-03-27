@@ -25,6 +25,7 @@ export class VApp {
     compsToNotifyUnmount: Array<AppEvent> = new Array<AppEvent>();
     eventHandler: EventHandler;
     router?: Router;
+    pluginMap: Map<string, any> = new Map();
 
     constructor(targetId: string, renderer: Renderer, rootNode?: VNode) {
         this.targetId = targetId;
@@ -222,5 +223,13 @@ export class VApp {
         });
 
         return node;
+    }
+
+    public use(key: string, obj: any) {
+        this.pluginMap.set(key, obj);
+    }
+
+    public get<T>(key: string) {
+        return this.pluginMap.get(key) as T;
     }
 }
