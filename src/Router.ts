@@ -12,7 +12,12 @@ export class Router {
     currPath: string;
 
     constructor(app: VApp, mount: VNode) {
+        this.mount = mount;
         this.app = app;
+
+        window.onpopstate = (event) => {
+            this.resolveRoute(document.location.pathname)
+        }
     }
 
     registerRoute(path: string, component: Component) {
@@ -20,29 +25,50 @@ export class Router {
     }
 
     resolveRoute(path: string): boolean {
+        history.replaceState(null, "", path)
+
+
         if (this.currPath == path) {
             return true;
         }
 
         if (this.resolvedRouterMap.has(path)) {
-            //this.app.unmountComponent()
+            this.mount.$getChildren().forEach(child => this.mount.removeChild(child));
+            this.app.remountComponent(this.resolvedRouterMap.get(path), this.mount);
+            this.currPath = path;
             return true;
         }
 
-        if(!this.componentMap.has(path)) {
+        if (!this.componentMap.has(path)) {
+            console.error("No component registered with the router for ", path)
             return false;
         }
 
+        this.mount.$getChildren().forEach(child => this.mount.removeChild(child));
+        this.currPath = path;
         let cmp = this.componentMap.get(path);
-        this.app.mountComponent(cmp, this.mount, new Props(this.app));
+        this.resolvedRouterMap.set(path, this.app.routerMountComponent(cmp, this.mount, new Props(this.app)));
     }
 }
 
 export class RouterLink extends VNode {
+    target: string;
 
-    constructor(app: VApp, nodeName: VNodeType, children: VNode[], innerHtml?: string, props?: Props, attrs?: Attribute[], parent?: VNode, id?: string) {
+    constructor(app: VApp, target: string, children: VNode[], innerHtml?: string, props?: Props, attrs?: Attribute[], parent?: VNode, id?: string) {
         super(app, "a", children, innerHtml, props, attrs, parent, id);
+        this.target = target;
+        this.attrs = [new Attribute("href", target)];
 
-        //this.app.router.registerRoute()
+        this.addEventlistener("click", this.clickFunction);
+    }
+
+    clickFunction(event: Event, link: VNode) {
+        const ln = link as RouterLink;
+        if (ln.app.router.componentMap.has(ln.target)) {
+            history.pushState({}, "", document.location.pathname)
+            ln.app.router.resolveRoute(ln.target);
+            event.preventDefault();
+            return;
+        }
     }
 }

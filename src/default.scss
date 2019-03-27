@@ -130,3 +130,16 @@ body {
     font-weight: normal;
     font-style: normal;
 }
+
+.router-btn {
+    text-align:center;
+    display: block;
+    line-height:50px;
+    margin-top: auto;
+}
+
+.router-link {
+    text-decoration: none;
+    cursor: pointer;
+    padding-top: 1rem
+}

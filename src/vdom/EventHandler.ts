@@ -1,12 +1,13 @@
 import { VNode, kloudAppId } from './VNode'
 import { VApp } from './VApp'
+import { RouterLink, Router } from '../Router';
 
 export type EvtType = "click" | "close" | "complete" | "copy" | "cut" | "deviceorientation" | "DOMContentLoaded" | "drag" | "dragend" | "dragenter" | "dragleave" | "dragover" | "dragstart" | "drop" | "durationchange" |
     "ended" | "endEvent" | "error" | "focusin" | "keyup" | "focusout" | "fullscreenchange" | "fullscreenerror" | "input" | "invalid" | "keydown" | "keypress" | "mousedown" | "mouseenter" | "mouseleave" | "mousemove" | "mouseout" | "mouseover" |
     "mouseup" | "offline" | "online" | "open" | "orientationchange" | "pagehide" | "pageshow" | "paste" | "pause" | "play" | "playing" | "progress" | "readystatechange" | "reset" | "scroll" | "seeked" | "seeking" | "select" | "show" | "stalled" |
     "storage" | "submit" | "success" | "suspend" | "timeout" | "timeupdate" | "touchcancel" | "touchend" | "touchenter" | "touchleave" | "touchmove" | "touchstart" | "visibilitychange" | "volumechange" | "waiting" | "wheel"
 
-export type EvtHandlerFunc = (ev: Event, node?: VNode) => void;
+export type EvtHandlerFunc = (ev: Event, node?: VNode) => boolean | void;
 
 export class EventHandler {
     events = ["click", "close", "complete", "copy", "cut", "deviceorientation", "DOMContentLoaded", "keyup", "drag", "dragend", "dragenter", "dragleave", "dragover", "dragstart", "drop", "durationchange",
@@ -15,6 +16,7 @@ export class EventHandler {
         "storage", "submit", "success", "suspend", "timeout", "timeupdate", "touchcancel", "touchend", "touchenter", "touchleave", "touchmove", "touchstart", "visibilitychange", "volumechange", "waiting", "wheel"];
 
     handlers: Map<EvtType, Map<VNode, Array<EvtHandlerFunc>>>;
+    routerLnks = new Array<RouterLink>();
 
 
     constructor(app: VApp) {
@@ -25,6 +27,10 @@ export class EventHandler {
     }
 
     registerEventListener(evt: EvtType, handler: EvtHandlerFunc, target: VNode) {
+        if (target instanceof RouterLink) {
+            this.routerLnks.push(target);
+        }
+
         if (this.handlers == undefined) {
             this.handlers = new Map<EvtType, Map<VNode, Array<EvtHandlerFunc>>>();
         }
@@ -55,22 +61,37 @@ export class EventHandler {
 
             if (!$target.hasAttribute(kloudAppId)) return;
 
-            const $targetAppId = $target.getAttribute(kloudAppId);
             const scopedHandlers = handler.handlers.get(event.type as EvtType);
 
             if (scopedHandlers == undefined) {
                 return;
             };
 
+            let handled = false;
             const result = Array.from(scopedHandlers.keys());
             result.filter(res => res.htmlElement == $target).forEach(it => {
                 let evtHandlers = scopedHandlers.get(it);
                 evtHandlers.forEach(func => {
-                    //console.log("Applying ", it, " to: ", func)
-                    func(event, it)
+
+                    let cont = func(event, it);
+                    cont = cont != undefined ? cont : false;
+
+                    handled = true;
+                    //Handles propagation of buttons that already have click listeners
+                    if (cont && it.parent instanceof RouterLink && event.type == "click") {
+                        (it.parent as RouterLink).clickFunction(event, it.parent);
+                    }
                 });
             })
-            //result.filter(res => res.id == $targetAppId).map(res => new Tuple<VNode, EvtHandlerFunc[]>(res, scopedHandlers.get(res))).forEach(tp => tp.v.forEach(f => f.apply(event, tp.k)));
+
+            //We need to check if the direct parent of the target element is a RouterLink
+            if (!handled) {
+                this.routerLnks.filter(res => res.htmlElement == $target.parentNode).forEach(it => {
+                    it.clickFunction(event, it);
+                });
+            }
+
+
         }
     }
 }

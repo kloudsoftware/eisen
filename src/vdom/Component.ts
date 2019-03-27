@@ -23,7 +23,7 @@ export class ComponentHolder {
 
     constructor(props: ComponentProps, mount: VNode) {
         this.mounted = [false, props.mounted];
-        this.remount = [false, props.remount];
+        this.remount = [true, props.remount];
         this.unmounted = props.unmounted;
         this.mount = mount;
     }
