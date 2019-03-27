@@ -57,6 +57,7 @@ export class RouterLink extends VNode {
     constructor(app: VApp, target: string, children: VNode[], innerHtml?: string, props?: Props, attrs?: Attribute[], parent?: VNode, id?: string) {
         super(app, "a", children, innerHtml, props, attrs, parent, id);
         this.target = target;
+        this.attrs = [new Attribute("href", target)];
 
         this.addEventlistener("click", this.clickFunction);
     }
@@ -66,9 +67,8 @@ export class RouterLink extends VNode {
         if (ln.app.router.componentMap.has(ln.target)) {
             history.pushState({}, "", document.location.pathname)
             ln.app.router.resolveRoute(ln.target);
+            event.preventDefault();
             return;
         }
-
-        event.preventDefault();
     }
 }

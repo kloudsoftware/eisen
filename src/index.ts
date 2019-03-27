@@ -1,11 +1,11 @@
 import { VApp } from './vdom/VApp';
-import { VNode, Attribute, VInputNode, cssClass } from './vdom/VNode';
+import { cssClass } from './vdom/VNode';
 import { Renderer } from './vdom/render';
-import { EventHandler } from './vdom/EventHandler';
 import { Props } from './vdom/Props';
 import { AdminRegister } from './components/adminregister/AdminRegisterComponent';
 import { Navbar } from './components/navbar/Navbar';
 import BtnCounter from './components/btncounter/BtnCounter';
+import { Login } from './components/login/LoginComponent';
 
 const renderer = new Renderer();
 const app = new VApp("target", renderer);
@@ -38,4 +38,5 @@ const router = app.useRouter(routerMnt);
 
 router.registerRoute("/", new AdminRegister())
 router.registerRoute("/foo", new BtnCounter());
+router.registerRoute("/login", new Login());
 router.resolveRoute(document.location.pathname);

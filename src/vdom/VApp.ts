@@ -164,7 +164,7 @@ export class VApp {
         return new VApp(this.targetId, this.renderer, this.rootNode);
     }
 
-    public createElement(tagName: VNodeType, content = "", parentNode?: VNode, attrs?: [Attribute], props?: Props): VNode | VInputNode {
+    public createElement(tagName: VNodeType, content = "", parentNode?: VNode, attrs?: Attribute[], props?: Props): VNode | VInputNode {
         this.notifyDirty();
         if (props == undefined) {
             props = new Props(this);
