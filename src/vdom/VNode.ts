@@ -192,6 +192,88 @@ export class VNode implements Comparable<VNode> {
 
         classAttr.attrValue = classAttr.attrValue.replace(name, "");
     }
+
+    public static builder(): VNodeBuilder {
+        return new VNodeBuilder();
+    }
+}
+
+export class VNodeBuilder {
+    private app: VApp;
+    private id: string;
+    private attrs: Attribute[];
+    private nodeName: VNodeType;
+    private innerHtml: string;
+    private parent?: VNode;
+    private children: VNode[];
+    private props: Props;
+
+    constructor() {
+        this.children = [];
+        this.attrs = [];
+    }
+
+    public setApp(app: VApp): VNodeBuilder {
+        this.app = app;
+        return this;
+    }
+
+    public setNodeName(name: VNodeType): VNodeBuilder {
+        this.nodeName = name;
+        return this;
+    }
+
+    public setChildren(childs: VNode[]): VNodeBuilder {
+        this.children = childs;
+        return this;
+    }
+
+    public setInnerHtml(html: string) {
+        this.innerHtml = html;
+    }
+
+    public setProps(props: Props): VNodeBuilder {
+        this.props = props;
+        return this;
+    }
+
+    public setAttrs(attrs: Attribute[]): VNodeBuilder {
+        this.attrs = attrs;
+        return this;
+    }
+
+    public setParent(parent: VNode): VNodeBuilder {
+        this.parent = parent;
+        return this;
+    }
+
+    public setId(id: string): VNodeBuilder {
+        this.id = id;
+        return this;
+    }
+
+    public build(): VNode {
+        if (this.app == undefined) {
+            console.error("VNode cant be constructed without an app");
+            return undefined;
+        }
+
+        if (this.nodeName == undefined) {
+            console.error("VNode cant be constructed without a node name");
+            return undefined;
+        }
+
+        return new VNode(
+            this.app,
+            this.nodeName,
+            this.children,
+            this.innerHtml,
+            this.props,
+            this.attrs,
+            this.parent,
+            this.id
+        );
+    }
 }
 
 export const cssClass = (...classNames: string[]) => {
