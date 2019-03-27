@@ -63,6 +63,7 @@ export class RouterLink extends VNode {
     }
 
     clickFunction(event: Event, link: VNode) {
+        console.trace("clickFunction");
         const ln = link as RouterLink;
         if (ln.app.router.componentMap.has(ln.target)) {
             history.pushState({}, "", document.location.pathname)

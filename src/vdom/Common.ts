@@ -57,3 +57,7 @@ export const invokeIfDefined = (fun: () => void) => {
         fun();
     }
 }
+
+export const isDefinedAndNotEmpty = (str: string) => {
+    return str != undefined && str != "";
+}
