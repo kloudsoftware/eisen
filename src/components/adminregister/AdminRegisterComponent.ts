@@ -39,6 +39,10 @@ export class AdminRegister extends Component {
                     pwConfirm.removeClass("error")
                 }
 
+                if(errorAdded) {
+                    return false;
+                }
+
                 return true;
             });
 

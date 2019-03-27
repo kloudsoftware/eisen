@@ -76,6 +76,9 @@ export class EventHandler {
                     let cont = func(event, it);
                     cont = cont != undefined ? cont : false;
 
+                    if(!cont) {
+                        event.preventDefault();
+                    }
                     handled = true;
                     //Handles propagation of buttons that already have click listeners
                     if (cont && it.parent instanceof RouterLink && event.type == "click") {
