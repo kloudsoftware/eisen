@@ -180,6 +180,7 @@ export class VNode implements Comparable<VNode> {
         }
 
         classAttr.attrValue = classAttr.attrValue + " " + name;
+        return this;
     }
 
     public removeClass = (name: string) => {
@@ -191,6 +192,7 @@ export class VNode implements Comparable<VNode> {
         }
 
         classAttr.attrValue = classAttr.attrValue.replace(name, "");
+        return this;
     }
 
     public static builder(): VNodeBuilder {
