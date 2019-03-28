@@ -21,8 +21,8 @@ export class Login extends Component {
 
             app.createElement("style", css, root);
             let userInfo = new UserRegisterInfo();
-            let pwInput = app.k("input", undefined, [id("iPassword"), password(), cssClass("user-input")]) as VInputNode;
-            let userName = app.k("input", undefined, [id("iUserName"), cssClass("user-input")]) as VInputNode;
+            let pwInput = app.k("input", { attrs: [id("iPassword"), password(), cssClass("user-input")] }) as VInputNode;
+            let userName = app.k("input", { attrs: [id("iUserName"), cssClass("user-input")] }) as VInputNode;
             let routerlnk = new RouterLink(app, "/foo", [], "")
             routerlnk.addClass("router-link");
 
@@ -32,16 +32,16 @@ export class Login extends Component {
             userName.bindObject(userInfo, "userName");
             pwInput.bindObject(userInfo, "password");
 
-            const div = app.k("div", undefined, undefined,
-                app.k("h1", "Log in", [cssClass("admin-register-heading")]),
-                app.k("div", undefined, [cssClass("form-holder")],
-                    app.k("label", "Enter user name", [labelFor("iUserNam"), cssClass("user-input-label")]),
+            const div = app.k("div", {}, [
+                app.k("h1", { value: "Log in", attrs: [cssClass("admin-register-heading")] }),
+                app.k("div", { attrs: [cssClass("form-holder")] }, [
+                    app.k("label", { value: "Enter user name", attrs: [labelFor("iUserNam"), cssClass("user-input-label")] }),
                     userName,
-                    app.k("label", "Enter password", [labelFor("iPassword"), cssClass("user-input-label")]),
+                    app.k("label", { value: "Enter password", attrs: [labelFor("iPassword"), cssClass("user-input-label")] }),
                     pwInput,
                     routerlnk,
-                )
-            );
+                ])
+            ]);
 
 
             userName.validate(() => {

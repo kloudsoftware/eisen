@@ -11,18 +11,18 @@ export class Navbar extends Component {
         return (root: VNode, props: Props): ComponentProps => {
             let routerlnk = new RouterLink(app, "/login", [], "")
             let routerLinkHome = new RouterLink(app, "/", [
-                app.k("h2", "kloud-ms")
+                app.k("h2", { value: "{{ blogName }}", props: props })
             ], "");
 
             routerlnk.addClass("loginIcon");
             app.createElement("img", undefined, routerlnk, [src("login.svg"), cssClass("loginIcon")])
 
             app.createElement("style", css, root);
-            const div = app.k("div", undefined, [cssClass("logo-container")],
+            const div = app.k("div", { attrs: [cssClass("logo-container")] }, [
                 routerLinkHome,
-                app.k("p", "because no one wants wordpress anyway"),
+                app.k("p", { value: "{{ blogSubtitle }}", props: props }),
                 routerlnk
-            );
+            ]);
 
             root.appendChild(div);
 

@@ -4,10 +4,12 @@ import { Component, ComponentHolder } from './vdom/Component';
 import { VNode, Attribute, VNodeType } from './vdom/VNode';
 import { Props } from './vdom/Props';
 
+type ComponentPropsHolder = [Component, Props];
+
 export class Router {
     app: VApp;
     resolvedRouterMap: Map<string, ComponentHolder> = new Map();
-    componentMap: Map<string, Component> = new Map();
+    componentMap: Map<string, ComponentPropsHolder> = new Map();
     mount: VNode;
     currPath: string;
 
@@ -20,8 +22,11 @@ export class Router {
         }
     }
 
-    registerRoute(path: string, component: Component) {
-        this.componentMap.set(path, component);
+    registerRoute(path: string, component: Component, props?: Props) {
+        if (props == undefined) {
+            props = new Props(this.app);
+        }
+        this.componentMap.set(path, [component, props]);
     }
 
     resolveRoute(path: string): boolean {
@@ -47,7 +52,7 @@ export class Router {
         this.mount.$getChildren().forEach(child => this.mount.removeChild(child));
         this.currPath = path;
         let cmp = this.componentMap.get(path);
-        this.resolvedRouterMap.set(path, this.app.routerMountComponent(cmp, this.mount, new Props(this.app)));
+        this.resolvedRouterMap.set(path, this.app.routerMountComponent(cmp[0], this.mount, cmp[1]));
     }
 }
 

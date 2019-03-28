@@ -9,9 +9,16 @@ import { Router } from '../Router';
 export const unmanagedNode: string = "__UNMANAGED__"
 
 
-type ElemFunc = (type: VNodeType, value: string, attrs?: Array<Attribute>, ...children: Array<VNode>) => VNode
 export type AppEvent = () => void;
 export type FunctionHolder = [boolean, AppEvent];
+
+export interface NodeOptions {
+    attrs?: Attribute[];
+    props?: Props;
+    value?: string
+}
+
+type ElemFunc = (type: VNodeType, options?: NodeOptions, children?: Array<VNode>) => VNode
 
 export class VApp {
     rootNode: VNode;
@@ -198,27 +205,33 @@ export class VApp {
         return unmanagedNode;
     }
 
-    public k: ElemFunc = (nodeName: VNodeType, value?: string, attrs?: Array<Attribute>, ...children: Array<VNode>): VInputNode | VNode => {
+    public k: ElemFunc = (nodeName: VNodeType, options?: NodeOptions, children?: Array<VNode>): VInputNode | VNode => {
+        let attrs: Attribute[];
+        let props: Props;
+        let value: string;
+
         if (children == undefined) {
             children = [];
         }
 
-        if (attrs == undefined) {
+        if (options == undefined) {
             attrs = [];
-        }
-
-        if (value == undefined) {
             value = "";
+            props = new Props(this);
+        } else {
+            attrs = options.attrs != undefined ? options.attrs : [];
+            props = options.props != undefined ? options.props : new Props(this);
+            value = options.value != undefined ? options.value : "";
         }
 
-        let cleaned = children.filter(child => child != undefined);
+        let cleaned = children.filter(child => true);
 
         let node: VInputNode | VNode;
 
         if (nodeName == "input") {
-            node = new VInputNode(this, nodeName, cleaned, value, new Props(this), attrs)
+            node = new VInputNode(this, nodeName, cleaned, value, props, attrs)
         } else {
-            node = new VNode(this, nodeName, cleaned, value, new Props(this), attrs);
+            node = new VNode(this, nodeName, cleaned, value, props, attrs);
         }
 
         cleaned.forEach(child => {

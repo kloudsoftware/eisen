@@ -22,11 +22,11 @@ export class AdminRegister extends Component {
 
             app.createElement("style", css, root);
             let userInfo = new UserRegisterInfo();
-            let pwInput = app.k("input", undefined, [id("iPassword"), password(), cssClass("user-input")]) as VInputNode;
-            let pwConfirm = app.k("input", undefined, [id("iPasswordConfirm"), password(), cssClass("user-input")]) as VInputNode;
-            let userName = app.k("input", undefined, [id("iUserName"), cssClass("user-input")]) as VInputNode;
-            let eMailInput = app.k("input", undefined, [id("iEmail"), cssClass("user-input"), email()]) as VInputNode;
-            let routerlnk = new RouterLink(app, "/foo", [], "")
+            let pwInput = app.k("input", { attrs: [id("iPassword"), password(), cssClass("user-input")] }) as VInputNode;
+            let pwConfirm = app.k("input", { attrs: [id("iPasswordConfirm"), password(), cssClass("user-input")] }) as VInputNode;
+            let userName = app.k("input", { attrs: [id("iUserName"), cssClass("user-input")] }) as VInputNode;
+            let eMailInput = app.k("input", { attrs: [id("iEmail"), cssClass("user-input"), email()] }) as VInputNode;
+            let routerlnk = new RouterLink(app, "/setup", [], "")
             routerlnk.addClass("router-link");
 
             let confirmBtn = app.createElement("span", "Register", routerlnk, [cssClass("btn btn-confirm router-btn")]);
@@ -61,8 +61,6 @@ export class AdminRegister extends Component {
                 return isDefinedAndNotEmpty(userInfo.userName) && userInfo.userName.length > 3
             }, "error")
             confirmBtn.addEventlistener("click", (evt, btn) => {
-                evt.preventDefault();
-
                 if (!eMailInput.doValidation(false) ||
                     !userName.doValidation(false) ||
                     !pwInput.doValidation(true)) {
@@ -89,20 +87,21 @@ export class AdminRegister extends Component {
             pwInput.bindObject(userInfo, "password");
             pwConfirm.bindObject(userInfo, "passwordConfirm");
 
-            const div = app.k("div", undefined, undefined,
-                app.k("h1", "Create admin account", [cssClass("admin-register-heading")]),
-                app.k("div", undefined, [cssClass("form-holder")],
-                    app.k("label", "Enter eMail", [labelFor("iEmail"), cssClass("user-input-label")]),
+            const div = app.k("div", {}, [
+                app.k("h1", { value: "Create admin account", attrs: [cssClass("admin-register-heading")] }),
+                app.k("div", { attrs: [cssClass("form-holder")] }, [
+                    app.k("label", { value: "Enter eMail", attrs: [labelFor("iEmail"), cssClass("user-input-label")] }),
                     eMailInput,
-                    app.k("label", "Enter user name", [labelFor("iUserNam"), cssClass("user-input-label")]),
+                    app.k("label", { value: "Enter user name", attrs: [labelFor("iUserNam"), cssClass("user-input-label")] }),
                     userName,
-                    app.k("label", "Enter password", [labelFor("iPassword"), cssClass("user-input-label")]),
+                    app.k("label", { value: "Enter password", attrs: [labelFor("iPassword"), cssClass("user-input-label")] }),
                     pwInput,
-                    app.k("label", "Confirm password", [labelFor("iPasswordConfirm"), cssClass("user-input-label")]),
+                    app.k("label", { value: "Confirm password", attrs: [labelFor("iPasswordConfirm"), cssClass("user-input-label")] }),
                     pwConfirm,
                     routerlnk,
-                )
-            );
+                ]),
+            ]);
+
 
             root.appendChild(div);
 
