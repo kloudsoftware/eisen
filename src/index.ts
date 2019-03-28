@@ -8,6 +8,8 @@ import BtnCounter from './components/btncounter/BtnCounter';
 import { Login } from './components/login/LoginComponent';
 import { HttpClient } from './HttpClient';
 import { BlogInfoDialog } from './components/BlogInfoDialog/BlogInfoDialog';
+import { ProsemirrorComponent } from './components/prosemirror/ProsemirrorComponent';
+import { BlogPostViewComponent, BlogViewComponent } from './components/blogcomponent/BlogViewComponent';
 
 const renderer = new Renderer();
 const app = new VApp("target", renderer);
@@ -47,4 +49,6 @@ router.registerRoute("/", new AdminRegister())
 router.registerRoute("/foo", new BtnCounter());
 router.registerRoute("/login", new Login());
 router.registerRoute("/setup", new BlogInfoDialog(), props);
+router.registerRoute("/prose", new ProsemirrorComponent());
+router.registerRoute("/blog", new BlogViewComponent());
 router.resolveRoute(document.location.pathname);

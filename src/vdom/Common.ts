@@ -1,5 +1,6 @@
 import { Props } from "./Props";
-import { VNode } from "./VNode";
+import { VNode, VNodeType, Attribute } from "./VNode";
+import { VApp } from "./VApp";
 
 export interface Comparable<T> {
     equals(o: T): boolean;
@@ -65,4 +66,55 @@ export const isDefinedAndNotEmpty = (str: string) => {
 
 export const toggleError = (node: VNode) => {
     node.addClass("error");
+}
+
+export const parseIntoUnmanaged = (htmlString: string, mount: VNode): VNode => {
+    const unmanged = mount.app.createUnmanagedNoDirty(mount);
+
+    unmanged.addOnDomEventOrExecute((htmlEl: HTMLElement) => {
+        htmlEl.innerHTML = htmlString;
+    })
+
+    return unmanged;
+}
+
+//TODO: This is currently buggy for textNodes
+export const parseStrIntoVNode = (htmlString: string, app: VApp): VNode  =>  {
+    const parser = new DOMParser();
+    const html = parser.parseFromString(htmlString, "text/html");
+
+    let children = Array.from(html.body.children).map(child => parse(child, app));
+    const container = app.k("div", {}, children);
+    children.forEach(child => {
+        child.parent = container;
+        container.$getChildren().push(child);
+    });
+
+    console.log(container);
+    return container;
+}
+
+const parse = (node: Element, app: VApp): VNode => {
+    const attributes: Attribute[] = [];
+    for(let i = 0; i < node.attributes.length; i++) {
+        const currAtt = node.attributes.item(i);
+        attributes.push(new Attribute(currAtt.name, currAtt.value));
+    }
+
+    const vNode = app.k(node.nodeName as VNodeType, {
+        attrs: attributes,
+    });
+
+    const nodeArr = Array.from(node.children).filter(el => el.nodeType === Node.TEXT_NODE).map(el => el.nodeValue);
+    const itemText = nodeArr != undefined && nodeArr.length > 0 ? nodeArr[0] : "";
+
+    vNode.$setInnerHtmlNoDirty(itemText);
+
+    const children = Array.from(node.children).map(child => parse(child, app));
+    children.forEach(child => {
+        child.parent = vNode;
+        vNode.$getChildren().push(child);
+    });
+
+    return vNode;
 }

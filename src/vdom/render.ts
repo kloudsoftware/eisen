@@ -116,8 +116,8 @@ export class Renderer {
 
     public renderTree(node: VNode): HTMLElement {
         let $elem = document.createElement(node.nodeName);
-        node.setHtmlElement($elem);
         $elem.innerHTML = node.getInnerHtml();
+        node.setHtmlElement($elem);
         if (node.attrs != undefined) {
             node.attrs.forEach(attr => $elem.setAttribute(attr.attrName, attr.attrValue));
         }

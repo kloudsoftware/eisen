@@ -67,6 +67,15 @@ export class VNode implements Comparable<VNode> {
         this.onDomEvenList.forEach(f => f(el));
     }
 
+    public addOnDomEventOrExecute(func: OnDomEvent) {
+        if(this.htmlElement == undefined) {
+            this.onDomEvenList.push(func)
+            return;
+        }
+
+        func(this.htmlElement);
+    }
+
     public addBlurListener(func: EvtHandlerFunc) {
         if(this.htmlElement == undefined) {
             this.onDomEvenList.push((el) => {
@@ -98,6 +107,11 @@ export class VNode implements Comparable<VNode> {
 
     public setInnerHtml(str: string) {
         this.app.notifyDirty();
+        this.modifiedInnerHtml = true;
+        this.innerHtml = str;
+    }
+
+    public $setInnerHtmlNoDirty(str: string) {
         this.modifiedInnerHtml = true;
         this.innerHtml = str;
     }

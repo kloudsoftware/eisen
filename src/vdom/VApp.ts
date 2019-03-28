@@ -35,6 +35,12 @@ export class VApp {
     pluginMap: Map<string, any> = new Map();
     oneTimeRenderCallbacks = new Array<AppEvent>();
 
+    /**
+     * Constructs the app
+     * @param targetId id of the DOM mountpoint, defined in your index.html
+     * @param renderer an Instance of the Renderer
+     * @param rootNode Used to clone the VApp, ignore on creation of a new one
+     */
     constructor(targetId: string, renderer: Renderer, rootNode?: VNode) {
         this.targetId = targetId;
         this.renderer = renderer;
@@ -51,26 +57,47 @@ export class VApp {
         this.eventHandler = new EventHandler(this);
     }
 
+    /**
+     * Use the router for this app
+     * @param mount The mountpoint for the Router
+     */
     public useRouter(mount: VNode): Router {
         this.router = new Router(this, mount);
         return this.router;
     }
 
-    public addInitialRenderEventlistener(listener: AppEvent) {
+   /**
+     * Adds a callback to the initial render of this app, its executed after the initial render is done and all elements of it are on the dom.
+     * @param listener
+     */ public addInitialRenderEventlistener(listener: AppEvent) {
         this.eventListeners.push(listener);
     }
 
+   /**
+     * Mounts a component to this app
+     * @param component The component to mount
+     * @param mount the mountpoint for the Component
+     * @param props Any properties, passed into the Component
+     */
     public mountComponent(component: Component, mount: VNode, props: Props): VNode {
         if (props == undefined) {
             props = new Props(this);
         }
 
-        let compMount = this.createElement("div", undefined, mount);
+        let compMount = this.k("div");
+        mount.$getChildren().push(compMount);
         let compProps = component.build(this)(compMount, props);
         this.compProps.push(new ComponentHolder(compProps, compMount));
+        this.notifyDirty()
         return compMount;
     }
 
+    /**
+     * Mounts a component and returns the full ComponentHolder, used by the Router
+     * @param component
+     * @param mount
+     * @param props
+     */
     public routerMountComponent(component: Component, mount: VNode, props: Props): ComponentHolder {
         if (this.router == undefined) {
             console.error("No router mounted")
@@ -87,12 +114,21 @@ export class VApp {
         return holder;
     }
 
+    /**
+      * Remounts a previously mounted component. Primarily used by the Router
+      * @param holder The ComponentHolder object, holds necessary callbacks
+      * @param mount Mountpoint for this component
+      */
     public remountComponent(holder: ComponentHolder, mount: VNode) {
         holder.remount[0] = false;
         mount.appendChild(holder.mount);
         this.compProps.push(holder);
     }
 
+    /**
+      * Unmounts a component that was mounted on this app
+      * @param mount Mountpoint, returned by VApp.mountComponent
+      */
     public unmountComponent(mount: VNode) {
         const filteredComps = this.compProps.filter(it => it.mount == mount);
 
@@ -152,6 +188,7 @@ export class VApp {
         }, 50);
     }
 
+    /** Notifies that a redraw of the app is needed */
     public notifyDirty() {
         this.dirty = true;
     }
@@ -175,6 +212,14 @@ export class VApp {
         return new VApp(this.targetId, this.renderer, this.rootNode);
     }
 
+    /**
+     * Creates a VNode and appends it as a child to the parentNode
+     * @param tagName HTML tagName
+     * @param content Value of the element(innerHTML)
+     * @param parentNode The node will be appended as a child to this node
+     * @param attrs any attributes
+     * @param props Properties for the node
+     */
     public createElement(tagName: VNodeType, content = "", parentNode?: VNode, attrs?: Attribute[], props?: Props): VNode | VInputNode {
         this.notifyDirty();
         if (props == undefined) {
@@ -198,14 +243,33 @@ export class VApp {
         return newNode;
     }
 
+    /**
+     * Creates an unmanagedNode (its childnodes are ignored by the renderer) at a specified mountpoint.
+     * @param mount
+     */
     public createUnmanagedNode(mount: VNode): VNode {
         this.notifyDirty();
+        return this.createUnmanagedNoDirty(mount);
+    }
+
+    /**
+      * Creates an unmanagedNode (its childnodes are ignored by the renderer) at a specified mountpoint. This operation does not cause a re-render
+      * @param mount
+      */
+    public createUnmanagedNoDirty(mount: VNode) {
         let unmanagedNode = new VNode(this, "div", [], "", new Props(this), [], mount, "__UNMANAGED__");
-        mount.appendChild(unmanagedNode);
+        mount.$getChildren().push(unmanagedNode);
         return unmanagedNode;
     }
 
-    public k: ElemFunc = (nodeName: VNodeType, options?: NodeOptions, children?: Array<VNode>): VInputNode | VNode => {
+
+    /**
+     * Creates a VNode, useful for cleanly modelling a DOM structure using the children array and optional nodeOptions
+     * @param nodeName Type of the HTML tag
+     * @param options
+     * @param children
+     */
+    public k(nodeName: VNodeType, options?: NodeOptions, children?: Array<VNode>): VInputNode | VNode {
         let attrs: Attribute[];
         let props: Props;
         let value: string;
@@ -241,10 +305,19 @@ export class VApp {
         return node;
     }
 
+    /**
+     * Adds an object into the pluginMap, retrieve it using VApp.get()
+     * @param key key where this object is stored
+     * @param obj
+     */
     public use(key: string, obj: any) {
         this.pluginMap.set(key, obj);
     }
 
+    /**
+     * retrieve an object saved in the app, using VApp.use()
+     * @param key
+     */
     public get<T>(key: string) {
         return this.pluginMap.get(key) as T;
     }
