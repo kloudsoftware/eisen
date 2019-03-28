@@ -6,6 +6,8 @@ import { isDefinedAndNotEmpty } from "../../vdom/Common";
 import { RouterLink } from "../../Router";
 import { HttpClient } from "../../HttpClient";
 
+import { css } from "./bloginfodialogcss";
+
 class BlogInfo {
     blogName: string
     blogSubtitle: string
@@ -14,13 +16,15 @@ class BlogInfo {
 export class BlogInfoDialog extends Component {
     public build(app: VApp): ComponentBuildFunc {
         return (root: VNode, props: Props): ComponentProps => {
+            root.addClass("card container");
+            app.createElement("style", css, root);
             const blogNameInput = app.k("input", { attrs: [id("iBlogName"), cssClass("user-input")] }) as VInputNode;
             const blogSubTitleInput = app.k("input", { attrs: [id("iBlogSubtitle"), cssClass("user-input")] }) as VInputNode;
 
             let routerlnk = new RouterLink(app, "/foo", [], "")
             routerlnk.addClass("router-link");
 
-            let confirmBtn = app.createElement("span", "Register", routerlnk, [cssClass("btn btn-confirm router-btn")]);
+            let confirmBtn = app.createElement("span", "Save", routerlnk, [cssClass("btn btn-confirm router-btn")]);
 
             let info = new BlogInfo();
             blogNameInput.bind(props, "blogName");
