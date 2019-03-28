@@ -26,7 +26,7 @@ export class Login extends Component {
             let routerlnk = new RouterLink(app, "/setup", [], "")
             routerlnk.addClass("router-link");
 
-            let confirmBtn = app.createElement("span", "Register", routerlnk, [cssClass("btn btn-confirm router-btn")]);
+            let confirmBtn = app.createElement("span", "Login", routerlnk, [cssClass("btn btn-confirm router-btn")]);
 
 
             userName.bindObject(userInfo, "userName");
