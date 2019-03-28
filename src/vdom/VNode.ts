@@ -355,8 +355,15 @@ export class VInputNode extends VNode {
     }
 
     bind(object: Props, propKey: string) {
+        this.onDomEvenList.push(() => {
+            (this.htmlElement as HTMLInputElement).value = object.getProp(propKey) != undefined ? object.getProp(propKey) : "";
+        });
+
         this.app.eventHandler.registerEventListener("input", (ev, node) => {
             object.setProp(propKey, (node.htmlElement as HTMLInputElement).value);
+            this.props.registerCallback(propKey, (newVal: string) => {
+                (this.htmlElement as HTMLInputElement).value = newVal;
+            });
         }, this);
     }
 

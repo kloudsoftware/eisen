@@ -23,7 +23,7 @@ export class Login extends Component {
             let userInfo = new UserRegisterInfo();
             let pwInput = app.k("input", { attrs: [id("iPassword"), password(), cssClass("user-input")] }) as VInputNode;
             let userName = app.k("input", { attrs: [id("iUserName"), cssClass("user-input")] }) as VInputNode;
-            let routerlnk = new RouterLink(app, "/foo", [], "")
+            let routerlnk = new RouterLink(app, "/setup", [], "")
             routerlnk.addClass("router-link");
 
             let confirmBtn = app.createElement("span", "Register", routerlnk, [cssClass("btn btn-confirm router-btn")]);
