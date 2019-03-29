@@ -11,8 +11,10 @@ export class BlogViewComponent extends Component {
     build(app: VApp): ComponentBuildFunc {
         return (root: VNode, props: Props) => {
 
-            const scopedCss = app.k("style", { value: css})
+            const scopedCss = app.k("style", { value: css })
             const http = app.get<HttpClient>("http");
+
+
             root.appendChild(scopedCss);
             //TODO get blogposts
             //TODO translate response into Props
@@ -48,9 +50,15 @@ export class BlogPostViewComponent extends Component {
     build(app: VApp): ComponentBuildFunc {
         return (root: VNode, props: Props) => {
 
-            const http = app.get<HttpClient>("http");
+            let containerdiv = app.k("div")
+            containerdiv.addClass("card container blogPostContainer");
 
-            parseIntoUnmanaged(props.getProp("htmlString"), root);
+
+
+            const http = app.get<HttpClient>("http");
+            parseIntoUnmanaged(props.getProp("htmlString"), containerdiv);
+            root.appendChild(containerdiv);
+
 
             return {
                 mounted: () => {
