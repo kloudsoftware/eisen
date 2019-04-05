@@ -1,4 +1,3 @@
-import { HttpClient } from './HttpClient';
 import { VApp } from './vdom/VApp';
 import { Component, ComponentHolder } from './vdom/Component';
 import { VNode, Attribute, VNodeType } from './vdom/VNode';

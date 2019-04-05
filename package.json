@@ -1,31 +1,27 @@
 {
-  "name": "kloudrouter",
-  "version": "1.0.0",
-  "description": "A router for the Kloud",
-  "main": "Router.ts",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "prosemirror-example-setup": "^1.0.1",
-    "prosemirror-model": "^1.7.0",
-    "prosemirror-schema-basic": "^1.0.0",
-    "prosemirror-schema-list": "^1.0.2",
-    "prosemirror-state": "^1.2.2",
-    "prosemirror-view": "^1.8.4",
-    "shady-css-parser": "^0.1.0",
-    "uuid": "^3.3.2"
-  },
-  "devDependencies": {
-    "@types/css": "0.0.31",
-    "@types/prosemirror-schema-basic": "^1.0.1",
-    "@types/prosemirror-schema-list": "^1.0.1",
-    "@types/prosemirror-view": "^1.3.1",
-    "cssnano": "^4.1.10",
-    "parcel-plugin-static-files-copy": "^2.0.0",
-    "sass": "^1.17.3",
-    "typescript": "^3.3.3333"
-  }
+    "name": "eisen",
+    "version": "1.0.0",
+    "description": "Declarative and expressive TypeScript framework for building modern web applications",
+    "main": "lib/index.js",
+    "scripts": {
+        "build": "tsc"
+    },
+    "author": "Kloudsoftware",
+    "license": "GPLv3",
+    "types": "src/index.d.ts",
+    "dependencies": {
+        "uuid": "^3.3.2"
+    },
+    "devDependencies": {
+        "typescript": "^3.3.3333"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/kloudsoftware/eisen"
+    },
+    "keywords": [
+        "declarative",
+        "expressive",
+        "typescript"
+    ]
 }
