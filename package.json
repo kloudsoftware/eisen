@@ -1,8 +1,9 @@
 {
-    "name": "eisen",
+    "name": "@kloudsoftware/eisen",
     "version": "1.0.0",
     "description": "Declarative and expressive TypeScript framework for building modern web applications",
     "main": "lib/index.js",
+    "source": "src/index.js",
     "scripts": {
         "build": "tsc"
     },
