@@ -47,9 +47,7 @@ export class Props implements Cloneable<Props>{
     private notifyCallbacks(key: string, value: PropValue) {
         if (this.callbacks.has(key)) {
             let array = this.callbacks.get(key);
-            if (array == undefined) {
-                array.forEach(f => f(value))
-            }
+            array.forEach(f => f(value))
         }
     }
 
