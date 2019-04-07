@@ -92,7 +92,7 @@ export class VNode implements Comparable<VNode> {
         this.htmlElement.addEventListener("blur", func);
     }
 
-    public setAttribute(name: string, value: string): boolean {
+    public setAttribute(name: string, value: string) {
         const isSet = this.attrs.filter(a => a.attrName == name).length > 0;
 
         if (!isSet) {
