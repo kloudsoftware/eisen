@@ -178,7 +178,37 @@ export class VNode implements Comparable<VNode> {
      * Handle with care, changes made to them via this function will not be tracked by the renderer
      */
     public $getChildren() {
-        hat is, all placeholders will be replaced with the corresponding props
+        if (this.children.length != 0 && this.children[0] != undefined && this.children[0].nodeName == "img") {
+            //console.trace()
+        }
+        return this.children;
+    }
+
+    /**
+     * Sets the innerHtml of this node
+     * Using this function marks the app as dirty
+     * @param str the new innerHtml
+     */
+    public setInnerHtml(str: string) {
+        this.app.notifyDirty();
+        this.modifiedInnerHtml = true;
+        this.innerHtml = str;
+    }
+
+    /**
+     * Sets the innerHtml of this node
+     * handle with care, changes will not be tracked by the renderer
+     * @param str the new innerHtml
+     */
+    public $setInnerHtmlNoDirty(str: string) {
+        this.modifiedInnerHtml = true;
+        this.innerHtml = str;
+    }
+
+    /**
+     * Returns the parsed innerHtml of this node
+     * That is, all placeholders will be replaced with the corresponding props
+>>>>>>> Add jsdoc to VNode
      */
     public getInnerHtml(): string {
         return new Stringparser().parse(this.innerHtml, this.props);
