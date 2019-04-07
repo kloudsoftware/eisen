@@ -57,6 +57,13 @@ export class VNode implements Comparable<VNode> {
     }
 
     public addFocusListener(func: EvtHandlerFunc) {
+        if(this.htmlElement == undefined) {
+            this.onDomEvenList.push((el) => {
+                el.addEventListener("focus", func);
+            });
+
+            return;
+        }
         this.htmlElement.addEventListener("focus", func);
     }
 
