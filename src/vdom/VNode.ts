@@ -375,45 +375,80 @@ export class VNodeBuilder {
         this.attrs = [];
     }
 
+    /**
+     * Set the reference to the app
+     * @param app the app to use
+     */
     public setApp(app: VApp): VNodeBuilder {
         this.app = app;
         return this;
     }
 
+    /**
+     * Set the tag name of the node
+     * @param name the tag name to use
+     */
     public setNodeName(name: VNodeType): VNodeBuilder {
         this.nodeName = name;
         return this;
     }
 
+    /**
+     * Set the children of the node
+     * @param childs the children to use
+     */
     public setChildren(childs: VNode[]): VNodeBuilder {
         this.children = childs;
         return this;
     }
 
+    /**
+     * Set the innerHtml of the node
+     * @param html the innerHtml to use
+     */
     public setInnerHtml(html: string) {
         this.innerHtml = html;
     }
 
+    /**
+     * Set the props for the nodde
+     * @param props the props to use
+     */
     public setProps(props: Props): VNodeBuilder {
         this.props = props;
         return this;
     }
 
+    /**
+     * Set the attrs for the nodde
+     * @param attrs the attrs to use
+     */
     public setAttrs(attrs: Attribute[]): VNodeBuilder {
         this.attrs = attrs;
         return this;
     }
 
+    /**
+     * Set the parent for the nodde
+     * @param parent the parent to use
+     */
     public setParent(parent: VNode): VNodeBuilder {
         this.parent = parent;
         return this;
     }
 
+    /**
+     * Set the id for the nodde
+     * @param id the id to use
+     */
     public setId(id: string): VNodeBuilder {
         this.id = id;
         return this;
     }
 
+    /**
+     * Build the node as specified
+     */
     public build(): VNode {
         if (this.app == undefined) {
             console.error("VNode cant be constructed without an app");
@@ -438,6 +473,10 @@ export class VNodeBuilder {
     }
 }
 
+/**
+ * Create an attribute adding css class[es] for a node
+ * @param classNames the css class[es] to use
+ */
 export const cssClass = (...classNames: string[]) => {
     if (classNames.length == 1) {
         return new Attribute("class", classNames[0]);
@@ -447,45 +486,108 @@ export const cssClass = (...classNames: string[]) => {
     return new Attribute("class", val);
 }
 
+/**
+ * Create an attribute setting the id for a node
+ * @param id the id to use
+ */
 export const id = (id: string) => new Attribute("id", id);
+
+/**
+ * Create an attribute setting the 'for' attribute, e.g. for a label
+ * @param idFor the id for the 'for' attribute
+ */
 export const labelFor = (idFor: string) => new Attribute("for", idFor);
+
+/**
+ * Create an attribute setting an input field to the type 'password'
+ */
 export const password = () => new Attribute("type", "password");
+
+/**
+ * Create an attribute setting an input field to the type 'email'
+ */
 export const email = () => new Attribute("type", "email");
+
+/**
+ * Create an attribute setting the 'src' attribute on a node
+ * @param srcStr the 'src' to use
+ */
 export const src = (srcStr: string) => new Attribute("src", srcStr);
 export const style = (style: string) => new Attribute("style", style);
 
+/**
+ * Attribute represents an attribute on a DOM node (e.g. 'id' or 'src')
+ * See: {@link https://dev.w3.org/html5/html-author/#the-elements}
+ */
 export class Attribute implements Comparable<Attribute> {
     public attrName: string;
     public attrValue: string;
 
+    /**
+     * Creates a new Attribute
+     * @param attrName the name of the attribute
+     * @param attrValue the value of the attribute
+     */
     constructor(attrName: string, attrValue: string) {
         this.attrName = attrName;
         this.attrValue = attrValue;
     }
 
+    /**
+     * Clones this attribute
+     * Returns a deep copy
+     */
     public clone(): Attribute {
         return new Attribute(this.attrName, this.attrValue);
     }
 
+    /**
+     * Compares this attribute to another one
+     * @param attribute the attribute to compare with
+     */
     public equals(attribute: Attribute): boolean {
         return this.attrName == attribute.attrName && this.attrValue == attribute.attrValue;
     }
 }
 
+/**
+ * Defines a validation
+ * If 'shouldNotifyOthers' is set, this validation function is free to
+ * call other validation functions, e.g. on password confirmation fields.
+ * Thus, this parameter should be used to supress infinite recursion
+ */
 export type ValidationFunc = (shouldNotifyOthers: boolean) => boolean;
+
+/**
+ * Holds a {@see ValidationFunc} and a string defining the error css class to apply
+ */
 export type ValidationHolder = [ValidationFunc, string];
 
+/**
+ * Represents an 'input' DOM node
+ * Extends {@link VNode} with two way data binding and validation
+ */
 export class VInputNode extends VNode {
     validationFuncs = new Array<ValidationHolder>();
     hasError = false;
     hasValidateBlurFunction = false;
 
+    /**
+     * Bind the value of this input field to the given object.key
+     * @param obj the object holding the value
+     * @param key the key specifing the value on obj to bind
+     */
     bindObject(obj: any, key: string) {
         this.app.eventHandler.registerEventListener("input", (ev, node) => {
             obj[key] = (node.htmlElement as HTMLInputElement).value;
         }, this);
     }
 
+    /**
+     * Bind the value of this input field to a {@link Props} instance
+     * @param object The @{link Props} instance to bind to
+     * @param propKey the key specifing the value on the props to bind to
+     */
     bind(object: Props, propKey: string) {
         this.onDomEvenList.push(() => {
             (this.htmlElement as HTMLInputElement).value = object.getProp(propKey) != undefined ? object.getProp(propKey) : "";
@@ -499,6 +601,15 @@ export class VInputNode extends VNode {
         }, this);
     }
 
+    /**
+     * Runs all validatins on this input
+     * Returns wether validation has passed
+     *
+     * If 'shouldNotifyOthers' is set, this validation function is free to
+     * call other validation functions, e.g. on password confirmation fields.
+     * Thus, this parameter should be used to supress infinite recursion
+     * @param shouldNotifyOthers wether the validation function is allowed to call other validation functions
+     */
     doValidation(shouldNotifyOthers: boolean) {
         return !this.validationFuncs.map(holder => {
             let result = holder[0](shouldNotifyOthers);
@@ -517,6 +628,12 @@ export class VInputNode extends VNode {
         }).some((el) => el == false);
     }
 
+    /**
+     * Register a validation function and an errorClass
+     * The errorClass will be added to the node if validation fails
+     * @param validateFunc
+     * @param errorClass
+     */
     validate(validateFunc: ValidationFunc, errorClass: string) {
         this.validationFuncs.push([validateFunc, errorClass])
         if (this.hasValidateBlurFunction) {
