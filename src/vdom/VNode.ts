@@ -3,6 +3,7 @@ import { VApp, AppEvent } from './VApp'
 import { Props } from './Props';
 import { EvtHandlerFunc, EvtType } from './EventHandler';
 import { RouterLink } from '../Router';
+import { getLocale } from '../i18n/Resolver';
 
 export const kloudAppId = "data-kloudappid";
 
@@ -135,6 +136,13 @@ export class VNode implements Comparable<VNode> {
     }
 
     public getInnerHtml(): string {
+        if(this.app.i18nResolver != undefined) {
+            let localized = this.app.i18nResolver.get(this.innerHtml, getLocale());
+            if (localized != undefined && localized != this.innerHtml) {
+                return new Stringparser().parse(localized, this.props);
+            }
+        }
+
         return new Stringparser().parse(this.innerHtml, this.props);
     }
 
