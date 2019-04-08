@@ -75,6 +75,8 @@ export class EventHandler {
                     handled = true;
 
                     let cont = func(event, it);
+
+                    //cont reflects the return value from the eventFunction. This is used here so you can stop a user from leaving the page, following a {@link RouterLink} if e.g. a validation fails.
                     cont = cont != undefined ? cont : false;
 
                     if(!cont) {
@@ -87,7 +89,7 @@ export class EventHandler {
                 });
             })
 
-            //We need to check if the direct parent of the target element is a RouterLink
+            //We need to check if the direct parent of the target element is a RouterLink, otherwise a e.g. img tag would consume the event without the RouterLink being notified.
             if (!handled) {
                 this.routerLnks.filter(res => res.htmlElement == $target.parentNode).forEach(it => {
                     it.clickFunction(event, it);

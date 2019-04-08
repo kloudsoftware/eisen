@@ -4,6 +4,10 @@ import { arraysEquals } from "./Common"
 
 type PatchFunction = (parent: HTMLElement) => HTMLElement;
 
+/**
+ * This class is responsible determining the Changes that need to be applied to the $DOM
+ * its use is to create the PatchFunction that needs to be applied to the {@link VApp}.rootNode.htmlElement to update the $DOM state in order to reflect the new VApp
+ */
 export class Renderer {
 
     //Proxy for calling
@@ -27,6 +31,11 @@ export class Renderer {
         parent.removeChild(toRemove.htmlElement);
     }
 
+    /**
+     * Compares two VNodes and returns a {@link PatchFunction} to patch the corresponding $DOM element. Children are handled recursively.
+     * @param oldVNode
+     * @param newVNode
+     */
     private diffElement(oldVNode?: VNode, newVNode?: VNode): PatchFunction {
         if (newVNode == undefined) {
             if (oldVNode == undefined) {
@@ -79,6 +88,12 @@ export class Renderer {
         };
     }
 
+    /**
+     * Compares the innerHtml values of the nodes. Uses {@link VNode}.modifiedInnerHtml as an indicator wether HTML was altered. This is done to
+     * diff more easily and protect from mistakes. If a VNode has dynamicContent such as a two way bound string, it will always be re-rendered in order to update its state
+     * @param oldVNode
+     * @param newVNode
+     */
     private diffInnerHtml(oldVNode: VNode, newVNode: VNode): PatchFunction {
         if (newVNode.modifiedInnerHtml || newVNode.dynamicContent) {
             return $node => {
@@ -91,6 +106,11 @@ export class Renderer {
         return $node => $node;
     }
 
+    /**
+     * Compares the attributes of the nodes. Current implementation does not actually compare the old and new Values, rather it simply replaces them.
+     * @param node
+     * @param newVNode
+     */
     private diffAttributes(node: VNode, newVNode: VNode): PatchFunction {
         let patches: PatchFunction[] = [];
 
@@ -114,6 +134,10 @@ export class Renderer {
         }
     }
 
+    /**
+     * Renders a complete $DOM tree from this VNode. It recursively handles the ChildNodes
+     * @param node the $DOM element corresponding to the input VNode
+     */
     public renderTree(node: VNode): HTMLElement {
         let $elem = document.createElement(node.nodeName);
         $elem.innerHTML = node.getInnerHtml();
