@@ -19,7 +19,7 @@ export type VNodeType = '!--...--' | '!DOCTYPE ' | 'a' | 'abbr' | 'acronym' | 'a
  * Event firing when the Node appears on the DOM and such gets a HTMLElement
  */
 export type OnDomEvent = (html: HTMLElement) => void;
-function b(a) { return a ? (a ^ Math.random() * 16 >> a / 4).toString(16) : ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, b) }
+
 /**
  * A VNode represents a virtual DOM Node. It's the main data structure to represent a virtual DOM
  * It contains all data to render a real DOM node
