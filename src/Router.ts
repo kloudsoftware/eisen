@@ -17,8 +17,7 @@ export class Router {
         this.app = app;
 
         window.onpopstate = (event) => {
-            this.resolveRoute(document.location.pathname)
-        }
+            this.resolveRoute(document.location.pathname)}
     }
 
     registerRoute(path: string, component: Component, props?: Props) {
@@ -61,7 +60,7 @@ export class RouterLink extends VNode {
     constructor(app: VApp, target: string, children: VNode[], innerHtml?: string, props?: Props, attrs?: Attribute[], parent?: VNode, id?: string) {
         super(app, "a", children, innerHtml, props, attrs, parent, id);
         this.target = target;
-        this.attrs = [new Attribute("href", target)];
+        this.attrs.push(new Attribute("href", target));
 
         this.addEventlistener("click", this.clickFunction);
     }
