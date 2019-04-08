@@ -1,6 +1,5 @@
 import { Comparable, arraysEquals, Stringparser, dataRegex } from './Common';
 import { VApp, AppEvent } from './VApp'
-import { v4 as uuid } from 'uuid';
 import { Props } from './Props';
 import { EvtHandlerFunc, EvtType } from './EventHandler';
 import { RouterLink } from '../Router';
@@ -187,7 +186,7 @@ export class VNode implements Comparable<VNode> {
 
     //Sets a new id for every item
     public copy(parent: VNode): VNode {
-        const id = uuid();
+        const id = undefined;
         const nodeName = this.nodeName;
         const innerHtml = this.innerHtml;
         const props = Object.assign(this.props, {}) as Props;
