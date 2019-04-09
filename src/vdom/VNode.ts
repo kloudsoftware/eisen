@@ -13,7 +13,7 @@ export type OnDomEvent = (html: HTMLElement) => void;
 export class VNode implements Comparable<VNode> {
     app: VApp;
     id: string;
-    attrs: Attribute[];
+    private attrs: Attribute[];
     nodeName: VNodeType;
     private innerHtml: string;
     parent?: VNode;
@@ -91,6 +91,16 @@ export class VNode implements Comparable<VNode> {
         this.htmlElement.addEventListener("blur", func);
     }
 
+    public removeAttribute(attribute: string) {
+        const isSet = this.attrs.filter(a => a.attrName == attribute);
+
+        if (isSet != undefined && isSet.length != 0) {
+            this.attrs.splice(this.attrs.indexOf(isSet[0], 1));
+            this.app.notifyDirty();
+            return;
+        }
+    }
+
     public setAttribute(name: string, value: string) {
         const isSet = this.attrs.filter(a => a.attrName == name).length > 0;
 
@@ -100,12 +110,10 @@ export class VNode implements Comparable<VNode> {
         }
 
         this.attrs.filter(a => a.attrName == name)[0].attrValue = value;
+        this.app.notifyDirty();
     }
 
     public $getChildren() {
-        if(this.children.length != 0 && this.children[0] != undefined &&  this.children[0].nodeName == "img") {
-            //console.trace()
-        }
         return this.children;
     }
 
@@ -339,6 +347,7 @@ export const labelFor = (idFor: string) => new Attribute("for", idFor);
 export const password = () => new Attribute("type", "password");
 export const email = () => new Attribute("type", "email");
 export const src = (srcStr: string) => new Attribute("src", srcStr);
+export const style = (style: string) => new Attribute("style", style);
 
 export class Attribute implements Comparable<Attribute> {
     public attrName: string;
