@@ -40,8 +40,8 @@ index.html:
 ```
 
 Some notes:
-    * target could be any part of the webpage, it only represents the mountpoint for the whole app. Everything will be rendered inside of this node
-    * You do not need to worry about updating the DOM, as this will be handled by the app, intelligently only re-rendering what is needed and when it is needed.
+  * target could be any part of the webpage, it only represents the mountpoint for the whole app. Everything will be rendered inside of this node
+  * You do not need to worry about updating the DOM, as this will be handled by the app, intelligently only re-rendering what is needed and when it is needed.
 
 Ofcourse, this is just a basic example, if you want to build something more complex, you should consider adding a component.
 
@@ -141,10 +141,10 @@ app.rootNode.appendChild(userName);
 
 
 Notes: 
-    * app.k is simply syntactic sugar around the app.createElement function, providing a convenient way to model a whole dom in typescript. Nodes created this way will "dangle" having no parents by default. This is useful as you do not trigger re-renders on every creation)
-    * any node with the type "input" can be cast into VInputNode, providing you with the extra functions.
-    * bindObj takes any object as a paramenter and a field that will be used to bind the value of the input field to the name key of userName. It will update in real time to the value of the input field
-    * validate will be called anytime the ["blur"](https://developer.mozilla.org/en-US/docs/Web/API/Window/blur_event) event triggers on the field
+  * app.k is simply syntactic sugar around the app.createElement function, providing a convenient way to model a whole dom in typescript. Nodes created this way will "dangle" having no parents by default. This is useful as you do not trigger re-renders on every creation)
+  * any node with the type "input" can be cast into VInputNode, providing you with the extra functions.
+  * bindObj takes any object as a paramenter and a field that will be used to bind the value of the input field to the name key of userName. It will update in real time to the value of the input field
+  * validate will be called anytime the ["blur"](https://developer.mozilla.org/en-US/docs/Web/API/Window/blur_event) event triggers on the field
     
 ## Routing
 
