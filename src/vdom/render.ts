@@ -82,7 +82,6 @@ export class Renderer {
     private diffInnerHtml(oldVNode: VNode, newVNode: VNode): PatchFunction {
         if (newVNode.modifiedInnerHtml || newVNode.dynamicContent) {
             return $node => {
-                //console.log($node, newVNode.getInnerHtml());
                 $node.innerHTML = newVNode.getInnerHtml();
                 return $node;
             }
@@ -101,7 +100,7 @@ export class Renderer {
             })
         });
 
-        newVNode.attrs.forEach(attr => {
+        newVNode.$getAttrs().forEach(attr => {
             patches.push($node => {
                 $node.setAttribute(attr.attrName, attr.attrValue)
                 return $node;
@@ -118,8 +117,8 @@ export class Renderer {
         let $elem = document.createElement(node.nodeName);
         $elem.innerHTML = node.getInnerHtml();
         node.setHtmlElement($elem);
-        if (node.attrs != undefined) {
-            node.attrs.forEach(attr => $elem.setAttribute(attr.attrName, attr.attrValue));
+        if (node.$getAttrs() != undefined) {
+            node.$getAttrs().forEach(attr => $elem.setAttribute(attr.attrName, attr.attrValue));
         }
 
         node.$getChildren().forEach(child => {

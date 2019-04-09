@@ -48,7 +48,7 @@ export class VApp {
         let $tagName = $root.tagName.toLowerCase() as VNodeType;
         this.dirty = false;
         if (rootNode != undefined) {
-            this.rootNode = rootNode.clone(undefined);
+            this.rootNode = rootNode.$clone(undefined);
         } else {
             this.rootNode = new VNode(this, $tagName, new Array(), "", new Props(this), [new Attribute("id", $root.id)], undefined);
             this.rootNode.htmlElement = $root;
@@ -85,6 +85,7 @@ export class VApp {
         }
 
         let compMount = this.k("div");
+        compMount.parent = mount;
         mount.$getChildren().push(compMount);
         let compProps = component.build(this)(compMount, props);
         this.compProps.push(new ComponentHolder(compProps, compMount));
@@ -135,13 +136,14 @@ export class VApp {
         if (filteredComps.length == 0) {
             console.error("Node is not component mount")
             return;
-        } else if (!filteredComps[0].mount[0]) {
+        } else if (!filteredComps[0].mounted) {
             console.error("Component cannot be unmounted before it was mounted")
             return;
         }
 
         let target = filteredComps[0];
 
+        console.log("target: ", target)
         target.mount.parent.removeChild(target.mount);
         this.compProps.splice(this.compProps.indexOf(target), 1);
         this.compsToNotifyUnmount.push(target.unmounted);
@@ -173,13 +175,12 @@ export class VApp {
             this.oneTimeRenderCallbacks
 
             this.compProps.filter(prop => !prop.mounted[0]).forEach(prop => {
-                invokeIfDefined(prop.mounted[1])
                 prop.mounted[0] = true;
+                invokeIfDefined(prop.mounted[1])
             });
 
             this.compProps.filter(prop => !prop.remount[0]).forEach(prop => {
                 invokeIfDefined(prop.remount[1])
-                prop.remount[0] = true;
             });
 
             this.compsToNotifyUnmount.forEach(f => invokeIfDefined(f));

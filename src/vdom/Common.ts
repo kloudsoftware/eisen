@@ -7,6 +7,10 @@ export interface Comparable<T> {
 }
 
 export function arraysEquals<T extends Comparable<T>>(arrayA: T[], arrayB: T[]): boolean {
+    if(arrayA == undefined && arrayB == undefined) {
+        return true;
+    }
+
     if (arrayA.length != arrayB.length) {
         return false;
     }

@@ -52,7 +52,9 @@ export class VNode implements Comparable<VNode> {
             }
         }
 
-        this.attrs.push(new Attribute(kloudAppId, this.id));
+        if(!this.attrs.some(attr => attr.attrName == kloudAppId)) {
+            this.attrs.push(new Attribute(kloudAppId, this.id));
+        }
     }
 
     public addFocusListener(func: EvtHandlerFunc) {
@@ -80,6 +82,10 @@ export class VNode implements Comparable<VNode> {
         func(this.htmlElement);
     }
 
+    public $getAttrs() {
+        return this.attrs;
+    }
+
     public addBlurListener(func: EvtHandlerFunc) {
         if(this.htmlElement == undefined) {
             this.onDomEvenList.push((el) => {
@@ -102,6 +108,7 @@ export class VNode implements Comparable<VNode> {
     }
 
     public setAttribute(name: string, value: string) {
+        this.app.notifyDirty();
         const isSet = this.attrs.filter(a => a.attrName == name).length > 0;
 
         if (!isSet) {
@@ -110,7 +117,6 @@ export class VNode implements Comparable<VNode> {
         }
 
         this.attrs.filter(a => a.attrName == name)[0].attrValue = value;
-        this.app.notifyDirty();
     }
 
     public $getChildren() {
@@ -167,7 +173,7 @@ export class VNode implements Comparable<VNode> {
         }
     }
 
-    public clone(parent: VNode): VNode {
+    public $clone(parent: VNode): VNode {
         const id = this.id;
         const nodeName = this.nodeName;
         const innerHtml = this.innerHtml;
@@ -183,7 +189,7 @@ export class VNode implements Comparable<VNode> {
             if (child == undefined) {
                 children.push(undefined);
             } else {
-                children.push(child.clone(clonedNode))
+                children.push(child.$clone(clonedNode))
             }
         })
 
@@ -192,23 +198,6 @@ export class VNode implements Comparable<VNode> {
         return clonedNode;
     }
 
-    //Sets a new id for every item
-    public copy(parent: VNode): VNode {
-        const id = undefined;
-        const nodeName = this.nodeName;
-        const innerHtml = this.innerHtml;
-        const props = Object.assign(this.props, {}) as Props;
-
-        const htmlElement = this.htmlElement;
-        const attrs = this.attrs.map(a => a.clone());
-
-        const clonedNode = new VNode(this.app, nodeName, [], innerHtml, props, attrs, parent, id);
-        const children = this.children.map(c => c.copy(clonedNode));
-
-        clonedNode.children = children;
-        clonedNode.htmlElement = htmlElement;
-        return clonedNode;
-    }
     equals(o: VNode): boolean {
         if (o == undefined) return false;
 
