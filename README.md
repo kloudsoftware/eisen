@@ -15,7 +15,15 @@ to excellent editor integration and *typesafe* programming.
 eisen is also fully dependency free, this leads to a very lean and easy to understand project structure. Everything you need to know is here. First class i18n and Router support.
 The framework is also very lean, coming in at only 1200(not minified) LoC while still retaining a lot of functionality.
     
-# How I use eisen?
+# How do I use eisen?
+
+## Installing eisen
+You can install eisen easily using npm:
+```
+npm i @kloudsoftware/eisen
+```
+
+## Using eisen
 
 A very basic eisen app could look like this
 
@@ -40,8 +48,8 @@ index.html:
 ```
 
 Some notes:
-    * target could be any part of the webpage, it only represents the mountpoint for the whole app. Everything will be rendered inside of this node
-    * You do not need to worry about updating the DOM, as this will be handled by the app, intelligently only re-rendering what is needed and when it is needed.
+  * target could be any part of the webpage, it only represents the mountpoint for the whole app. Everything will be rendered inside of this node
+  * You do not need to worry about updating the DOM, as this will be handled by the app, intelligently only re-rendering what is needed and when it is needed.
 
 Ofcourse, this is just a basic example, if you want to build something more complex, you should consider adding a component.
 
@@ -108,9 +116,9 @@ app.mountComponent(new BtnCounter(), app.rootNode, new Props(app);
 
 It is that easy. If you take a look at the object returned by the ComponentBuildFunc, you can see a few methods. Those are invoked for you by the VApp, notifying you about state changes.
 
-mounted: Will be invoked when your component appears on the DOM and is visible to the user.
-unmounted: Will be invoked after your component gets removed from the DOM and is no longer visible. Use this method to clean up any unecessary items, or send of requests etc.
-remounted: Will be invoked if your component is remounted, using the VApp.remount function.
+  * mounted: Will be invoked when your component appears on the DOM and is visible to the user.  
+  * unmounted: Will be invoked after your component gets removed from the DOM and is no longer visible. Use this method to clean up any unecessary items, or send of requests etc.
+  * remounted: Will be invoked if your component is remounted, using the VApp.remount function.
 
 ## User input Validation and binding an input field
 
@@ -141,11 +149,15 @@ app.rootNode.appendChild(userName);
 
 
 Notes: 
-    * app.k is simply syntactic sugar around the app.createElement function, providing a convenient way to model a whole dom in typescript. Nodes created this way will "dangle" having no parents by default. This is useful as you do not trigger re-renders on every creation)
-    * any node with the type "input" can be cast into VInputNode, providing you with the extra functions.
-    * bindObj takes any object as a paramenter and a field that will be used to bind the value of the input field to the name key of userName. It will update in real time to the value of the input field
-    * validate will be called anytime the ["blur"](https://developer.mozilla.org/en-US/docs/Web/API/Window/blur_event) event triggers on the field
+  * app.k is simply syntactic sugar around the app.createElement function, providing a convenient way to model a whole dom in typescript. Nodes created this way will "dangle" having no parents by default. This is useful as you do not trigger re-renders on every creation)
+  * any node with the type "input" can be cast into VInputNode, providing you with the extra functions.
+  * bindObj takes any object as a paramenter and a field that will be used to bind the value of the input field to the name key of userName. It will update in real time to the value of the input field
+  * validate will be called anytime the ["blur"](https://developer.mozilla.org/en-US/docs/Web/API/Window/blur_event) event triggers on the field
     
 ## Routing
 
 tbd
+
+# Maintainers
+
+eisen is written and maintained by: [kloudsoftware](https://github.com/orgs/kloudsoftware/people)
