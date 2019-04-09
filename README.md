@@ -51,7 +51,7 @@ Some notes:
   * target could be any part of the webpage, it only represents the mountpoint for the whole app. Everything will be rendered inside of this node
   * You do not need to worry about updating the DOM, as this will be handled by the app, intelligently only re-rendering what is needed and when it is needed.
 
-Ofcourse, this is just a basic example, if you want to build something more complex, you should consider adding a component.
+Of course, this is just a basic example, if you want to build something more complex, you should consider adding a component.
 
 ## Components
 
@@ -96,9 +96,9 @@ This is a basic example of a component. Notice how the component has a build fun
 It will take care of creating it and mounting it. The component really describes the way you component "should" look like, making it easily re-usable.
 
 This example also showcases how two way databinding is done in eisen. The Properties object contains information about this component. You can use it to communicate, store information
-or do two way databinding. The *times* key will be inserted into the button, incrementing the counter.
+or do two way databinding. The *times* key will be inserted into the button, incrementing the counter each time the button is clicked.
 
-We also bypass the native eventhandler and use the eventhandler provided by eisen. It features a few extra things, such as inserting the VNode as a parameter into the eventhandler function. This should be considered best practice as it is way cheaper to do and does not require your VNode to be visible (i.e. have a real htmlElement associated with it)
+We also bypass the native eventhandler and use the eventhandler provided by eisen. It features a few extra things, such as inserting the VNode as a parameter into the eventhandler function. This should be considered best practice as it is way cheaper to do and does not require your VNode to be visible (i.e. have a real htmlElement associated with it).
 
 ### Mounting a Component
 
@@ -149,7 +149,7 @@ app.rootNode.appendChild(userName);
 
 
 Notes: 
-  * app.k is simply syntactic sugar around the app.createElement function, providing a convenient way to model a whole dom in typescript. Nodes created this way will "dangle" having no parents by default. This is useful as you do not trigger re-renders on every creation)
+  * app.k is simply syntactic sugar around the app.createElement function, providing a convenient way to model a whole dom in typescript. Nodes created this way will "dangle", having no parents by default. This is useful as you do not trigger re-renders on every creation)
   * any node with the type "input" can be cast into VInputNode, providing you with the extra functions.
   * bindObj takes any object as a paramenter and a field that will be used to bind the value of the input field to the name key of userName. It will update in real time to the value of the input field
   * validate will be called anytime the ["blur"](https://developer.mozilla.org/en-US/docs/Web/API/Window/blur_event) event triggers on the field
