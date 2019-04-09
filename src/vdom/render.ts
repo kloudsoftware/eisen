@@ -11,6 +11,11 @@ type PatchFunction = (parent: HTMLElement) => HTMLElement;
 export class Renderer {
 
     //Proxy for calling
+    /**
+     * Compares the given {@link VApp} instance to the latest snapshot made.
+     * Returns a function to patch the $DOM.
+     * @param app the current state of the app
+     */
     public diffAgainstLatest(app: VApp): PatchFunction {
         let latest = app.getLatestSnapshot();
         if (latest == undefined) {
@@ -22,6 +27,11 @@ export class Renderer {
         return this.diff(latest, app);
     }
 
+    /**
+     * Compares two {@link VApp} instances and returns a function to patch the $DOM
+     * @param snapshot the snapshot made prior. Base of the comparison
+     * @param vApp the current state to compare with
+     */
     public diff(snapshot: VApp, vApp: VApp): PatchFunction {
         let patch = this.diffElement(snapshot.rootNode, vApp.rootNode);
         return patch;
@@ -33,8 +43,8 @@ export class Renderer {
 
     /**
      * Compares two VNodes and returns a {@link PatchFunction} to patch the corresponding $DOM element. Children are handled recursively.
-     * @param oldVNode
-     * @param newVNode
+     * @param oldVNode the node in the old state
+     * @param newVNode the node in the new state
      */
     private diffElement(oldVNode?: VNode, newVNode?: VNode): PatchFunction {
         if (newVNode == undefined) {
