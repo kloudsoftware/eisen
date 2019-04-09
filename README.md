@@ -19,7 +19,7 @@ The framework is also very lean, coming in at only 1200(not minified) LoC while 
 
 ## Installing eisen
 You can install eisen easily using npm:
-```
+```bash
 npm i @kloudsoftware/eisen
 ```
 
@@ -28,7 +28,7 @@ npm i @kloudsoftware/eisen
 A very basic eisen app could look like this
 
 index.ts:
-```
+```typescript
 import { VApp, Renderer } from '@kloudsoftware/eisen';
 
 const renderer = new Renderer();
@@ -39,7 +39,7 @@ app.createElement("h1", "Hello world!", app.rootNode);
 ```
 
 index.html:
-```
+```html
 <body>
     <div id="target"></div>
 </body>
@@ -58,7 +58,7 @@ Of course, this is just a basic example, if you want to build something more com
 In order to encapsulate and re-use your work, you should use components. eisen exposes a powerful api to realize this:
 
 BtnCounterComponent.ts
-```
+```typescript
 import { Component, ComponentBuildFunc } from '@kloudsoftware/eisen';
 import { VApp } from '@kloudsoftware/eisen';
 import { VNode } from '@kloudsoftware/eisen';
@@ -103,7 +103,7 @@ We also bypass the native eventhandler and use the eventhandler provided by eise
 ### Mounting a Component
 
 index.ts
-```
+```typescript
 import { VApp, Renderer } from '@kloudsoftware/eisen';
 import { BtnCounter } from './BtnCounterComponent.ts'
 
@@ -130,7 +130,7 @@ removed if the error is fixed:
 example: 
 Assume the app is already created.
 
-```
+```typescript
 let userNameObj = {
     name: "";
 };
