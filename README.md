@@ -17,6 +17,14 @@ The framework is also very lean, coming in at only 1200(not minified) LoC while 
     
 # How I use eisen?
 
+## Installing eisen
+You can install eisen easily using npm:
+```
+npm i @kloudsoftware/eisen
+```
+
+## Using eisen
+
 A very basic eisen app could look like this
 
 index.ts:
@@ -108,9 +116,9 @@ app.mountComponent(new BtnCounter(), app.rootNode, new Props(app);
 
 It is that easy. If you take a look at the object returned by the ComponentBuildFunc, you can see a few methods. Those are invoked for you by the VApp, notifying you about state changes.
 
-mounted: Will be invoked when your component appears on the DOM and is visible to the user.
-unmounted: Will be invoked after your component gets removed from the DOM and is no longer visible. Use this method to clean up any unecessary items, or send of requests etc.
-remounted: Will be invoked if your component is remounted, using the VApp.remount function.
+  * mounted: Will be invoked when your component appears on the DOM and is visible to the user.  
+  * unmounted: Will be invoked after your component gets removed from the DOM and is no longer visible. Use this method to clean up any unecessary items, or send of requests etc.
+  * remounted: Will be invoked if your component is remounted, using the VApp.remount function.
 
 ## User input Validation and binding an input field
 
@@ -149,3 +157,7 @@ Notes:
 ## Routing
 
 tbd
+
+# Maintainers
+
+eisen is written and maintained by: [kloudsoftware](https://github.com/orgs/kloudsoftware/people)
