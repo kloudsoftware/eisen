@@ -15,7 +15,7 @@ to excellent editor integration and *typesafe* programming.
 eisen is also fully dependency free, this leads to a very lean and easy to understand project structure. Everything you need to know is here. First class i18n and Router support.
 The framework is also very lean, coming in at only 1200(not minified) LoC while still retaining a lot of functionality.
     
-# How I use eisen?
+# How do I use eisen?
 
 ## Installing eisen
 You can install eisen easily using npm:
