@@ -13,7 +13,7 @@ export type OnDomEvent = (html: HTMLElement) => void;
 export class VNode implements Comparable<VNode> {
     app: VApp;
     id: string;
-    private attrs: Attribute[];
+    protected attrs: Attribute[];
     nodeName: VNodeType;
     private innerHtml: string;
     parent?: VNode;
