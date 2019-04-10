@@ -1,15 +1,20 @@
-export interface Resolver {
-    get(key: string, locale: string): string;
+export abstract class Resolver {
+    public getPrefix(): string {
+        return "$_";
+    }
+
+    public abstract get(key: string, locale: string): string;
 }
 
-export class StringLocaleResolver implements Resolver {
+export class StringLocaleResolver extends Resolver {
     private localeStringObj: any;
 
     constructor(localeStringObj: any) {
+        super();
         this.localeStringObj = localeStringObj;
     }
 
-    get(key: string, locale: string): string {
+    public get(key: string, locale: string): string {
         return this.localeStringObj[key][locale];
     }
 }

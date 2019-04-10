@@ -35,7 +35,7 @@ export class VApp {
     router?: Router;
     pluginMap: Map<string, any> = new Map();
     oneTimeRenderCallbacks = new Array<AppEvent>();
-    i18nResolver: Resolver;
+    i18nResolver: Array<Resolver>;
 
     /**
      * Constructs the app
@@ -326,10 +326,14 @@ export class VApp {
     }
 
     /**
-     * Configure the VApp to try and use a i18n Resolver
+     * Configure the VApp to add an additional resolver for i18n strings
      * @param resolver
      */
     public useTranslationResolver(resolver: Resolver) {
-        this.i18nResolver = resolver;
+        if (this.i18nResolver == undefined) {
+            this.i18nResolver = new Array<Resolver>()
+        }
+
+        this.i18nResolver.push(resolver);
     }
 }
