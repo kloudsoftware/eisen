@@ -183,7 +183,7 @@ export class VNode implements Comparable<VNode> {
         const attrs = this.attrs.map(a => a.clone());
 
         const clonedNode = new VNode(this.app, nodeName, [], innerHtml, props, attrs, parent, id);
-        const children = [];
+        const children = new Array<VNode>();
 
         this.children.forEach(child => {
             if (child == undefined) {

@@ -6,11 +6,11 @@ import { Props } from './vdom/Props';
 type ComponentPropsHolder = [Component, Props];
 
 export class Router {
-    app: VApp;
-    resolvedRouterMap: Map<string, ComponentHolder> = new Map();
-    componentMap: Map<string, ComponentPropsHolder> = new Map();
-    mount: VNode;
-    currPath: string;
+    private app: VApp;
+    private resolvedRouterMap: Map<string, ComponentHolder> = new Map<string, ComponentHolder>();
+    public componentMap: Map<string, ComponentPropsHolder> = new Map();
+    private mount: VNode;
+    private currPath: string = document.location.pathname;
 
     constructor(app: VApp, mount: VNode) {
         this.mount = mount;
@@ -37,7 +37,7 @@ export class Router {
 
         if (this.resolvedRouterMap.has(path)) {
             this.mount.$getChildren().forEach(child => this.mount.removeChild(child));
-            this.app.remountComponent(this.resolvedRouterMap.get(path), this.mount);
+            this.app.remountComponent(this.resolvedRouterMap.get(path) as ComponentHolder, this.mount);
             this.currPath = path;
             return true;
         }
@@ -51,6 +51,7 @@ export class Router {
         this.currPath = path;
         let cmp = this.componentMap.get(path);
         this.resolvedRouterMap.set(path, this.app.routerMountComponent(cmp[0], this.mount, cmp[1]));
+        return true;
     }
 }
 

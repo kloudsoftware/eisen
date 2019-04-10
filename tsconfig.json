@@ -6,6 +6,8 @@
         "outDir": "./lib/",
         "target": "es5",
         "sourceMap": false,
+	"strict": true,
+	"strictNullChecks": false,
         "declaration": true,
         "jsx": "preserve",
         "lib": [

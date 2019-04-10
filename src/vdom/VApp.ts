@@ -161,7 +161,7 @@ export class VApp {
 
             console.log("Redraw");
             let patch = this.renderer.diffAgainstLatest(this);
-            patch.apply(this.rootNode.htmlElement)
+            patch(this.rootNode.htmlElement)
             this.dirty = false;
             this.snapshots.push(this.clone());
 
