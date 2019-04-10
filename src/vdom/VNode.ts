@@ -188,6 +188,9 @@ export class VNode implements Comparable<VNode> {
      * Handle with care, changes made to them via this function will not be tracked by the renderer
      */
     public $getChildren() {
+        if (this.children.length != 0 && this.children[0] != undefined && this.children[0].nodeName == "img") {
+            //console.trace()
+        }
         return this.children;
     }
 
