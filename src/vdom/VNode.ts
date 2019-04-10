@@ -208,7 +208,10 @@ export class VNode implements Comparable<VNode> {
     /**
      * Returns the parsed innerHtml of this node
      * That is, all placeholders will be replaced with the corresponding props
+<<<<<<< HEAD
 >>>>>>> Add jsdoc to VNode
+=======
+>>>>>>> 4c26afc0954c585bed4ff82b40e209b08539bffd
      */
     public getInnerHtml(): string {
         return new Stringparser().parse(this.innerHtml, this.props);
