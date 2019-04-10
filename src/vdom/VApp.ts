@@ -143,7 +143,6 @@ export class VApp {
 
         let target = filteredComps[0];
 
-        console.log("target: ", target)
         target.mount.parent.removeChild(target.mount);
         this.compProps.splice(this.compProps.indexOf(target), 1);
         this.compsToNotifyUnmount.push(target.unmounted);
@@ -180,6 +179,7 @@ export class VApp {
             });
 
             this.compProps.filter(prop => !prop.remount[0]).forEach(prop => {
+                prop.remount[0] = true;
                 invokeIfDefined(prop.remount[1])
             });
 
