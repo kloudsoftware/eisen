@@ -145,6 +145,10 @@ export class VNode implements Comparable<VNode> {
         this.htmlElement.addEventListener("blur", func);
     }
 
+    /**
+     * Remove an attribute from the node, if it's set
+     * @param attribute the name of the attribute to remove
+     */
     public removeAttribute(attribute: string) {
         const isSet = this.attrs.filter(a => a.attrName == attribute);
 
