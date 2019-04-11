@@ -136,7 +136,8 @@ export class VNode implements Comparable<VNode> {
     }
 
     public getInnerHtml(): string {
-        if (this.app.i18nResolver != undefined && this.app.i18nResolver.some(resolver => this.innerHtml.startsWith(resolver.getPrefix()))) {
+        if (this.app.i18nResolver != undefined
+            && this.app.i18nResolver.some(resolver => this.innerHtml.startsWith(resolver.getPrefix()))) {
             const resolver = this.app.i18nResolver.filter(resolver => this.innerHtml.startsWith(resolver.getPrefix()));
             let localized: string = undefined;
             for(const res of resolver) {
