@@ -5,6 +5,7 @@ import { Component, ComponentHolder } from './Component';
 import { EventHandler } from './EventHandler';
 import { invokeIfDefined } from './Common';
 import { Router } from '../Router';
+import { Resolver } from '../i18n/Resolver';
 
 export const unmanagedNode: string = "__UNMANAGED__"
 
@@ -34,6 +35,7 @@ export class VApp {
     router?: Router;
     pluginMap: Map<string, any> = new Map();
     oneTimeRenderCallbacks = new Array<AppEvent>();
+    i18nResolver: Array<Resolver>;
 
     /**
      * Constructs the app
@@ -321,5 +323,17 @@ export class VApp {
      */
     public get<T>(key: string) {
         return this.pluginMap.get(key) as T;
+    }
+
+    /**
+     * Configure the VApp to add an additional resolver for i18n strings
+     * @param resolver
+     */
+    public useTranslationResolver(resolver: Resolver) {
+        if (this.i18nResolver == undefined) {
+            this.i18nResolver = new Array<Resolver>()
+        }
+
+        this.i18nResolver.push(resolver);
     }
 }
