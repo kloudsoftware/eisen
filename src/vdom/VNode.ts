@@ -1,4 +1,4 @@
-import { Comparable, arraysEquals, Stringparser, dataRegex, reflect, raceToSuccess } from './Common';
+import { Comparable, arraysEquals, Stringparser, dataRegex, raceToSuccess } from './Common';
 import { VApp, AppEvent } from './VApp'
 import { Props } from './Props';
 import { EvtHandlerFunc, EvtType } from './EventHandler';
@@ -173,28 +173,26 @@ export class VNode implements Comparable<VNode> {
                     return res.get(htmlToUse, locale.split("-")[0]);
                 });
 
+
+            const processMatch = (match: string) => {
+                if (match != undefined) {
+                    if (this.rawInnerHtml == undefined) {
+                        this.rawInnerHtml = htmlToUse;
+                    }
+                    this.lastResolvedLocale = locale;
+                    this.setInnerHtml(match);
+                }
+            };
+
             raceToSuccess(strictResolver)
                 .then(match => {
-                    if (match != undefined) {
-                        if (this.rawInnerHtml == undefined) {
-                            this.rawInnerHtml = htmlToUse;
-                        }
-                        this.lastResolvedLocale = locale;
-                        this.setInnerHtml(match);
-                    }
+                    processMatch(match);
                     resolve();
                 }).catch(_ => {
                     raceToSuccess(nonStrictResolver).then(match => {
-                        if (match != undefined) {
-                            if (this.rawInnerHtml == undefined) {
-                                this.rawInnerHtml = htmlToUse;
-                            }
-                            this.lastResolvedLocale = locale;
-                            this.setInnerHtml(match);
-                        }
+                        processMatch(match);
                         resolve();
-                    })
-                        .catch(e => reject(e));
+                    }).catch(e => reject(e));
                 });
         });
     }

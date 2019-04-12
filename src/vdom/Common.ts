@@ -124,15 +124,6 @@ const parse = (node: Element, app: VApp): VNode => {
 }
 
 /**
- * Takes a promise and returns one, wich always resovles, regardless of the outcome of the given promise
- * @param promise
- */
-export function reflect<T>(promise: Promise<T>): Promise<T> {
-    return promise.then((v: T) => { return v },
-        (e) => { return undefined });
-}
-
-/**
  * Inverts Promise.all
  * Resolves on first successful Promise
  * If all Promises fail, it will reject with the last error
