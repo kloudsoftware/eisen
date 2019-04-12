@@ -1,4 +1,4 @@
-import { Comparable, arraysEquals, Stringparser, dataRegex } from './Common';
+import { Comparable, arraysEquals, Stringparser, dataRegex, raceToSuccess } from './Common';
 import { VApp, AppEvent } from './VApp'
 import { Props } from './Props';
 import { EvtHandlerFunc, EvtType } from './EventHandler';
@@ -25,6 +25,9 @@ export class VNode implements Comparable<VNode> {
     dynamicContent = false;
     modifiedInnerHtml = false;
     onDomEvenList = new Array<OnDomEvent>();
+    rawInnerHtml: string = undefined;
+    lastResolvedLocale: string = undefined;
+
 
     constructor(app: VApp, nodeName: VNodeType, children: VNode[], innerHtml?: string, props?: Props, attrs?: Attribute[], parent?: VNode, id?: string) {
         if (attrs == undefined) {
@@ -53,7 +56,7 @@ export class VNode implements Comparable<VNode> {
             }
         }
 
-        if(!this.attrs.some(attr => attr.attrName == kloudAppId)) {
+        if (!this.attrs.some(attr => attr.attrName == kloudAppId)) {
             this.attrs.push(new Attribute(kloudAppId, this.id));
         }
 
@@ -63,7 +66,7 @@ export class VNode implements Comparable<VNode> {
     }
 
     public addFocusListener(func: EvtHandlerFunc) {
-        if(this.htmlElement == undefined) {
+        if (this.htmlElement == undefined) {
             this.onDomEvenList.push((el) => {
                 el.addEventListener("focus", func);
             });
@@ -79,7 +82,7 @@ export class VNode implements Comparable<VNode> {
     }
 
     public addOnDomEventOrExecute(func: OnDomEvent) {
-        if(this.htmlElement == undefined) {
+        if (this.htmlElement == undefined) {
             this.onDomEvenList.push(func)
             return;
         }
@@ -92,7 +95,7 @@ export class VNode implements Comparable<VNode> {
     }
 
     public addBlurListener(func: EvtHandlerFunc) {
-        if(this.htmlElement == undefined) {
+        if (this.htmlElement == undefined) {
             this.onDomEvenList.push((el) => {
                 el.addEventListener("blur", func);
             });
@@ -141,23 +144,57 @@ export class VNode implements Comparable<VNode> {
     }
 
     public getInnerHtml(): string {
+        const locale = getLocale();
+        const htmlToUse = this.rawInnerHtml != undefined ? this.rawInnerHtml : this.innerHtml;
         if (this.app.i18nResolver != undefined
-            && this.app.i18nResolver.some(resolver => this.innerHtml.startsWith(resolver.getPrefix()))) {
-            const resolver = this.app.i18nResolver.filter(resolver => this.innerHtml.startsWith(resolver.getPrefix()));
-            let localized: string = undefined;
-            for(const res of resolver) {
-                localized = res.get(this.innerHtml, getLocale())
-                if(localized != undefined) {
-                    break;
-                }
-            }
-
-            if (localized != undefined) {
-                return new Stringparser().parse(localized, this.props);
-            }
+            && this.app.i18nResolver.some(resolver => htmlToUse.startsWith(resolver.getPrefix()))
+            && locale != this.lastResolvedLocale) {
+            this.resolvei18n().catch((e) => console.error(e));
         }
-
         return new Stringparser().parse(this.innerHtml, this.props);
+    }
+
+    private resolvei18n(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const locale = getLocale();
+            const htmlToUse = this.rawInnerHtml != undefined ? this.rawInnerHtml : this.innerHtml;
+            const resolver = this.app.i18nResolver
+                .filter(resolver => htmlToUse.startsWith(resolver.getPrefix()))
+
+            const strictResolver = resolver
+                .filter(r => r.isStrict())
+                .map(res => {
+                    return res.get(htmlToUse, locale);
+                });
+
+            const nonStrictResolver = resolver
+                .filter(r => !r.isStrict())
+                .map(res => {
+                    return res.get(htmlToUse, locale.split("-")[0]);
+                });
+
+
+            const processMatch = (match: string) => {
+                if (match != undefined) {
+                    if (this.rawInnerHtml == undefined) {
+                        this.rawInnerHtml = htmlToUse;
+                    }
+                    this.lastResolvedLocale = locale;
+                    this.setInnerHtml(match);
+                }
+            };
+
+            raceToSuccess(strictResolver)
+                .then(match => {
+                    processMatch(match);
+                    resolve();
+                }).catch(_ => {
+                    raceToSuccess(nonStrictResolver).then(match => {
+                        processMatch(match);
+                        resolve();
+                    }).catch(e => reject(e));
+                });
+        });
     }
 
     public replaceChild(old: VNode, node: VNode) {
@@ -409,13 +446,13 @@ export class VInputNode extends VNode {
         return !this.validationFuncs.map(holder => {
             let result = holder[0](shouldNotifyOthers);
 
-            if(result == false) {
-                if(this.hasClass(holder[1])) {
+            if (result == false) {
+                if (this.hasClass(holder[1])) {
                     return result;
                 }
                 this.hasError = true;
                 this.addClass(holder[1])
-            } else if(this.hasClass(holder[1])) {
+            } else if (this.hasClass(holder[1])) {
                 this.removeClass(holder[1])
             }
 
@@ -425,7 +462,7 @@ export class VInputNode extends VNode {
 
     validate(validateFunc: ValidationFunc, errorClass: string) {
         this.validationFuncs.push([validateFunc, errorClass])
-        if(this.hasValidateBlurFunction) {
+        if (this.hasValidateBlurFunction) {
             return;
         }
 

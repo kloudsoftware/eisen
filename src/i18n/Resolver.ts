@@ -3,7 +3,11 @@ export abstract class Resolver {
         return "$_";
     }
 
-    public abstract get(key: string, locale: string): string;
+    public isStrict(): boolean {
+        return false;
+    }
+
+    public abstract get(key: string, locale: string): Promise<string>;
 }
 
 export class StringLocaleResolver extends Resolver {
@@ -14,8 +18,19 @@ export class StringLocaleResolver extends Resolver {
         this.localeStringObj = localeStringObj;
     }
 
-    public get(key: string, locale: string): string {
-        return this.localeStringObj[key][locale];
+    public get(key: string, locale: string): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const locales = this.localeStringObj[key];
+            if (locales == undefined) {
+                reject(`Could not find a match for ${key} for locale ${locale}`)
+            }
+            const result = locales[locale];
+            if (result != undefined) {
+                resolve(result);
+            } else {
+                reject(`Could not find a match for ${key} for locale ${locale}`)
+            }
+        });
     }
 }
 
