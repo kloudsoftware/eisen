@@ -25,6 +25,8 @@ export class VNode implements Comparable<VNode> {
     dynamicContent = false;
     modifiedInnerHtml = false;
     onDomEvenList = new Array<OnDomEvent>();
+    rawInnerHtml: string = undefined;
+
 
     constructor(app: VApp, nodeName: VNodeType, children: VNode[], innerHtml?: string, props?: Props, attrs?: Attribute[], parent?: VNode, id?: string) {
         if (attrs == undefined) {
@@ -56,6 +58,14 @@ export class VNode implements Comparable<VNode> {
         if(!this.attrs.some(attr => attr.attrName == kloudAppId)) {
             this.attrs.push(new Attribute(kloudAppId, this.id));
         }
+
+        this.resolvei18n().catch(e => {
+            const router = app.router;
+            console.error("Error while trying to resolve i18n", e);
+            if (router != undefined && router.hasRouteRegistered('/error')) {
+                router.resolveRoute('/error');
+            }
+        });
     }
 
     public addFocusListener(func: EvtHandlerFunc) {
@@ -136,23 +146,34 @@ export class VNode implements Comparable<VNode> {
     }
 
     public getInnerHtml(): string {
-        if (this.app.i18nResolver != undefined
-            && this.app.i18nResolver.some(resolver => this.innerHtml.startsWith(resolver.getPrefix()))) {
-            const resolver = this.app.i18nResolver.filter(resolver => this.innerHtml.startsWith(resolver.getPrefix()));
-            let localized: string = undefined;
-            for(const res of resolver) {
-                localized = res.get(this.innerHtml, getLocale())
-                if(localized != undefined) {
-                    break;
-                }
-            }
-
-            if (localized != undefined) {
-                return new Stringparser().parse(localized, this.props);
-            }
-        }
-
         return new Stringparser().parse(this.innerHtml, this.props);
+    }
+
+    private resolvei18n(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const htmlToUse = this.rawInnerHtml != undefined ? this.rawInnerHtml : this.innerHtml;
+            if (this.app.i18nResolver != undefined
+                && this.app.i18nResolver.some(resolver => htmlToUse.startsWith(resolver.getPrefix()))) {
+                const locale = getLocale();
+
+                const resolver = this.app.i18nResolver.filter(resolver => htmlToUse.startsWith(resolver.getPrefix()))
+                    .map(res => res.get(htmlToUse, locale));
+
+                Promise.all(resolver)
+                    .then(results => {
+                        const match = results.find(s => s != undefined);
+                        if (match != undefined) {
+                            if (this.rawInnerHtml == undefined) {
+                                this.rawInnerHtml = htmlToUse;
+                            }
+                            this.addOnDomEventOrExecute(_ => this.setInnerHtml(match));
+                        }
+                        resolve();
+                    }).catch(e => reject(e))
+            } else {
+                resolve();
+            }
+        });
     }
 
     public replaceChild(old: VNode, node: VNode) {

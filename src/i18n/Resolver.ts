@@ -3,7 +3,7 @@ export abstract class Resolver {
         return "$_";
     }
 
-    public abstract get(key: string, locale: string): string;
+    public abstract get(key: string, locale: string): Promise<string>;
 }
 
 export class StringLocaleResolver extends Resolver {
@@ -14,8 +14,10 @@ export class StringLocaleResolver extends Resolver {
         this.localeStringObj = localeStringObj;
     }
 
-    public get(key: string, locale: string): string {
-        return this.localeStringObj[key][locale];
+    public get(key: string, locale: string): Promise<string> {
+        return new Promise((resolve, _) => {
+            resolve(this.localeStringObj[key][locale]);
+        });
     }
 }
 

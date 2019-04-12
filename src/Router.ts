@@ -27,6 +27,10 @@ export class Router {
         this.componentMap.set(path, [component, props]);
     }
 
+    hasRouteRegistered(path: string) {
+        return this.componentMap.has(path);
+    }
+
     resolveRoute(path: string): boolean {
         history.replaceState(null, "", path)
 
