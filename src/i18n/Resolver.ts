@@ -19,8 +19,17 @@ export class StringLocaleResolver extends Resolver {
     }
 
     public get(key: string, locale: string): Promise<string> {
-        return new Promise((resolve, _) => {
-            resolve(this.localeStringObj[key][locale]);
+        return new Promise((resolve, reject) => {
+            const locales = this.localeStringObj[key];
+            if (locales == undefined) {
+                reject(`Could not find a match for ${key} for locale ${locale}`)
+            }
+            const result = locales[locale];
+            if (result != undefined) {
+                resolve(result);
+            } else {
+                reject(`Could not find a match for ${key} for locale ${locale}`)
+            }
         });
     }
 }

@@ -124,10 +124,29 @@ const parse = (node: Element, app: VApp): VNode => {
 }
 
 /**
- * Takes a promise wich always resovles, regardless of the outcome of the given promise
+ * Takes a promise and returns one, wich always resovles, regardless of the outcome of the given promise
  * @param promise
  */
-export function reflect<T>(promise: Promise<T>): Promise<T>{
-    return promise.then((v: T) => { return v},
-                        (e) => { return undefined});
+export function reflect<T>(promise: Promise<T>): Promise<T> {
+    return promise.then((v: T) => { return v },
+        (e) => { return undefined });
+}
+
+/**
+ * Inverts Promise.all
+ * Resolves on first successful Promise
+ * If all Promises fail, it will reject with the last error
+ * @param promises The promises to run
+ */
+export function raceToSuccess<T>(promises: Array<Promise<T>>): Promise<T> {
+    return Promise.all(promises.map(p => {
+        return p.then(
+            (val: T) => Promise.reject(val),
+            err => Promise.resolve(err)
+        );
+    }))
+        .then(
+            errors => Promise.reject(errors),
+            (val: T) => Promise.resolve(val)
+        );
 }
