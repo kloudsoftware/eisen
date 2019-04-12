@@ -102,6 +102,7 @@ export class VApp {
      * @param props
      */
     public routerMountComponent(component: Component, mount: VNode, props: Props): ComponentHolder {
+        console.log("component: ",component);
         if (this.router == undefined) {
             console.error("No router mounted")
             return undefined;

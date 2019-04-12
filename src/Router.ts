@@ -10,7 +10,7 @@ export class Router {
     private resolvedRouterMap: Map<string, ComponentHolder> = new Map<string, ComponentHolder>();
     public componentMap: Map<string, ComponentPropsHolder> = new Map();
     private mount: VNode;
-    private currPath: string = document.location.pathname;
+    private currPath: string = undefined;
 
     constructor(app: VApp, mount: VNode) {
         this.mount = mount;
@@ -33,7 +33,6 @@ export class Router {
 
     resolveRoute(path: string): boolean {
         history.replaceState(null, "", path)
-
 
         if (this.currPath == path) {
             return true;

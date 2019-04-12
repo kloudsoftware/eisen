@@ -66,6 +66,10 @@ export class VNode implements Comparable<VNode> {
                 router.resolveRoute('/error');
             }
         });
+
+        this.attrs.map(a => a.attrName).forEach(attrName => {
+            this.app.renderer.$knownAttributes.add(attrName);
+        })
     }
 
     public addFocusListener(func: EvtHandlerFunc) {
@@ -121,6 +125,7 @@ export class VNode implements Comparable<VNode> {
     public setAttribute(name: string, value: string) {
         this.app.notifyDirty();
         const isSet = this.attrs.filter(a => a.attrName == name).length > 0;
+        this.app.renderer.$knownAttributes.add(name);
 
         if (!isSet) {
             this.attrs.push(new Attribute(name, value));
