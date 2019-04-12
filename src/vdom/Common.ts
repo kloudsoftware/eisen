@@ -122,3 +122,12 @@ const parse = (node: Element, app: VApp): VNode => {
 
     return vNode;
 }
+
+/**
+ * Takes a promise wich always resovles, regardless of the outcome of the given promise
+ * @param promise
+ */
+export function reflect<T>(promise: Promise<T>): Promise<T>{
+    return promise.then((v: T) => { return v},
+                        (e) => { return undefined});
+}

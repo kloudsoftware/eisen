@@ -3,6 +3,10 @@ export abstract class Resolver {
         return "$_";
     }
 
+    public isStrict(): boolean {
+        return false;
+    }
+
     public abstract get(key: string, locale: string): Promise<string>;
 }
 

@@ -1,4 +1,4 @@
-import { Comparable, arraysEquals, Stringparser, dataRegex } from './Common';
+import { Comparable, arraysEquals, Stringparser, dataRegex, reflect } from './Common';
 import { VApp, AppEvent } from './VApp'
 import { Props } from './Props';
 import { EvtHandlerFunc, EvtType } from './EventHandler';
@@ -26,6 +26,7 @@ export class VNode implements Comparable<VNode> {
     modifiedInnerHtml = false;
     onDomEvenList = new Array<OnDomEvent>();
     rawInnerHtml: string = undefined;
+    lastResolvedLocale: string = undefined;
 
 
     constructor(app: VApp, nodeName: VNodeType, children: VNode[], innerHtml?: string, props?: Props, attrs?: Attribute[], parent?: VNode, id?: string) {
@@ -58,14 +59,6 @@ export class VNode implements Comparable<VNode> {
         if(!this.attrs.some(attr => attr.attrName == kloudAppId)) {
             this.attrs.push(new Attribute(kloudAppId, this.id));
         }
-
-        this.resolvei18n().catch(e => {
-            const router = app.router;
-            console.error("Error while trying to resolve i18n", e);
-            if (router != undefined && router.hasRouteRegistered('/error')) {
-                router.resolveRoute('/error');
-            }
-        });
 
         this.attrs.map(a => a.attrName).forEach(attrName => {
             this.app.renderer.$knownAttributes.add(attrName);
@@ -151,33 +144,48 @@ export class VNode implements Comparable<VNode> {
     }
 
     public getInnerHtml(): string {
+        const locale = getLocale();
+        const htmlToUse = this.rawInnerHtml != undefined ? this.rawInnerHtml : this.innerHtml;
+        if (this.app.i18nResolver != undefined
+            && this.app.i18nResolver.some(resolver => htmlToUse.startsWith(resolver.getPrefix()))
+            && locale != this.lastResolvedLocale)
+        {
+            this.resolvei18n().catch((e) => console.error(e));
+        }
         return new Stringparser().parse(this.innerHtml, this.props);
     }
 
     private resolvei18n(): Promise<void> {
         return new Promise((resolve, reject) => {
+            const locale = getLocale();
             const htmlToUse = this.rawInnerHtml != undefined ? this.rawInnerHtml : this.innerHtml;
-            if (this.app.i18nResolver != undefined
-                && this.app.i18nResolver.some(resolver => htmlToUse.startsWith(resolver.getPrefix()))) {
-                const locale = getLocale();
+            // Figure out relevant resolver and map their get method into always-resolving promises
+            const resolver = this.app.i18nResolver.sort((a,b) => {
+                if (a.isStrict && !b.isStrict()) return -1;
+                if (!a.isStrict && b.isStrict()) return 1;
+                return 0;
+            }).filter(resolver => htmlToUse.startsWith(resolver.getPrefix()))
+                .map(res => {
+                    if(res.isStrict()) {
+                        return res.get(htmlToUse, locale);
+                    }
 
-                const resolver = this.app.i18nResolver.filter(resolver => htmlToUse.startsWith(resolver.getPrefix()))
-                    .map(res => res.get(htmlToUse, locale));
+                    return res.get(htmlToUse, locale.split("-")[0]);
+                })
+                .map(it => reflect(it))
 
-                Promise.all(resolver)
-                    .then(results => {
-                        const match = results.find(s => s != undefined);
-                        if (match != undefined) {
-                            if (this.rawInnerHtml == undefined) {
-                                this.rawInnerHtml = htmlToUse;
-                            }
-                            this.addOnDomEventOrExecute(_ => this.setInnerHtml(match));
+            Promise.all(resolver)
+                .then(results => {
+                    const match = results.find(s => s != undefined);
+                    if (match != undefined) {
+                        if (this.rawInnerHtml == undefined) {
+                            this.rawInnerHtml = htmlToUse;
                         }
-                        resolve();
-                    }).catch(e => reject(e))
-            } else {
-                resolve();
-            }
+                        this.lastResolvedLocale = locale;
+                        this.setInnerHtml(match);
+                    }
+                    resolve();
+                }).catch(e => reject(e))
         });
     }
 
