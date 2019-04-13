@@ -436,7 +436,7 @@ export class VInputNode extends VNode {
 
         this.app.eventHandler.registerEventListener("input", (ev, node) => {
             object.setProp(propKey, (node.htmlElement as HTMLInputElement).value);
-            this.props.registerCallback(propKey, (newVal: string) => {
+            object.registerCallback(propKey, (newVal: string) => {
                 (this.htmlElement as HTMLInputElement).value = newVal;
             });
         }, this);
