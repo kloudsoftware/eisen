@@ -90,7 +90,7 @@ export class RouterLink extends VNode {
         const ln = link as RouterLink;
         if (ln.app.router.hasRouteRegistered(ln.target)) {
             history.pushState({}, "", document.location.pathname)
-            ln.app.router.resolveRoute(ln.target);
+            ln.app.router.resolveRoute(ln.target).catch(err => console.error("Error occured in routing: ", err));
             event.preventDefault();
             return;
         }
