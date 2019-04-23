@@ -6,6 +6,16 @@ import { reject } from 'q';
 
 type ComponentPropsHolder = [Component, Props];
 
+export interface IRouter {
+    resolveRoute(path: string): Promise<boolean>;
+    registerRoute(path: string, component: Component, props?: Props): void;
+    hasRouteRegistered(path: string): boolean;
+}
+
+export interface MiddleWare {
+    check(path: string): Promise<boolean>
+}
+
 export class Router implements IRouter {
     private app: VApp;
     private resolvedRouterMap: Map<string, ComponentHolder> = new Map<string, ComponentHolder>();
@@ -63,16 +73,6 @@ export class Router implements IRouter {
             }).catch(err => reject(err));
         });
     }
-}
-
-export interface IRouter {
-    resolveRoute(path: string): Promise<boolean>;
-    registerRoute(path: string, component: Component, props?: Props): void;
-    hasRouteRegistered(path: string): boolean;
-}
-
-export interface MiddleWare {
-    check(path: string): Promise<boolean>
 }
 
 export class RouterLink extends VNode {
