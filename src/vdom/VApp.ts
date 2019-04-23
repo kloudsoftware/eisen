@@ -4,7 +4,7 @@ import { Props } from './Props';
 import { Component, ComponentHolder } from './Component';
 import { EventHandler } from './EventHandler';
 import { invokeIfDefined } from './Common';
-import { Router } from '../Router';
+import { Router, IRouter } from '../Router';
 import { Resolver } from '../i18n/Resolver';
 import { EventPipeline } from './GlobalEvent';
 
@@ -33,7 +33,7 @@ export class VApp {
     compProps: Array<ComponentHolder> = new Array<ComponentHolder>();
     compsToNotifyUnmount: Array<AppEvent> = new Array<AppEvent>();
     eventHandler: EventHandler;
-    router?: Router;
+    router?: IRouter;
     pluginMap: Map<string, any> = new Map();
     oneTimeRenderCallbacks = new Array<AppEvent>();
     i18nResolver: Array<Resolver>;
@@ -62,12 +62,19 @@ export class VApp {
     }
 
     /**
-     * Use the router for this app
+     * Use the default router for this app
      * @param mount The mountpoint for the Router
      */
-    public useRouter(mount: VNode): Router {
+    public useRouter(mount: VNode) {
         this.router = new Router(this, mount);
-        return this.router;
+    }
+
+    /**
+     * Use custom router for this app
+     * @param router The custom router instance
+     */
+    public useCustomRouter(router: IRouter) {
+        this.router = router;
     }
 
    /**

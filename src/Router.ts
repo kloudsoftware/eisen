@@ -2,22 +2,25 @@ import { VApp } from './vdom/VApp';
 import { Component, ComponentHolder } from './vdom/Component';
 import { VNode, Attribute, VNodeType } from './vdom/VNode';
 import { Props } from './vdom/Props';
+import { reject } from 'q';
 
 type ComponentPropsHolder = [Component, Props];
 
-export class Router {
+export class Router implements IRouter {
     private app: VApp;
     private resolvedRouterMap: Map<string, ComponentHolder> = new Map<string, ComponentHolder>();
     public componentMap: Map<string, ComponentPropsHolder> = new Map();
     private mount: VNode;
     private currPath: string = undefined;
+    private middleWares: Array<MiddleWare> = new Array<MiddleWare>();
 
     constructor(app: VApp, mount: VNode) {
         this.mount = mount;
         this.app = app;
 
         window.onpopstate = (event) => {
-            this.resolveRoute(document.location.pathname)}
+            this.resolveRoute(document.location.pathname)
+        }
     }
 
     registerRoute(path: string, component: Component, props?: Props) {
@@ -31,31 +34,46 @@ export class Router {
         return this.componentMap.has(path);
     }
 
-    resolveRoute(path: string): boolean {
-        history.replaceState(null, "", path)
+    resolveRoute(path: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            Promise.all(this.middleWares.map(it => it.check(path))).then(() => {
+                console.trace("im here!");
+                history.replaceState(null, "", path)
 
-        if (this.currPath == path) {
-            return true;
-        }
+                if (this.currPath == path) {
+                    return resolve(true);
+                }
 
-        if (this.resolvedRouterMap.has(path)) {
-            this.mount.$getChildren().forEach(child => this.mount.removeChild(child));
-            this.app.remountComponent(this.resolvedRouterMap.get(path) as ComponentHolder, this.mount);
-            this.currPath = path;
-            return true;
-        }
+                if (this.resolvedRouterMap.has(path)) {
+                    this.mount.$getChildren().forEach(child => this.mount.removeChild(child));
+                    this.app.remountComponent(this.resolvedRouterMap.get(path) as ComponentHolder, this.mount);
+                    this.currPath = path;
+                    return resolve(true);
+                }
 
-        if (!this.componentMap.has(path)) {
-            console.error("No component registered with the router for ", path)
-            return false;
-        }
+                if (!this.componentMap.has(path)) {
+                    console.error("No component registered with the router for ", path)
+                    return reject(true);
+                }
 
-        this.mount.$getChildren().forEach(child => this.mount.removeChild(child));
-        this.currPath = path;
-        let cmp = this.componentMap.get(path);
-        this.resolvedRouterMap.set(path, this.app.routerMountComponent(cmp[0], this.mount, cmp[1]));
-        return true;
+                this.mount.$getChildren().forEach(child => this.mount.removeChild(child));
+                this.currPath = path;
+                let cmp = this.componentMap.get(path);
+                this.resolvedRouterMap.set(path, this.app.routerMountComponent(cmp[0], this.mount, cmp[1]));
+                return resolve(true);
+            }).catch(err => reject(err));
+        });
     }
+}
+
+export interface IRouter {
+    resolveRoute(path: string): Promise<boolean>;
+    registerRoute(path: string, component: Component, props?: Props): void;
+    hasRouteRegistered(path: string): boolean;
+}
+
+export interface MiddleWare {
+    check(path: string): Promise<boolean>
 }
 
 export class RouterLink extends VNode {
@@ -71,7 +89,7 @@ export class RouterLink extends VNode {
 
     clickFunction(event: Event, link: VNode) {
         const ln = link as RouterLink;
-        if (ln.app.router.componentMap.has(ln.target)) {
+        if (ln.app.router.hasRouteRegistered(ln.target)) {
             history.pushState({}, "", document.location.pathname)
             ln.app.router.resolveRoute(ln.target);
             event.preventDefault();
