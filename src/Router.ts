@@ -37,7 +37,6 @@ export class Router implements IRouter {
     resolveRoute(path: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             Promise.all(this.middleWares.map(it => it.check(path))).then(() => {
-                console.trace("im here!");
                 history.replaceState(null, "", path)
 
                 if (this.currPath == path) {
