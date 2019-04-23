@@ -6,6 +6,7 @@ import { EventHandler } from './EventHandler';
 import { invokeIfDefined } from './Common';
 import { Router } from '../Router';
 import { Resolver } from '../i18n/Resolver';
+import { EventPipeline } from './GlobalEvent';
 
 export const unmanagedNode: string = "__UNMANAGED__"
 
@@ -36,6 +37,7 @@ export class VApp {
     pluginMap: Map<string, any> = new Map();
     oneTimeRenderCallbacks = new Array<AppEvent>();
     i18nResolver: Array<Resolver>;
+    eventPipeLine: EventPipeline = new EventPipeline();
 
     /**
      * Constructs the app
