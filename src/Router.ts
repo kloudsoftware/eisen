@@ -52,7 +52,7 @@ export class Router implements IRouter {
 
                 if (!this.componentMap.has(path)) {
                     console.error("No component registered with the router for ", path)
-                    return reject(true);
+                    return reject(false);
                 }
 
                 this.mount.$getChildren().forEach(child => this.mount.removeChild(child));
