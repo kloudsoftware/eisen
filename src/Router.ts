@@ -45,32 +45,29 @@ export class Router implements IRouter {
     }
 
     resolveRoute(path: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
-            Promise.all(this.middleWares.map(it => it.check(path))).then(() => {
-                history.replaceState(null, "", path)
+        return Promise.all(this.middleWares.map(it => it.check(path))).then(() => {
+            history.replaceState(null, "", path)
 
-                if (this.currPath == path) {
-                    return resolve(true);
-                }
+            if (this.currPath == path) {
+                return Promise.resolve(true);
+            }
 
-                if (this.resolvedRouterMap.has(path)) {
-                    this.mount.$getChildren().forEach(child => this.mount.removeChild(child));
-                    this.app.remountComponent(this.resolvedRouterMap.get(path) as ComponentHolder, this.mount);
-                    this.currPath = path;
-                    return resolve(true);
-                }
-
-                if (!this.componentMap.has(path)) {
-                    console.error("No component registered with the router for ", path)
-                    return reject(false);
-                }
-
+            if (this.resolvedRouterMap.has(path)) {
                 this.mount.$getChildren().forEach(child => this.mount.removeChild(child));
+                this.app.remountComponent(this.resolvedRouterMap.get(path) as ComponentHolder, this.mount);
                 this.currPath = path;
-                let cmp = this.componentMap.get(path);
-                this.resolvedRouterMap.set(path, this.app.routerMountComponent(cmp[0], this.mount, cmp[1]));
-                return resolve(true);
-            }).catch(err => reject(err));
+                return Promise.resolve(true);
+            }
+
+            if (!this.componentMap.has(path)) {
+                return Promise.reject("No component registered with the router for " + path + " register one using 'registerRoute()'");
+            }
+
+            this.mount.$getChildren().forEach(child => this.mount.removeChild(child));
+            this.currPath = path;
+            let cmp = this.componentMap.get(path);
+            this.resolvedRouterMap.set(path, this.app.routerMountComponent(cmp[0], this.mount, cmp[1]));
+            return Promise.resolve(true);
         });
     }
 }

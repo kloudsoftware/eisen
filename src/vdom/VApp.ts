@@ -67,6 +67,7 @@ export class VApp {
      */
     public useRouter(mount: VNode) {
         this.router = new Router(this, mount);
+        return this.router;
     }
 
     /**
@@ -75,6 +76,7 @@ export class VApp {
      */
     public useCustomRouter(router: IRouter) {
         this.router = router;
+        return this.router;
     }
 
    /**
