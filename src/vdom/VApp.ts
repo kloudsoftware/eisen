@@ -65,7 +65,7 @@ export class VApp {
      * Use the default router for this app
      * @param mount The mountpoint for the Router
      */
-    public useRouter(mount: VNode) {
+    public useRouter(mount: VNode): IRouter {
         this.router = new Router(this, mount);
         return this.router;
     }
@@ -74,7 +74,7 @@ export class VApp {
      * Use custom router for this app
      * @param router The custom router instance
      */
-    public useCustomRouter(router: IRouter) {
+    public useCustomRouter(router: IRouter): IRouter {
         this.router = router;
         return this.router;
     }
