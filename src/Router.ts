@@ -2,7 +2,6 @@ import { VApp } from './vdom/VApp';
 import { Component, ComponentHolder } from './vdom/Component';
 import { VNode, Attribute, VNodeType } from './vdom/VNode';
 import { Props } from './vdom/Props';
-import { reject } from 'q';
 
 type ComponentPropsHolder = [Component, Props];
 
