@@ -390,10 +390,14 @@ export const cssClass = (...classNames: string[]) => {
     return new Attribute("class", val);
 }
 
+export type InputFieldType =  'button' | 'checkbox' | 'color' | 'date' | 'datetime-local' | 'email' | 'file' | 'hidden' | 'image' | 'month' | 'number' | 'password' | 'radio' | 'range' | 'reset' | 'search' | 'submit' | 'tel' | 'text' | 'time' | 'url' | 'week';
+
 export const id = (id: string) => new Attribute("id", id);
 export const labelFor = (idFor: string) => new Attribute("for", idFor);
 export const password = () => new Attribute("type", "password");
 export const email = () => new Attribute("type", "email");
+export const inputType = (iType: InputFieldType) => new Attribute("type", iType);
+export const placeholder = (p: string) => new Attribute("placeholder", p);
 export const src = (srcStr: string) => new Attribute("src", srcStr);
 export const style = (style: string) => new Attribute("style", style);
 
