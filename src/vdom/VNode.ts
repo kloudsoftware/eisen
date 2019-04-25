@@ -94,6 +94,10 @@ export class VNode implements Comparable<VNode> {
         return this.attrs;
     }
 
+    public getAttributeValue(name: string): string {
+        return this.attrs.find(it => it.attrName == name).attrValue;
+    }
+
     public addBlurListener(func: EvtHandlerFunc) {
         if (this.htmlElement == undefined) {
             this.onDomEvenList.push((el) => {
@@ -429,7 +433,12 @@ export class VInputNode extends VNode {
 
     bindObject(obj: any, key: string) {
         this.app.eventHandler.registerEventListener("input", (ev, node) => {
-            obj[key] = (node.htmlElement as HTMLInputElement).value;
+            if (node.getAttributeValue("type") == "file") {
+                const fileList = (node.htmlElement as HTMLInputElement).files;
+                obj[key] = fileList != null ? fileList[0] : null;
+            } else {
+                obj[key] = (node.htmlElement as HTMLInputElement).value;
+            }
         }, this);
     }
 
