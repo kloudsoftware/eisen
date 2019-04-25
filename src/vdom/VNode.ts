@@ -99,7 +99,9 @@ export class VNode implements Comparable<VNode> {
             return null;
         }
 
-        return this.attrs.find(it => it.attrName == name).attrValue;
+        const targetAttribute = this.attrs.find(it => it.attrName == name);
+
+        return targetAttribute != undefined ? targetAttribute.attrValue : null;
     }
 
     public addBlurListener(func: EvtHandlerFunc) {
