@@ -9,6 +9,7 @@ export interface IRouter {
     resolveRoute(path: string): Promise<boolean>;
     registerRoute(path: string, component: Component, props?: Props): void;
     hasRouteRegistered(path: string): boolean;
+    useMiddleWare(middleWare: MiddleWare): void;
 }
 
 export interface MiddleWare {
@@ -30,6 +31,10 @@ export class Router implements IRouter {
         window.onpopstate = (event) => {
             this.resolveRoute(document.location.pathname)
         }
+    }
+
+    useMiddleWare(middleWare: MiddleWare): void {
+        this.middleWares.push(middleWare);
     }
 
     registerRoute(path: string, component: Component, props?: Props) {
