@@ -95,6 +95,10 @@ export class VNode implements Comparable<VNode> {
     }
 
     public getAttributeValue(name: string): string {
+        if(this.attrs == undefined) {
+            return null;
+        }
+
         return this.attrs.find(it => it.attrName == name).attrValue;
     }
 
