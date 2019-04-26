@@ -16,6 +16,8 @@ export interface MiddleWare {
     check(path: string): Promise<boolean>
 }
 
+const pathVariableRegex = /{([a-zA-Z$_][a-zA-Z$_0-9]+)}/;
+const pathVariableReplaceRegex = /\/{[a-zA-Z$_][a-zA-Z$_0-9]+}/g
 export class Router implements IRouter {
     private app: VApp;
     private resolvedRouterMap: Map<string, ComponentHolder> = new Map<string, ComponentHolder>();
@@ -23,6 +25,7 @@ export class Router implements IRouter {
     private mount: VNode;
     private currPath: string = undefined;
     private middleWares: Array<MiddleWare> = new Array<MiddleWare>();
+    private pathVariablesMap: Map<string, Array<string>> = new Map();
 
     constructor(app: VApp, mount: VNode) {
         this.mount = mount;
@@ -41,11 +44,33 @@ export class Router implements IRouter {
         if (props == undefined) {
             props = new Props(this.app);
         }
+
+        const pathVars = this.splitPathVars(path);
+
+        if (pathVars.length > 0) {
+            this.pathVariablesMap.set(path, pathVars);
+        }
         this.componentMap.set(path, [component, props]);
     }
 
+    private splitPathVars(path: string): Array<string> {
+        const splittedPath = path.split("/");
+
+        return splittedPath
+            .map(p => pathVariableRegex.exec(p))
+            .filter(m => m != null)
+            .map(m => m[1]);
+    }
+
     hasRouteRegistered(path: string) {
-        return this.componentMap.has(path);
+        if (this.pathVariablesMap.size == 0) {
+            // Short path
+            return this.componentMap.has(path);
+        }
+
+        const knownVars = this.pathVariablesMap.get(path);
+
+
     }
 
     resolveRoute(path: string): Promise<boolean> {
