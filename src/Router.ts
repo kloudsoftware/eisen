@@ -17,7 +17,6 @@ export interface MiddleWare {
 }
 
 const pathVariableRegex = /{([a-zA-Z$_][a-zA-Z$_0-9]+)}/;
-const pathVariableReplaceRegex = /\/{[a-zA-Z$_][a-zA-Z$_0-9]+}/g
 export class Router implements IRouter {
     private app: VApp;
     private resolvedRouterMap: Map<string, ComponentHolder> = new Map<string, ComponentHolder>();
@@ -25,7 +24,7 @@ export class Router implements IRouter {
     private mount: VNode;
     private currPath: string = undefined;
     private middleWares: Array<MiddleWare> = new Array<MiddleWare>();
-    private pathVariablesMap: Map<string, Array<string>> = new Map();
+    private pathVariables: Array<string> = new Array();
 
     constructor(app: VApp, mount: VNode) {
         this.mount = mount;
@@ -48,7 +47,7 @@ export class Router implements IRouter {
         const pathVars = this.splitPathVars(path);
 
         if (pathVars.length > 0) {
-            this.pathVariablesMap.set(path, pathVars);
+            this.pathVariables.push(path);
         }
         this.componentMap.set(path, [component, props]);
     }
@@ -62,15 +61,50 @@ export class Router implements IRouter {
             .map(m => m[1]);
     }
 
-    hasRouteRegistered(path: string) {
-        if (this.pathVariablesMap.size == 0) {
+    hasRouteRegistered(path: string): boolean {
+        if (this.pathVariables.length == 0) {
             // Short path
             return this.componentMap.has(path);
         }
 
-        const knownVars = this.pathVariablesMap.get(path);
+        if (path.endsWith("/")) {
+            path = path.substr(0, path.length -1)
+        }
 
+        const splitted = path.split("/");
+        const nSlashes = splitted.length - 1;
 
+        const possibleMatches: string[] = this.pathVariables
+            .filter(e => e.split("/").length - 1 == nSlashes);
+
+        for (let knownPath of possibleMatches) {
+            let splittedKnownPath = knownPath.split("/");
+
+            let subPathMatch = true;
+            // TODO: refactor into own function?
+            for (let i = 0; i < splittedKnownPath.length; i++) {
+                const knownSubPath = splittedKnownPath[i];
+                const givenSubPath = splitted[i];
+
+                if (givenSubPath == undefined) {
+                    subPathMatch = false;
+                    break;
+                }
+
+                if (!knownSubPath.includes("{")) {
+                    if (!(knownSubPath == givenSubPath)) {
+                        subPathMatch = false;
+                        break;
+                    }
+                }
+            }
+
+            if (subPathMatch) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     resolveRoute(path: string): Promise<boolean> {
