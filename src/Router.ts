@@ -16,6 +16,8 @@ export interface MiddleWare {
     check(path: string): Promise<boolean>
 }
 
+const splitAtSlash = (s: string) => s.split("/");
+
 const pathVariableRegex = /{([a-zA-Z$_][a-zA-Z$_0-9]+)}/;
 export class Router implements IRouter {
     private app: VApp;
@@ -53,7 +55,7 @@ export class Router implements IRouter {
     }
 
     private splitPathVars(path: string): Array<string> {
-        const splittedPath = path.split("/");
+        const splittedPath = splitAtSlash(path);
 
         return splittedPath
             .map(p => pathVariableRegex.exec(p))
@@ -62,20 +64,26 @@ export class Router implements IRouter {
     }
 
     hasRouteRegistered(path: string): boolean {
-        if (this.pathVariables.length == 0) {
+        return this.findMatchingPath(path) != undefined;
+    }
+
+    private findMatchingPath(path: string): string {
+        if (this.pathVariables.length == 0 || !path.includes("{")) {
             // Short path
-            return this.componentMap.has(path);
+            if (this.componentMap.has(path)) {
+                return path;
+            }
         }
 
         if (path.endsWith("/")) {
             path = path.substr(0, path.length -1)
         }
 
-        const splitted = path.split("/");
+        const splitted = splitAtSlash(path);
         const nSlashes = splitted.length - 1;
 
         const possibleMatches: string[] = this.pathVariables
-            .filter(e => e.split("/").length - 1 == nSlashes);
+            .filter(e => splitAtSlash(e).length - 1 == nSlashes);
 
         for (let knownPath of possibleMatches) {
             let splittedKnownPath = knownPath.split("/");
@@ -100,11 +108,11 @@ export class Router implements IRouter {
             }
 
             if (subPathMatch) {
-                return true;
+                return knownPath;
             }
         }
 
-        return false;
+        return undefined;
     }
 
     resolveRoute(path: string): Promise<boolean> {
@@ -122,13 +130,27 @@ export class Router implements IRouter {
                 return Promise.resolve(true);
             }
 
-            if (!this.componentMap.has(path)) {
+            const foundPath = this.findMatchingPath(path);
+
+            if (foundPath == undefined) {
                 return Promise.reject("No component registered with the router for " + path + " register one using 'registerRoute()'");
             }
 
             this.mount.$getChildren().forEach(child => this.mount.removeChild(child));
             this.currPath = path;
-            let cmp = this.componentMap.get(path);
+            let cmp = this.componentMap.get(foundPath);
+            if (foundPath.includes("{")) {
+                const foundVars = splitAtSlash(foundPath);
+                const givenVars = splitAtSlash(path);
+                const props: Props = cmp[1];
+
+                for (let i = 0; i < foundVars.length; i++) {
+                    const key = "_" + foundVars[i].replace("{", "").replace("}", "");
+                    if (foundVars[i].includes("{")) {
+                        props.setProp(key, givenVars[i]);
+                    }
+                }
+            }
             this.resolvedRouterMap.set(path, this.app.routerMountComponent(cmp[0], this.mount, cmp[1]));
             return Promise.resolve(true);
         });
