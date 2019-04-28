@@ -16,7 +16,8 @@ export interface MiddleWare {
     check(path: string): Promise<boolean>
 }
 
-const splitAtSlash = (s: string) => s.split("/");
+const splitAtSlash = (s: string): Array<string> => s.split("/");
+const stringIncludesCurlyBrace = (s: string): boolean => s.includes("{");
 
 const pathVariableRegex = /{([a-zA-Z$_][a-zA-Z$_0-9]+)}/;
 export class Router implements IRouter {
@@ -68,7 +69,7 @@ export class Router implements IRouter {
     }
 
     private findMatchingPath(path: string): string {
-        if (this.pathVariables.length == 0 || !path.includes("{")) {
+        if (this.pathVariables.length == 0 || !stringIncludesCurlyBrace(path)) {
             // Short path
             if (this.componentMap.has(path)) {
                 return path;
@@ -76,7 +77,7 @@ export class Router implements IRouter {
         }
 
         if (path.endsWith("/")) {
-            path = path.substr(0, path.length -1)
+            path = path.substr(0, path.length - 1)
         }
 
         const splitted = splitAtSlash(path);
@@ -88,31 +89,31 @@ export class Router implements IRouter {
         for (let knownPath of possibleMatches) {
             let splittedKnownPath = knownPath.split("/");
 
-            let subPathMatch = true;
-            // TODO: refactor into own function?
-            for (let i = 0; i < splittedKnownPath.length; i++) {
-                const knownSubPath = splittedKnownPath[i];
-                const givenSubPath = splitted[i];
-
-                if (givenSubPath == undefined) {
-                    subPathMatch = false;
-                    break;
-                }
-
-                if (!knownSubPath.includes("{")) {
-                    if (!(knownSubPath == givenSubPath)) {
-                        subPathMatch = false;
-                        break;
-                    }
-                }
-            }
-
-            if (subPathMatch) {
+            if (this.matchSubPath(splittedKnownPath, splitted)) {
                 return knownPath;
             }
         }
 
         return undefined;
+    }
+
+    private matchSubPath(splittedKnownPath: Array<string>, splitted: Array<string>): boolean {
+        for (let i = 0; i < splittedKnownPath.length; i++) {
+            const knownSubPath = splittedKnownPath[i];
+            const givenSubPath = splitted[i];
+
+            if (givenSubPath == undefined) {
+                return false;
+            }
+
+            if (!stringIncludesCurlyBrace(knownSubPath)) {
+                if (!(knownSubPath == givenSubPath)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     resolveRoute(path: string): Promise<boolean> {
@@ -139,14 +140,14 @@ export class Router implements IRouter {
             this.mount.$getChildren().forEach(child => this.mount.removeChild(child));
             this.currPath = path;
             let cmp = this.componentMap.get(foundPath);
-            if (foundPath.includes("{")) {
+            if (stringIncludesCurlyBrace(foundPath)) {
                 const foundVars = splitAtSlash(foundPath);
                 const givenVars = splitAtSlash(path);
                 const props: Props = cmp[1];
 
                 for (let i = 0; i < foundVars.length; i++) {
-                    const key = "_" + foundVars[i].replace("{", "").replace("}", "");
-                    if (foundVars[i].includes("{")) {
+                    if (stringIncludesCurlyBrace(foundVars[i])) {
+                        const key = "_" + foundVars[i].replace("{", "").replace("}", "");
                         props.setProp(key, givenVars[i]);
                     }
                 }
