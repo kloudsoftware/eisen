@@ -69,11 +69,9 @@ export class Router implements IRouter {
     }
 
     private findMatchingPath(path: string): string {
-        if (this.pathVariables.length == 0 || !stringIncludesCurlyBrace(path)) {
-            // Short path
-            if (this.componentMap.has(path)) {
-                return path;
-            }
+        // Short path
+        if (this.componentMap.has(path)) {
+            return path;
         }
 
         if (path.endsWith("/")) {
