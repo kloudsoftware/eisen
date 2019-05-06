@@ -2,6 +2,7 @@ import { VApp } from './vdom/VApp';
 import { Component, ComponentHolder } from './vdom/Component';
 import { VNode, Attribute, VNodeType } from './vdom/VNode';
 import { Props } from './vdom/Props';
+import { splitPathVars, splitAtSlash, stringIncludesCurlyBrace, matchSubPath } from './RouterCommon';
 
 type ComponentPropsHolder = [Component, Props];
 
@@ -16,10 +17,6 @@ export interface MiddleWare {
     check(path: string): Promise<boolean>
 }
 
-const splitAtSlash = (s: string): Array<string> => s.split("/");
-const stringIncludesCurlyBrace = (s: string): boolean => s.includes("{");
-
-const pathVariableRegex = /{([a-zA-Z$_][a-zA-Z$_0-9]+)}/;
 export class Router implements IRouter {
     private app: VApp;
     private resolvedRouterMap: Map<string, ComponentHolder> = new Map<string, ComponentHolder>();
@@ -47,21 +44,12 @@ export class Router implements IRouter {
             props = new Props(this.app);
         }
 
-        const pathVars = this.splitPathVars(path);
+        const pathVars = splitPathVars(path);
 
         if (pathVars.length > 0) {
             this.pathVariables.push(path);
         }
         this.componentMap.set(path, [component, props]);
-    }
-
-    private splitPathVars(path: string): Array<string> {
-        const splittedPath = splitAtSlash(path);
-
-        return splittedPath
-            .map(p => pathVariableRegex.exec(p))
-            .filter(m => m != null)
-            .map(m => m[1]);
     }
 
     hasRouteRegistered(path: string): boolean {
@@ -87,31 +75,12 @@ export class Router implements IRouter {
         for (let knownPath of possibleMatches) {
             let splittedKnownPath = knownPath.split("/");
 
-            if (this.matchSubPath(splittedKnownPath, splitted)) {
+            if (matchSubPath(splittedKnownPath, splitted)) {
                 return knownPath;
             }
         }
 
         return undefined;
-    }
-
-    private matchSubPath(splittedKnownPath: Array<string>, splitted: Array<string>): boolean {
-        for (let i = 0; i < splittedKnownPath.length; i++) {
-            const knownSubPath = splittedKnownPath[i];
-            const givenSubPath = splitted[i];
-
-            if (givenSubPath == undefined) {
-                return false;
-            }
-
-            if (!stringIncludesCurlyBrace(knownSubPath)) {
-                if (!(knownSubPath == givenSubPath)) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
     }
 
     resolveRoute(path: string): Promise<boolean> {
