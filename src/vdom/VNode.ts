@@ -27,6 +27,9 @@ export class VNode implements Comparable<VNode> {
     onDomEvenList = new Array<OnDomEvent>();
     rawInnerHtml: string = undefined;
     lastResolvedLocale: string = undefined;
+    // Way to find out if a given VNode is really a routerlink
+    // instanceof seems to be buggy on some cases and returns false answers
+    isRouterLink: boolean = undefined;
 
 
     constructor(app: VApp, nodeName: VNodeType, children: VNode[], innerHtml?: string, props?: Props, attrs?: Attribute[], parent?: VNode, id?: string) {

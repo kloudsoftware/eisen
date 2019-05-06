@@ -1,6 +1,6 @@
 import { VNode, kloudAppId } from './VNode'
 import { VApp } from './VApp'
-import { RouterLink, Router } from '../Router';
+import { RouterLink, Router, isRouterLink } from '../Router';
 
 export type EvtType = "click" | "close" | "complete" | "copy" | "cut" | "deviceorientation" | "DOMContentLoaded" | "drag" | "dragend" | "dragenter" | "dragleave" | "dragover" | "dragstart" | "drop" | "durationchange" |
     "ended" | "endEvent" | "error" | "focusin" | "keyup" | "focusout" | "fullscreenchange" | "fullscreenerror" | "input" | "invalid" | "keydown" | "keypress" | "mousedown" | "mouseenter" | "mouseleave" | "mousemove" | "mouseout" | "mouseover" |
@@ -27,8 +27,8 @@ export class EventHandler {
     }
 
     registerEventListener(evt: EvtType, handler: EvtHandlerFunc, target: VNode) {
-        if (target instanceof RouterLink) {
-            this.routerLnks.push(target);
+        if (isRouterLink(target)) {
+            this.routerLnks.push(target as RouterLink);
         }
 
         if (this.handlers == undefined) {
@@ -81,7 +81,7 @@ export class EventHandler {
                         event.preventDefault();
                     }
                     //Handles propagation of buttons that already have click listeners
-                    if (cont && it.parent instanceof RouterLink && event.type == "click") {
+                    if (cont && isRouterLink(it.parent) && event.type == "click") {
                         (it.parent as RouterLink).clickFunction(event, it.parent);
                     }
                 });
@@ -90,6 +90,7 @@ export class EventHandler {
             //We need to check if the direct parent of the target element is a RouterLink
             if (!handled) {
                 this.routerLnks.filter(res => res.htmlElement == $target.parentNode).forEach(it => {
+                    event.preventDefault();
                     it.clickFunction(event, it);
                 });
             }

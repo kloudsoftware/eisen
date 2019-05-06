@@ -125,8 +125,12 @@ export class Router implements IRouter {
     }
 }
 
+export const isRouterLink = (node: VNode) => node.isRouterLink != undefined && node.isRouterLink == true;
 export class RouterLink extends VNode {
     target: string;
+    // Way to find out if a given VNode is really a routerlink
+    // instanceof seems to be buggy on some cases and returns false answers
+    isRouterLink: boolean = true;
 
     constructor(app: VApp, target: string, children: VNode[], innerHtml?: string, props?: Props, attrs?: Attribute[], parent?: VNode, id?: string) {
         super(app, "a", children, innerHtml, props, attrs, parent, id);
@@ -139,9 +143,9 @@ export class RouterLink extends VNode {
     clickFunction(event: Event, link: VNode) {
         const ln = link as RouterLink;
         if (ln.app.router.hasRouteRegistered(ln.target)) {
+            event.preventDefault();
             history.pushState({}, "", document.location.pathname)
             ln.app.router.resolveRoute(ln.target).catch(err => console.error("Error occured in routing: ", err));
-            event.preventDefault();
             return;
         }
     }
