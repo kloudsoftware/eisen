@@ -67,6 +67,9 @@ export class Props implements Cloneable<Props>{
 
     public getProp(key: string): PropValue {
         let value = this.props.get(key);
+        if (value == undefined) {
+            return undefined;
+        }
         if (typeof value == 'string' || typeof value == 'number') {
             return value;
         }
