@@ -136,7 +136,9 @@ export class VApp {
     public remountComponent(holder: ComponentHolder, mount: VNode) {
         holder.remount[0] = false;
         mount.appendChild(holder.mount);
-        this.compProps.push(holder);
+        if(!this.compProps.includes(holder)) {
+            this.compProps.push(holder);
+        }
     }
 
     /**
