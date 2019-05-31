@@ -139,7 +139,7 @@ export class Renderer {
             node.$getAttrs().forEach(attr => $elem.setAttribute(attr.attrName, attr.attrValue));
         }
 
-        node.$getChildren().forEach(child => {
+        node.$getChildren().filter(it => it !== undefined).forEach(child => {
             $elem.appendChild(this.renderTree(child))
         })
 
