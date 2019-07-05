@@ -1,5 +1,5 @@
 import { VApp, unmanagedNode } from "./VApp"
-import { VNode } from "./VNode"
+import { VNode, Attribute } from "./VNode"
 import { arraysEquals } from "./Common"
 
 type PatchFunction = (parent: HTMLElement) => HTMLElement;
@@ -9,6 +9,7 @@ type PatchFunction = (parent: HTMLElement) => HTMLElement;
  * its use is to create the PatchFunction that needs to be applied to the {@link VApp}.rootNode.htmlElement to update the $DOM state in order to reflect the new VApp
  */
 export class Renderer {
+    public $knownAttributes: Set<string> = new Set<string>();
 
     //Proxy for calling
     /**
@@ -123,19 +124,36 @@ export class Renderer {
     private diffAttributes(node: VNode, newVNode: VNode): PatchFunction {
         let patches: PatchFunction[] = [];
 
-        Array.from(newVNode.htmlElement.attributes).forEach(attribute => {
-            patches.push($node => {
-                $node.removeAttribute(attribute.name);
-                return $node;
-            })
-        });
+        let $attributeArray = Array.from(newVNode.htmlElement.attributes).filter($attr => this.$knownAttributes.has($attr.name));
 
-        newVNode.$getAttrs().forEach(attr => {
-            patches.push($node => {
-                $node.setAttribute(attr.attrName, attr.attrValue)
-                return $node;
-            })
-        });
+        for(let i = 0; i < Math.max($attributeArray.length, newVNode.$getAttrs().length); i++){
+            const $attribute = $attributeArray[i];
+            const vAttribute = newVNode.$getAttrs()[i];
+
+            if($attribute == undefined && vAttribute != undefined) {
+                patches.push($node => {
+                    $node.setAttribute(vAttribute.attrName, vAttribute.attrValue);
+                    return $node;
+                });
+                continue;
+            }
+
+            if($attribute != undefined && vAttribute == undefined) {
+                patches.push($node => {
+                    $node.removeAttribute($attribute.name);
+                    return $node;
+                });
+                continue;
+            }
+
+            if ($attribute.value != vAttribute.attrValue || $attribute.name != vAttribute.attrName) {
+                patches.push($node => {
+                    $node.setAttribute(vAttribute.attrName, vAttribute.attrValue);
+                    return $node;
+                });
+            }
+
+        }
 
         return $node => {
             patches.forEach(p => p($node))
@@ -155,7 +173,7 @@ export class Renderer {
             node.$getAttrs().forEach(attr => $elem.setAttribute(attr.attrName, attr.attrValue));
         }
 
-        node.$getChildren().forEach(child => {
+        node.$getChildren().filter(it => it !== undefined).forEach(child => {
             $elem.appendChild(this.renderTree(child))
         })
 

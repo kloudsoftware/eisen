@@ -1,8 +1,9 @@
-import { Comparable, arraysEquals, Stringparser, dataRegex } from './Common';
+import { Comparable, arraysEquals, Stringparser, dataRegex, raceToSuccess } from './Common';
 import { VApp, AppEvent } from './VApp'
 import { Props } from './Props';
 import { EvtHandlerFunc, EvtType } from './EventHandler';
 import { RouterLink } from '../Router';
+import { getLocale } from '../i18n/Resolver';
 
 /**
  * Attribute to identify a virtual node
@@ -27,7 +28,7 @@ export type OnDomEvent = (html: HTMLElement) => void;
 export class VNode implements Comparable<VNode> {
     app: VApp;
     id: string;
-    private attrs: Attribute[];
+    protected attrs: Attribute[];
     nodeName: VNodeType;
     private innerHtml: string;
     parent?: VNode;
@@ -38,6 +39,12 @@ export class VNode implements Comparable<VNode> {
     dynamicContent = false;
     modifiedInnerHtml = false;
     onDomEvenList = new Array<OnDomEvent>();
+    rawInnerHtml: string = undefined;
+    lastResolvedLocale: string = undefined;
+    // Way to find out if a given VNode is really a routerlink
+    // instanceof seems to be buggy on some cases and returns false answers
+    isRouterLink: boolean = undefined;
+
 
     /**
      * Creates a new VNode. Typically not directly called, but through `app.k` or `appendChild`
@@ -86,9 +93,13 @@ export class VNode implements Comparable<VNode> {
             }
         }
 
-        if(!this.attrs.some(attr => attr.attrName == kloudAppId)) {
+        if (!this.attrs.some(attr => attr.attrName == kloudAppId)) {
             this.attrs.push(new Attribute(kloudAppId, this.id));
         }
+
+        this.attrs.map(a => a.attrName).forEach(attrName => {
+            this.app.renderer.$knownAttributes.add(attrName);
+        })
     }
 
     /**
@@ -135,6 +146,16 @@ export class VNode implements Comparable<VNode> {
         this.htmlElement.addEventListener("focus", func);
     }
 
+    public getAttributeValue(name: string): string {
+        if(this.attrs == undefined) {
+            return null;
+        }
+
+        const targetAttribute = this.attrs.find(it => it.attrName == name);
+
+        return targetAttribute != undefined ? targetAttribute.attrValue : null;
+    }
+
     /**
      * Add a onBlur listener
      * See {@link https://developer.mozilla.org/en-US/docs/Web/API/GlobalEventHandlers/onblur}
@@ -174,6 +195,7 @@ export class VNode implements Comparable<VNode> {
     public setAttribute(name: string, value: string) {
         this.app.notifyDirty();
         const isSet = this.attrs.filter(a => a.attrName == name).length > 0;
+        this.app.renderer.$knownAttributes.add(name);
 
         if (!isSet) {
             this.attrs.push(new Attribute(name, value));
@@ -220,7 +242,57 @@ export class VNode implements Comparable<VNode> {
      * That is, all placeholders will be replaced with the corresponding props
      */
     public getInnerHtml(): string {
+        const locale = getLocale();
+        const htmlToUse = this.rawInnerHtml != undefined ? this.rawInnerHtml : this.innerHtml;
+        if (this.app.i18nResolver != undefined
+            && this.app.i18nResolver.some(resolver => htmlToUse.startsWith(resolver.getPrefix()))
+            && locale != this.lastResolvedLocale) {
+            this.resolvei18n().catch((e) => console.error(e));
+        }
         return new Stringparser().parse(this.innerHtml, this.props);
+    }
+
+    private resolvei18n(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const locale = getLocale();
+            const htmlToUse = this.rawInnerHtml != undefined ? this.rawInnerHtml : this.innerHtml;
+            const resolver = this.app.i18nResolver
+                .filter(resolver => htmlToUse.startsWith(resolver.getPrefix()))
+
+            const strictResolver = resolver
+                .filter(r => r.isStrict())
+                .map(res => {
+                    return res.get(htmlToUse, locale);
+                });
+
+            const nonStrictResolver = resolver
+                .filter(r => !r.isStrict())
+                .map(res => {
+                    return res.get(htmlToUse, locale.split("-")[0]);
+                });
+
+
+            const processMatch = (match: string) => {
+                if (match != undefined) {
+                    if (this.rawInnerHtml == undefined) {
+                        this.rawInnerHtml = htmlToUse;
+                    }
+                    this.lastResolvedLocale = locale;
+                    this.setInnerHtml(match);
+                }
+            };
+
+            raceToSuccess(strictResolver)
+                .then(match => {
+                    processMatch(match);
+                    resolve();
+                }).catch(_ => {
+                    raceToSuccess(nonStrictResolver).then(match => {
+                        processMatch(match);
+                        resolve();
+                    }).catch(e => reject(e));
+                });
+        });
     }
 
     /**
@@ -295,7 +367,7 @@ export class VNode implements Comparable<VNode> {
         const attrs = this.attrs.map(a => a.clone());
 
         const clonedNode = new VNode(this.app, nodeName, [], innerHtml, props, attrs, parent, id);
-        const children = [];
+        const children = new Array<VNode>();
 
         this.children.forEach(child => {
             if (child == undefined) {
@@ -502,6 +574,8 @@ export const cssClass = (...classNames: string[]) => {
     return new Attribute("class", val);
 }
 
+export type InputFieldType =  'button' | 'checkbox' | 'color' | 'date' | 'datetime-local' | 'email' | 'file' | 'hidden' | 'image' | 'month' | 'number' | 'password' | 'radio' | 'range' | 'reset' | 'search' | 'submit' | 'tel' | 'text' | 'time' | 'url' | 'week';
+
 /**
  * Create an attribute setting the id for a node
  * @param id the id to use
@@ -524,6 +598,8 @@ export const password = () => new Attribute("type", "password");
  */
 export const email = () => new Attribute("type", "email");
 
+export const inputType = (iType: InputFieldType) => new Attribute("type", iType);
+export const placeholder = (p: string) => new Attribute("placeholder", p);
 /**
  * Create an attribute setting the 'src' attribute on a node
  * @param srcStr the 'src' to use
@@ -595,7 +671,12 @@ export class VInputNode extends VNode {
      */
     bindObject(obj: any, key: string) {
         this.app.eventHandler.registerEventListener("input", (ev, node) => {
-            obj[key] = (node.htmlElement as HTMLInputElement).value;
+            if (node.getAttributeValue("type") == "file") {
+                const fileList = (node.htmlElement as HTMLInputElement).files;
+                obj[key] = fileList != null ? fileList[0] : null;
+            } else {
+                obj[key] = (node.htmlElement as HTMLInputElement).value;
+            }
         }, this);
     }
 
@@ -611,7 +692,7 @@ export class VInputNode extends VNode {
 
         this.app.eventHandler.registerEventListener("input", (ev, node) => {
             object.setProp(propKey, (node.htmlElement as HTMLInputElement).value);
-            this.props.registerCallback(propKey, (newVal: string) => {
+            object.registerCallback(propKey, (newVal: string) => {
                 (this.htmlElement as HTMLInputElement).value = newVal;
             });
         }, this);

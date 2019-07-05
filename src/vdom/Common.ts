@@ -122,3 +122,22 @@ const parse = (node: Element, app: VApp): VNode => {
 
     return vNode;
 }
+
+/**
+ * Inverts Promise.all
+ * Resolves on first successful Promise
+ * If all Promises fail, it will reject with the last error
+ * @param promises The promises to run
+ */
+export function raceToSuccess<T>(promises: Array<Promise<T>>): Promise<T> {
+    return Promise.all(promises.map(p => {
+        return p.then(
+            (val: T) => Promise.reject(val),
+            err => Promise.resolve(err)
+        );
+    }))
+        .then(
+            errors => Promise.reject(errors),
+            (val: T) => Promise.resolve(val)
+        );
+}

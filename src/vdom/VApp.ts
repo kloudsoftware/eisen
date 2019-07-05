@@ -4,7 +4,9 @@ import { Props } from './Props';
 import { Component, ComponentHolder } from './Component';
 import { EventHandler } from './EventHandler';
 import { invokeIfDefined } from './Common';
-import { Router } from '../Router';
+import { Router, IRouter } from '../Router';
+import { Resolver } from '../i18n/Resolver';
+import { EventPipeline } from './GlobalEvent';
 
 export const unmanagedNode: string = "__UNMANAGED__"
 
@@ -31,9 +33,11 @@ export class VApp {
     compProps: Array<ComponentHolder> = new Array<ComponentHolder>();
     compsToNotifyUnmount: Array<AppEvent> = new Array<AppEvent>();
     eventHandler: EventHandler;
-    router?: Router;
+    router?: IRouter;
     pluginMap: Map<string, any> = new Map();
     oneTimeRenderCallbacks = new Array<AppEvent>();
+    i18nResolver: Array<Resolver>;
+    eventPipeLine: EventPipeline = new EventPipeline();
 
     /**
      * Constructs the app
@@ -58,11 +62,20 @@ export class VApp {
     }
 
     /**
-     * Use the router for this app
+     * Use the default router for this app
      * @param mount The mountpoint for the Router
      */
-    public useRouter(mount: VNode): Router {
+    public useRouter(mount: VNode): IRouter {
         this.router = new Router(this, mount);
+        return this.router;
+    }
+
+    /**
+     * Use custom router for this app
+     * @param router The custom router instance
+     */
+    public useCustomRouter(router: IRouter): IRouter {
+        this.router = router;
         return this.router;
     }
 
@@ -123,7 +136,9 @@ export class VApp {
     public remountComponent(holder: ComponentHolder, mount: VNode) {
         holder.remount[0] = false;
         mount.appendChild(holder.mount);
-        this.compProps.push(holder);
+        if(!this.compProps.includes(holder)) {
+            this.compProps.push(holder);
+        }
     }
 
     /**
@@ -161,7 +176,7 @@ export class VApp {
 
             console.log("Redraw");
             let patch = this.renderer.diffAgainstLatest(this);
-            patch.apply(this.rootNode.htmlElement)
+            patch(this.rootNode.htmlElement)
             this.dirty = false;
             this.snapshots.push(this.clone());
 
@@ -321,5 +336,17 @@ export class VApp {
      */
     public get<T>(key: string) {
         return this.pluginMap.get(key) as T;
+    }
+
+    /**
+     * Configure the VApp to add an additional resolver for i18n strings
+     * @param resolver
+     */
+    public useTranslationResolver(resolver: Resolver) {
+        if (this.i18nResolver == undefined) {
+            this.i18nResolver = new Array<Resolver>()
+        }
+
+        this.i18nResolver.push(resolver);
     }
 }

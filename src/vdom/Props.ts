@@ -19,7 +19,7 @@ export class Props implements Cloneable<Props>{
     }
 
     public registerCallback(key: string, fun: PropFunc): void {
-        if (this.callbacks.has(key)) {
+        if (this.props.has(key)) {
             let array = this.callbacks.get(key);
             if (array == undefined) {
                 array = new Array();
@@ -67,6 +67,9 @@ export class Props implements Cloneable<Props>{
 
     public getProp(key: string): PropValue {
         let value = this.props.get(key);
+        if (value == undefined) {
+            return undefined;
+        }
         if (typeof value == 'string' || typeof value == 'number') {
             return value;
         }
