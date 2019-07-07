@@ -26,22 +26,71 @@ export type OnDomEvent = (html: HTMLElement) => void;
  * It contains all data to render a real DOM node
  */
 export class VNode implements Comparable<VNode> {
+    /**
+     * Pointer to the current VApp
+     */
     app: VApp;
+    /**
+     * Id of this node
+     */
     id: string;
+    /**
+     * The attributes of this node
+     */
     protected attrs: Attribute[];
+    /**
+     * The node name of this node
+     */
     nodeName: VNodeType;
+    /**
+     * The innerHtml of this node
+     * Until parsing it contains placeholders,
+     * those will be replaced upon parsing
+     *
+     * @see rawInnerHtml
+     */
     private innerHtml: string;
+    /**
+     * The parent node
+     */
     parent?: VNode;
+    /**
+     * Children of this node
+     */
     private children: VNode[];
+    /**
+     * The real DOM node that this VNode corresponds to
+     */
     htmlElement?: HTMLElement;
+    /**
+     * The properties of this node
+     */
     props: Props;
+    /**
+     * Tracks if the innerHtml of this node has to be parsed
+     */
     dynamicContent = false;
+    /**
+     * Tracks if the innerHtml has been modified
+     */
     modifiedInnerHtml = false;
+    /**
+     * Holds all events that shoud be run when this node comes visible on the real DOM
+     */
     onDomEvenList = new Array<OnDomEvent>();
+    /**
+     * After parsing i18n and value bindings
+     * this holds the raw innerHtml before replacing
+     */
     rawInnerHtml: string = undefined;
+    /**
+     * Holds the last resolved locale, if any
+     */
     lastResolvedLocale: string = undefined;
-    // Way to find out if a given VNode is really a routerlink
-    // instanceof seems to be buggy on some cases and returns false answers
+    /**
+     *  Way to find out if a given VNode is really a routerlink
+     *  instanceof seems to be buggy on some cases and returns false answers
+     */
     isRouterLink: boolean = undefined;
 
 
@@ -146,7 +195,7 @@ export class VNode implements Comparable<VNode> {
     }
 
     public getAttributeValue(name: string): string {
-        if(this.attrs == undefined) {
+        if (this.attrs == undefined) {
             return null;
         }
 
@@ -570,7 +619,7 @@ export const cssClass = (...classNames: string[]) => {
     return new Attribute("class", val);
 }
 
-export type InputFieldType =  'button' | 'checkbox' | 'color' | 'date' | 'datetime-local' | 'email' | 'file' | 'hidden' | 'image' | 'month' | 'number' | 'password' | 'radio' | 'range' | 'reset' | 'search' | 'submit' | 'tel' | 'text' | 'time' | 'url' | 'week';
+export type InputFieldType = 'button' | 'checkbox' | 'color' | 'date' | 'datetime-local' | 'email' | 'file' | 'hidden' | 'image' | 'month' | 'number' | 'password' | 'radio' | 'range' | 'reset' | 'search' | 'submit' | 'tel' | 'text' | 'time' | 'url' | 'week';
 
 /**
  * Create an attribute setting the id for a node
