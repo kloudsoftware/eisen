@@ -34,7 +34,6 @@ export class VNode implements Comparable<VNode> {
     parent?: VNode;
     private children: VNode[];
     htmlElement?: HTMLElement;
-    text?: string;
     props: Props;
     dynamicContent = false;
     modifiedInnerHtml = false;
