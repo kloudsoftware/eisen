@@ -3,7 +3,7 @@ import { VApp, AppEvent } from './VApp'
 import { Props } from './Props';
 import { EvtHandlerFunc, EvtType } from './EventHandler';
 import { RouterLink } from '../Router';
-import { getLocale } from '../i18n/Resolver';
+import { getLocale } from '../i18n';
 
 /**
  * Attribute to identify a virtual node
