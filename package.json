@@ -13,7 +13,8 @@
     "dependencies": {},
     "devDependencies": {
         "microbundle": "^0.11.0",
-        "typescript": "^3.3.3333"
+        "typescript": "^3.3.3333",
+        "lodash": "^4.17.15"
     },
     "repository": {
         "type": "git",
