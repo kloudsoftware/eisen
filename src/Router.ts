@@ -30,7 +30,7 @@ export class Router implements IRouter {
         this.mount = mount;
         this.app = app;
 
-        window.onpopstate = (event) => {
+        window.onpopstate = () => {
             this.resolveRoute(document.location.pathname)
         }
     }
