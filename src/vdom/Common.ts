@@ -34,27 +34,29 @@ export class Stringparser {
     constructor() {
     }
 
-    public parse(str: string, props: Props) {
-        let parsed = dataRegex.exec(str)
+    public parse(str: string, props: Props): string {
+        let parsed = dataRegex.exec(str);
         if (parsed == null || parsed.length == 0) {
             return str;
         }
 
         let parse = str.match(dataRegex);
 
-        let currStr = ""; parsed
-        parse.forEach(it => currStr = this.buildStringFunc(it, props, str))
+        let currStr = "";
+
+        parse.forEach(it => currStr = Stringparser.buildStringFunc(it, props, currStr !== "" ? currStr : str));
+
         return currStr;
     }
 
-    private getFromProps(uncleanKey: string, props: Props): string {
+    private static getFromProps(uncleanKey: string, props: Props): string {
         let key = uncleanKey.split("{{")[1].split("}}")[0].trim();
         return props.getProp(key);
     }
 
-    private buildStringFunc(splitter: string, props: Props, orig: string): string {
+    private static buildStringFunc(splitter: string, props: Props, orig: string): string {
         let parts = orig.split(splitter);
-        return parts.join(this.getFromProps(splitter, props));
+        return parts.join(Stringparser.getFromProps(splitter, props));
     }
 }
 
@@ -62,25 +64,25 @@ export const invokeIfDefined = (fun: () => void) => {
     if (fun != undefined) {
         fun();
     }
-}
+};
 
 export const isDefinedAndNotEmpty = (str: string) => {
     return str != undefined && str != "";
-}
+};
 
 export const toggleError = (node: VNode) => {
     node.addClass("error");
-}
+};
 
 export const parseIntoUnmanaged = (htmlString: string, mount: VNode): VNode => {
     const unmanged = mount.app.createUnmanagedNoDirty(mount);
 
     unmanged.addOnDomEventOrExecute((htmlEl: HTMLElement) => {
         htmlEl.innerHTML = htmlString;
-    })
+    });
 
     return unmanged;
-}
+};
 
 //TODO: This is currently buggy for textNodes
 export const parseStrIntoVNode = (htmlString: string, app: VApp): VNode  =>  {
@@ -96,7 +98,7 @@ export const parseStrIntoVNode = (htmlString: string, app: VApp): VNode  =>  {
 
     console.log(container);
     return container;
-}
+};
 
 const parse = (node: Element, app: VApp): VNode => {
     const attributes: Attribute[] = [];
@@ -121,7 +123,7 @@ const parse = (node: Element, app: VApp): VNode => {
     });
 
     return vNode;
-}
+};
 
 /**
  * Inverts Promise.all
