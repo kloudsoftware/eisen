@@ -4,3 +4,4 @@ dist/
 .cache/
 .rts2*
 .#*
+.idea/
