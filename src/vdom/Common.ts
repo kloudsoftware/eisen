@@ -43,13 +43,10 @@ export class Stringparser {
         let parse = str.match(dataRegex);
 
         let currStr = "";
-        parse.forEach(it => currStr = Stringparser.buildStringFunc(it, props, str));
-        parsed = dataRegex.exec(currStr);
-        if (parsed == null || parsed.length == 0) {
-            return currStr;
-        } else {
-            return this.parse(currStr, props)
-        }
+
+        parse.forEach(it => currStr = Stringparser.buildStringFunc(it, props, currStr !== "" ? currStr : str));
+
+        return currStr;
     }
 
     private static getFromProps(uncleanKey: string, props: Props): string {

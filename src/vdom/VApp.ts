@@ -174,7 +174,6 @@ export class VApp {
                 return;
             }
 
-            console.log("Redraw");
             let patch = this.renderer.diffAgainstLatest(this);
             patch(this.rootNode.htmlElement)
             this.dirty = false;
@@ -185,8 +184,6 @@ export class VApp {
                 this.initial = false;
                 this.eventListeners.forEach(f => f())
             }
-
-            this.oneTimeRenderCallbacks
 
             this.compProps.filter(prop => !prop.mounted[0]).forEach(prop => {
                 prop.mounted[0] = true;
