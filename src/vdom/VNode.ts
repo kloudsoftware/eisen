@@ -308,8 +308,8 @@ export class VNode implements Comparable<VNode> {
         this.children.push(node);
     }
 
-    public addEventlistener(evt: EvtType, func: EvtHandlerFunc) {
-        this.app.eventHandler.registerEventListener(evt, func, this);
+    public addEventlistener(evt: EvtType, func: EvtHandlerFunc, bubble = true) {
+        this.app.eventHandler.registerEventListener(evt, func, this, bubble);
     }
 
     public $clone(parent: VNode): VNode {
