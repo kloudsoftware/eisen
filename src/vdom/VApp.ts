@@ -175,7 +175,7 @@ export class VApp {
             }
 
             let patch = this.renderer.diffAgainstLatest(this);
-            patch(this.rootNode.htmlElement)
+            patch(this.rootNode.htmlElement);
             this.dirty = false;
             this.snapshots.push(this.clone());
 

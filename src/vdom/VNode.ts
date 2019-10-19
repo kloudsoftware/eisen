@@ -1,24 +1,144 @@
-import { Comparable, arraysEquals, Stringparser, dataRegex, raceToSuccess } from './Common';
-import { VApp, AppEvent } from './VApp'
-import { Props } from './Props';
-import { EvtHandlerFunc, EvtType } from './EventHandler';
-import { RouterLink } from '../Router';
-import { getLocale } from '../i18n/Resolver';
+import {Comparable, dataRegex, raceToSuccess, Stringparser} from './Common';
+import {VApp} from './VApp'
+import {Props} from './Props';
+import {EvtHandlerFunc, EvtType} from './EventHandler';
+import {getLocale} from '../i18n/Resolver';
 
 export const kloudAppId = "data-kloudappid";
 
-export type VNodeType = '!--...--' | '!DOCTYPE ' | 'a' | 'abbr' | 'acronym' | 'address' | 'applet' | 'area' | 'article' | 'aside' | 'audio' | 'b' | 'base' | 'basefont' | 'bdi' | 'bdo' | 'big' | 'blockquote' | 'body' | 'br' | 'button' | 'canvas' | 'caption' | 'center' | 'cite' | 'code' | 'col' | 'colgroup' | 'data' | 'datalist' | 'dd' | 'del' | 'details' | 'dfn' | 'dialog' | 'dir' | 'div' | 'dl' | 'dt' | 'em' | 'embed' | 'fieldset' | 'figcaption' | 'figure' | 'font' | 'footer' | 'form' | 'frame' | 'frameset' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'head' | 'header' | 'hr' | 'html' | 'i' | 'iframe' | 'img' | 'input' | 'ins' | 'kbd' | 'label' | 'legend' | 'li' | 'link' | 'main' | 'map' | 'mark' | 'meta' | 'meter' | 'nav' | 'noframes' | 'noscript' | 'object' | 'ol' | 'optgroup' | 'option' | 'output' | 'p' | 'param' | 'picture' | 'pre' | 'progress' | 'q' | 'rp' | 'rt' | 'ruby' | 's' | 'samp' | 'script' | 'section' | 'select' | 'small' | 'source' | 'span' | 'strike' | 'strong' | 'style' | 'sub' | 'summary' | 'sup' | 'svg' | 'table' | 'tbody' | 'td' | 'template' | 'textarea' | 'tfoot' | 'th' | 'thead' | 'time' | 'title' | 'tr' | 'track' | 'tt' | 'u' | 'ul' | 'var' | 'video' | 'wbr';
+export type VNodeType =
+    '!--...--'
+    | '!DOCTYPE '
+    | 'a'
+    | 'abbr'
+    | 'acronym'
+    | 'address'
+    | 'applet'
+    | 'area'
+    | 'article'
+    | 'aside'
+    | 'audio'
+    | 'b'
+    | 'base'
+    | 'basefont'
+    | 'bdi'
+    | 'bdo'
+    | 'big'
+    | 'blockquote'
+    | 'body'
+    | 'br'
+    | 'button'
+    | 'canvas'
+    | 'caption'
+    | 'center'
+    | 'cite'
+    | 'code'
+    | 'col'
+    | 'colgroup'
+    | 'data'
+    | 'datalist'
+    | 'dd'
+    | 'del'
+    | 'details'
+    | 'dfn'
+    | 'dialog'
+    | 'dir'
+    | 'div'
+    | 'dl'
+    | 'dt'
+    | 'em'
+    | 'embed'
+    | 'fieldset'
+    | 'figcaption'
+    | 'figure'
+    | 'font'
+    | 'footer'
+    | 'form'
+    | 'frame'
+    | 'frameset'
+    | 'h1'
+    | 'h2'
+    | 'h3'
+    | 'h4'
+    | 'h5'
+    | 'h6'
+    | 'head'
+    | 'header'
+    | 'hr'
+    | 'html'
+    | 'i'
+    | 'iframe'
+    | 'img'
+    | 'input'
+    | 'ins'
+    | 'kbd'
+    | 'label'
+    | 'legend'
+    | 'li'
+    | 'link'
+    | 'main'
+    | 'map'
+    | 'mark'
+    | 'meta'
+    | 'meter'
+    | 'nav'
+    | 'noframes'
+    | 'noscript'
+    | 'object'
+    | 'ol'
+    | 'optgroup'
+    | 'option'
+    | 'output'
+    | 'p'
+    | 'param'
+    | 'picture'
+    | 'pre'
+    | 'progress'
+    | 'q'
+    | 'rp'
+    | 'rt'
+    | 'ruby'
+    | 's'
+    | 'samp'
+    | 'script'
+    | 'section'
+    | 'select'
+    | 'small'
+    | 'source'
+    | 'span'
+    | 'strike'
+    | 'strong'
+    | 'style'
+    | 'sub'
+    | 'summary'
+    | 'sup'
+    | 'svg'
+    | 'table'
+    | 'tbody'
+    | 'td'
+    | 'template'
+    | 'textarea'
+    | 'tfoot'
+    | 'th'
+    | 'thead'
+    | 'time'
+    | 'title'
+    | 'tr'
+    | 'track'
+    | 'tt'
+    | 'u'
+    | 'ul'
+    | 'var'
+    | 'video'
+    | 'wbr';
 
 export type OnDomEvent = (html: HTMLElement) => void;
 
 export class VNode implements Comparable<VNode> {
     app: VApp;
     id: string;
-    protected attrs: Attribute[];
     nodeName: VNodeType;
-    private innerHtml: string;
     parent?: VNode;
-    private children: VNode[];
     htmlElement?: HTMLElement;
     text?: string;
     props: Props;
@@ -27,14 +147,16 @@ export class VNode implements Comparable<VNode> {
     onDomEvenList = new Array<OnDomEvent>();
     rawInnerHtml: string = undefined;
     lastResolvedLocale: string = undefined;
-    // Way to find out if a given VNode is really a routerlink
     // instanceof seems to be buggy on some cases and returns false answers
     isRouterLink: boolean = undefined;
-
+    protected attrs: Attribute[];
+    private innerHtml: string;
+    // Way to find out if a given VNode is really a routerlink
+    private children: VNode[];
 
     constructor(app: VApp, nodeName: VNodeType, children: VNode[], innerHtml?: string, props?: Props, attrs?: Attribute[], parent?: VNode, id?: string) {
         if (attrs == undefined) {
-            this.attrs = new Array();
+            this.attrs = [];
         } else {
             this.attrs = attrs;
         }
@@ -53,7 +175,7 @@ export class VNode implements Comparable<VNode> {
         }
 
         if (innerHtml != undefined) {
-            let parsed = innerHtml.match(dataRegex)
+            let parsed = innerHtml.match(dataRegex);
             if (parsed != null && parsed.length != 0) {
                 this.dynamicContent = true;
             }
@@ -66,6 +188,10 @@ export class VNode implements Comparable<VNode> {
         this.attrs.map(a => a.attrName).forEach(attrName => {
             this.app.renderer.$knownAttributes.add(attrName);
         })
+    }
+
+    public static builder(): VNodeBuilder {
+        return new VNodeBuilder();
     }
 
     public addFocusListener(func: EvtHandlerFunc) {
@@ -86,7 +212,7 @@ export class VNode implements Comparable<VNode> {
 
     public addOnDomEventOrExecute(func: OnDomEvent) {
         if (this.htmlElement == undefined) {
-            this.onDomEvenList.push(func)
+            this.onDomEvenList.push(func);
             return;
         }
 
@@ -98,7 +224,7 @@ export class VNode implements Comparable<VNode> {
     }
 
     public getAttributeValue(name: string): string {
-        if(this.attrs == undefined) {
+        if (this.attrs == undefined) {
             return null;
         }
 
@@ -167,12 +293,97 @@ export class VNode implements Comparable<VNode> {
         return new Stringparser().parse(this.innerHtml, this.props);
     }
 
+    public replaceChild(old: VNode, node: VNode) {
+        this.replaceWith(old, node);
+    }
+
+    public removeChild(toRemove: VNode) {
+        this.app.notifyDirty();
+        this.replaceWith(toRemove, undefined);
+    }
+
+    public appendChild(node: VNode) {
+        this.app.notifyDirty();
+        node.parent = this;
+        this.children.push(node);
+    }
+
+    public addEventlistener(evt: EvtType, func: EvtHandlerFunc) {
+        this.app.eventHandler.registerEventListener(evt, func, this);
+    }
+
+    public $clone(parent: VNode): VNode {
+        const id = this.id;
+        const nodeName = this.nodeName;
+        const innerHtml = this.innerHtml;
+        const props = Object.assign(this.props, {}) as Props;
+
+        const htmlElement = this.htmlElement;
+        const attrs = this.attrs.map(a => a.clone());
+
+        const clonedNode = new VNode(this.app, nodeName, [], innerHtml, props, attrs, parent, id);
+        const children = new Array<VNode>();
+
+        this.children.forEach(child => {
+            if (child == undefined) {
+                children.push(undefined);
+            } else {
+                children.push(child.$clone(clonedNode))
+            }
+        });
+
+        clonedNode.children = children;
+        clonedNode.htmlElement = htmlElement;
+        return clonedNode;
+    }
+
+    equals(o: VNode): boolean {
+        if (o == undefined) return false;
+
+        return this.nodeName == o.nodeName;
+    }
+
+    public addClass = (name: string) => {
+        this.app.notifyDirty();
+        let classAttr = this.attrs.filter(el => el.attrName == "class")[0];
+        if (classAttr == undefined) {
+            classAttr = new Attribute("class", name);
+            this.attrs.push(classAttr);
+            return;
+        }
+
+        classAttr.attrValue = classAttr.attrValue + " " + name;
+        return this;
+    };
+
+    public hasClass = (name: string): boolean => {
+        const classAttr = this.attrs.filter(el => el.attrName == "class")[0];
+
+        if (classAttr == undefined) {
+            return false;
+        }
+
+        return classAttr.attrValue.indexOf(name) != -1;
+    };
+
+    public removeClass = (name: string) => {
+        this.app.notifyDirty();
+        const classAttr = this.attrs.filter(el => el.attrName == "class")[0];
+
+        if (classAttr == undefined) {
+            return;
+        }
+
+        classAttr.attrValue = classAttr.attrValue.replace(name, "");
+        return this;
+    };
+
     private resolvei18n(): Promise<void> {
         return new Promise((resolve, reject) => {
             const locale = getLocale();
             const htmlToUse = this.rawInnerHtml != undefined ? this.rawInnerHtml : this.innerHtml;
             const resolver = this.app.i18nResolver
-                .filter(resolver => htmlToUse.startsWith(resolver.getPrefix()))
+                .filter(resolver => htmlToUse.startsWith(resolver.getPrefix()));
 
             const strictResolver = resolver
                 .filter(r => r.isStrict())
@@ -202,31 +413,12 @@ export class VNode implements Comparable<VNode> {
                     processMatch(match);
                     resolve();
                 }).catch(_ => {
-                    raceToSuccess(nonStrictResolver).then(match => {
-                        processMatch(match);
-                        resolve();
-                    }).catch(e => reject(e));
-                });
+                raceToSuccess(nonStrictResolver).then(match => {
+                    processMatch(match);
+                    resolve();
+                }).catch(e => reject(e));
+            });
         });
-    }
-
-    public replaceChild(old: VNode, node: VNode) {
-        this.replaceWith(old, node);
-    }
-
-    public removeChild(toRemove: VNode) {
-        this.app.notifyDirty();
-        this.replaceWith(toRemove, undefined);
-    }
-
-    public appendChild(node: VNode) {
-        this.app.notifyDirty();
-        node.parent = this;
-        this.children.push(node);
-    }
-
-    public addEventlistener(evt: EvtType, func: EvtHandlerFunc) {
-        this.app.eventHandler.registerEventListener(evt, func, this);
     }
 
     private replaceWith(toReplace: VNode, replacement?: VNode): void {
@@ -243,76 +435,6 @@ export class VNode implements Comparable<VNode> {
         if (replaceIndex != -1) {
             this.children[replaceIndex] = replacement;
         }
-    }
-
-    public $clone(parent: VNode): VNode {
-        const id = this.id;
-        const nodeName = this.nodeName;
-        const innerHtml = this.innerHtml;
-        const props = Object.assign(this.props, {}) as Props;
-
-        const htmlElement = this.htmlElement;
-        const attrs = this.attrs.map(a => a.clone());
-
-        const clonedNode = new VNode(this.app, nodeName, [], innerHtml, props, attrs, parent, id);
-        const children = new Array<VNode>();
-
-        this.children.forEach(child => {
-            if (child == undefined) {
-                children.push(undefined);
-            } else {
-                children.push(child.$clone(clonedNode))
-            }
-        })
-
-        clonedNode.children = children;
-        clonedNode.htmlElement = htmlElement;
-        return clonedNode;
-    }
-
-    equals(o: VNode): boolean {
-        if (o == undefined) return false;
-
-        return this.nodeName == o.nodeName;
-    }
-
-    public addClass = (name: string) => {
-        this.app.notifyDirty();
-        let classAttr = this.attrs.filter(el => el.attrName == "class")[0];
-        if (classAttr == undefined) {
-            classAttr = new Attribute("class", name);
-            this.attrs.push(classAttr);
-            return;
-        }
-
-        classAttr.attrValue = classAttr.attrValue + " " + name;
-        return this;
-    }
-
-    public hasClass = (name: string): boolean => {
-        const classAttr = this.attrs.filter(el => el.attrName == "class")[0];
-
-        if (classAttr == undefined) {
-            return false;
-        }
-
-        return classAttr.attrValue.indexOf(name) != -1;
-    }
-
-    public removeClass = (name: string) => {
-        this.app.notifyDirty();
-        const classAttr = this.attrs.filter(el => el.attrName == "class")[0];
-
-        if (classAttr == undefined) {
-            return;
-        }
-
-        classAttr.attrValue = classAttr.attrValue.replace(name, "");
-        return this;
-    }
-
-    public static builder(): VNodeBuilder {
-        return new VNodeBuilder();
     }
 }
 
@@ -401,9 +523,31 @@ export const cssClass = (...classNames: string[]) => {
 
     const val = classNames.reduce((acc, curr) => acc + curr + " ", "").trim();
     return new Attribute("class", val);
-}
+};
 
-export type InputFieldType =  'button' | 'checkbox' | 'color' | 'date' | 'datetime-local' | 'email' | 'file' | 'hidden' | 'image' | 'month' | 'number' | 'password' | 'radio' | 'range' | 'reset' | 'search' | 'submit' | 'tel' | 'text' | 'time' | 'url' | 'week';
+export type InputFieldType =
+    'button'
+    | 'checkbox'
+    | 'color'
+    | 'date'
+    | 'datetime-local'
+    | 'email'
+    | 'file'
+    | 'hidden'
+    | 'image'
+    | 'month'
+    | 'number'
+    | 'password'
+    | 'radio'
+    | 'range'
+    | 'reset'
+    | 'search'
+    | 'submit'
+    | 'tel'
+    | 'text'
+    | 'time'
+    | 'url'
+    | 'week';
 
 export const id = (id: string) => new Attribute("id", id);
 export const labelFor = (idFor: string) => new Attribute("for", idFor);
@@ -483,7 +627,7 @@ export class VInputNode extends VNode {
     }
 
     validate(validateFunc: ValidationFunc, errorClass: string) {
-        this.validationFuncs.push([validateFunc, errorClass])
+        this.validationFuncs.push([validateFunc, errorClass]);
         if (this.hasValidateBlurFunction) {
             return;
         }

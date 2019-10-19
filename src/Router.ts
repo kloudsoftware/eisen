@@ -24,7 +24,7 @@ export class Router implements IRouter {
     private mount: VNode;
     private currPath: string = undefined;
     private middleWares: Array<MiddleWare> = new Array<MiddleWare>();
-    private pathVariables: Array<string> = new Array();
+    private pathVariables: Array<string> = [];
 
     constructor(app: VApp, mount: VNode) {
         this.mount = mount;

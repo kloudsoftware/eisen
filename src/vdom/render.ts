@@ -1,6 +1,5 @@
-import { VApp, unmanagedNode } from "./VApp"
-import { VNode, Attribute } from "./VNode"
-import { arraysEquals } from "./Common"
+import {unmanagedNode, VApp} from "./VApp"
+import {VNode} from "./VNode"
 
 type PatchFunction = (parent: HTMLElement) => HTMLElement;
 
@@ -20,11 +19,10 @@ export class Renderer {
     }
 
     public diff(snapshot: VApp, vApp: VApp): PatchFunction {
-        let patch = this.diffElement(snapshot.rootNode, vApp.rootNode);
-        return patch;
+        return this.diffElement(snapshot.rootNode, vApp.rootNode);
     }
 
-    private removeElement(parent: HTMLElement, toRemove: VNode) {
+    private static removeElement(parent: HTMLElement, toRemove: VNode) {
         parent.removeChild(toRemove.htmlElement);
     }
 
@@ -34,7 +32,7 @@ export class Renderer {
                 return el => el;
             }
             return (el: HTMLElement) => {
-                this.removeElement(el, oldVNode);
+                Renderer.removeElement(el, oldVNode);
                 return el;
             }
         }
@@ -64,6 +62,9 @@ export class Renderer {
 
         newVNode.$getChildren().slice(oldVNode.$getChildren().length).forEach(child => {
             childPatches.push(parent => {
+                if(child === undefined) {
+                    return parent;
+                }
                 parent.appendChild(this.renderTree(child));
                 return parent;
             });
@@ -108,11 +109,15 @@ export class Renderer {
                 continue;
             }
 
-            if($attribute != undefined && vAttribute == undefined) {
+            if($attribute !== undefined && vAttribute === undefined) {
                 patches.push($node => {
                     $node.removeAttribute($attribute.name);
                     return $node;
                 });
+                continue;
+            }
+
+            if(vAttribute === undefined) {
                 continue;
             }
 
@@ -126,12 +131,15 @@ export class Renderer {
         }
 
         return $node => {
-            patches.forEach(p => p($node))
+            patches.forEach(p => p($node));
             return $node;
         }
     }
 
     public renderTree(node: VNode): HTMLElement {
+        if(node === undefined) {
+            return undefined;
+        }
         let $elem = document.createElement(node.nodeName);
         $elem.innerHTML = node.getInnerHtml();
         node.setHtmlElement($elem);
@@ -141,7 +149,7 @@ export class Renderer {
 
         node.$getChildren().filter(it => it !== undefined).forEach(child => {
             $elem.appendChild(this.renderTree(child))
-        })
+        });
 
         return $elem;
     }
