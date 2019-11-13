@@ -142,7 +142,6 @@ export class Renderer {
         }
         let $elem = document.createElement(node.nodeName);
         $elem.innerHTML = node.getInnerHtml();
-        node.setHtmlElement($elem);
         if (node.$getAttrs() != undefined) {
             node.$getAttrs().forEach(attr => $elem.setAttribute(attr.attrName, attr.attrValue));
         }
@@ -151,6 +150,7 @@ export class Renderer {
             $elem.appendChild(this.renderTree(child))
         });
 
+        node.setHtmlElement($elem);
         return $elem;
     }
 }
