@@ -308,6 +308,10 @@ export class VNode implements Comparable<VNode> {
         this.children.push(node);
     }
 
+    public appendChildren(nodes: Array<VNode>) {
+        nodes.forEach(node => this.appendChild(node));
+    }
+
     public addEventlistener(evt: EvtType, func: EvtHandlerFunc, bubble = true) {
         this.app.eventHandler.registerEventListener(evt, func, this, bubble);
     }
