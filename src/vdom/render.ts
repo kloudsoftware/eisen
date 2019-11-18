@@ -6,8 +6,13 @@ type PatchFunction = (parent: HTMLElement) => HTMLElement;
 export class Renderer {
     public $knownAttributes: Set<string> = new Set<string>();
 
+    private static removeElement(parent: HTMLElement, toRemove: VNode) {
+        parent.removeChild(toRemove.htmlElement);
+    }
+
     //Proxy for calling
     public diffAgainstLatest(app: VApp): PatchFunction {
+        console.log("diffing");
         let latest = app.getLatestSnapshot();
         if (latest == undefined) {
             return el => {
@@ -22,8 +27,17 @@ export class Renderer {
         return this.diffElement(snapshot.rootNode, vApp.rootNode);
     }
 
-    private static removeElement(parent: HTMLElement, toRemove: VNode) {
-        parent.removeChild(toRemove.htmlElement);
+    public renderTree(node: VNode): HTMLElement {
+        let $elem = document.createElement(node.nodeName);
+        $elem.innerHTML = node.getInnerHtml();
+        node.$getAttrs().forEach(attr => $elem.setAttribute(attr.attrName, attr.attrValue));
+
+        node.$getChildren().forEach(child => {
+            $elem.appendChild(this.renderTree(child))
+        });
+
+        node.setHtmlElement($elem);
+        return $elem;
     }
 
     private diffElement(oldVNode?: VNode, newVNode?: VNode): PatchFunction {
@@ -62,27 +76,30 @@ export class Renderer {
 
         newVNode.$getChildren().slice(oldVNode.$getChildren().length).forEach(child => {
             childPatches.push(parent => {
-                if(child === undefined) {
-                    return parent;
-                }
                 parent.appendChild(this.renderTree(child));
                 return parent;
             });
         });
 
+
         let attributePatch = this.diffAttributes(oldVNode, newVNode);
         let innerHtmlPatch = this.diffInnerHtml(oldVNode, newVNode);
 
         return $node => {
-            childPatches.forEach(patch => patch(newVNode.htmlElement));
-            attributePatch(newVNode.htmlElement);
-            innerHtmlPatch(newVNode.htmlElement);
+            oldVNode.addOnDomEventOrExecute((el) => {
+                childPatches.forEach(patch => patch(el));
+                attributePatch(el);
+                innerHtmlPatch(el);
+            });
+
+            newVNode.htmlElement = oldVNode.htmlElement;
+
             return $node;
         };
     }
 
     private diffInnerHtml(oldVNode: VNode, newVNode: VNode): PatchFunction {
-        if (newVNode.modifiedInnerHtml || newVNode.dynamicContent) {
+        if (oldVNode.getInnerHtml() !== newVNode.getInnerHtml() || newVNode.dynamicContent) {
             return $node => {
                 $node.innerHTML = newVNode.getInnerHtml();
                 return $node;
@@ -95,13 +112,16 @@ export class Renderer {
     private diffAttributes(node: VNode, newVNode: VNode): PatchFunction {
         let patches: PatchFunction[] = [];
 
-        let $attributeArray = Array.from(newVNode.htmlElement.attributes).filter($attr => this.$knownAttributes.has($attr.name));
+        let $attributeArray = [];
+        if (newVNode.htmlElement) {
+            $attributeArray = Array.from(newVNode.htmlElement.attributes).filter($attr => this.$knownAttributes.has($attr.name));
+        }
 
-        for(let i = 0; i < Math.max($attributeArray.length, newVNode.$getAttrs().length); i++){
+        for (let i = 0; i < Math.max($attributeArray.length, newVNode.$getAttrs().length); i++) {
             const $attribute = $attributeArray[i];
             const vAttribute = newVNode.$getAttrs()[i];
 
-            if($attribute == undefined && vAttribute != undefined) {
+            if ($attribute == undefined && vAttribute != undefined) {
                 patches.push($node => {
                     $node.setAttribute(vAttribute.attrName, vAttribute.attrValue);
                     return $node;
@@ -109,7 +129,7 @@ export class Renderer {
                 continue;
             }
 
-            if($attribute !== undefined && vAttribute === undefined) {
+            if ($attribute !== undefined && vAttribute === undefined) {
                 patches.push($node => {
                     $node.removeAttribute($attribute.name);
                     return $node;
@@ -117,7 +137,7 @@ export class Renderer {
                 continue;
             }
 
-            if(vAttribute === undefined) {
+            if (vAttribute === undefined) {
                 continue;
             }
 
@@ -134,23 +154,5 @@ export class Renderer {
             patches.forEach(p => p($node));
             return $node;
         }
-    }
-
-    public renderTree(node: VNode): HTMLElement {
-        if(node === undefined) {
-            return undefined;
-        }
-        let $elem = document.createElement(node.nodeName);
-        $elem.innerHTML = node.getInnerHtml();
-        if (node.$getAttrs() != undefined) {
-            node.$getAttrs().forEach(attr => $elem.setAttribute(attr.attrName, attr.attrValue));
-        }
-
-        node.$getChildren().filter(it => it !== undefined).forEach(child => {
-            $elem.appendChild(this.renderTree(child))
-        });
-
-        node.setHtmlElement($elem);
-        return $elem;
     }
 }

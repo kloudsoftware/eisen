@@ -102,7 +102,7 @@ export class VApp {
         mount.$getChildren().push(compMount);
         let compProps = component.build(this)(compMount, props);
         this.compProps.push(new ComponentHolder(compProps, compMount));
-        this.notifyDirty()
+        this.notifyDirty();
         return compMount;
     }
 
@@ -114,7 +114,7 @@ export class VApp {
      */
     public routerMountComponent(component: Component, mount: VNode, props: Props): ComponentHolder {
         if (this.router == undefined) {
-            console.error("No router mounted")
+            console.error("No router mounted");
             return undefined;
         }
         if (props == undefined) {
