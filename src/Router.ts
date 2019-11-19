@@ -110,7 +110,8 @@ export class Router implements IRouter {
             if (stringIncludesCurlyBrace(foundPath)) {
                 const foundVars = splitAtSlash(foundPath);
                 const givenVars = splitAtSlash(path);
-                const props: Props = cmp[1].props;
+                //@ts-ignore
+                const props: any  = cmp[1].props as any;
 
                 for (let i = 0; i < foundVars.length; i++) {
                     if (stringIncludesCurlyBrace(foundVars[i])) {
