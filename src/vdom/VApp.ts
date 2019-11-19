@@ -133,6 +133,7 @@ export class VApp {
         let mnt = component.render(props);
         compMount.children = [mnt];
         mount.children.push(compMount);
+        component.$mount = compMount;
 
         let holder;
         if (component.lifeCycle) {
@@ -152,6 +153,7 @@ export class VApp {
      */
     public remountComponent(holder: ComponentHolder, mount: VNode) {
         holder.remount[0] = false;
+        console.log(holder)
         mount.appendChild(holder.component.$mount);
         if (!this.compProps.includes(holder)) {
             this.compProps.push(holder);
@@ -215,7 +217,7 @@ export class VApp {
 
             this.compProps.filter(prop => prop.remount !== undefined).filter(prop => !prop.remount[0]).forEach(prop => {
                 prop.remount[0] = true;
-                getOrNoop(prop.remount[1](prop.component))
+                getOrNoop(prop.remount[1])(prop.component)
             });
 
             this.compsToNotifyUnmount.forEach(f => invokeIfDefined(f));
