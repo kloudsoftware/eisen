@@ -12,7 +12,6 @@ export class Renderer {
 
     //Proxy for calling
     public diffAgainstLatest(app: VApp): PatchFunction {
-        console.log("diffing");
         let latest = app.getLatestSnapshot();
         if (latest == undefined) {
             return el => {
@@ -113,13 +112,13 @@ export class Renderer {
     private diffAttributes(node: VNode, newVNode: VNode): PatchFunction {
         let patches: PatchFunction[] = [];
 
-        let $attributeArray = [];
+        let $attributeArray: Array<Attr> = [];
         if (newVNode.htmlElement) {
             $attributeArray = Array.from(newVNode.htmlElement.attributes).filter($attr => this.$knownAttributes.has($attr.name));
         }
 
-        const setAttrs = new Map<string, string>;
-        const validAttrs = new Map<string, string>;
+        const setAttrs = new Map<string, string>();
+        const validAttrs = new Map<string, string>();
         $attributeArray.forEach(attr => {
             setAttrs.set(attr.name, attr.value);
         });

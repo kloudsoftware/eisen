@@ -66,6 +66,18 @@ export const invokeIfDefined = (fun: () => void) => {
     }
 };
 
+export const getOrNoop = (fun: any) => {
+    if(isFunction(fun)) {
+        return fun;
+    } else {
+        return () => {};
+    }
+};
+
+function isFunction(functionToCheck: any) {
+    return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
+}
+
 export const isDefinedAndNotEmpty = (str: string) => {
     return str != undefined && str != "";
 };

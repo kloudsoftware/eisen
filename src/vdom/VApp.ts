@@ -1,18 +1,20 @@
-import { VNode, Attribute, VInputNode, VNodeType } from './VNode'
-import { Renderer } from './render';
-import { Props } from './Props';
-import { Component, ComponentHolder } from './Component';
-import { EventHandler } from './EventHandler';
-import { invokeIfDefined } from './Common';
-import { Router, IRouter } from '../Router';
-import { Resolver } from '../i18n/Resolver';
-import { EventPipeline } from './GlobalEvent';
+import {Attribute, VInputNode, VNode, VNodeType} from './VNode'
+import {Renderer} from './render';
+import {Props} from './Props';
+import {Component, ComponentHolder} from './Component';
+import {EventHandler} from './EventHandler';
+import {getOrNoop, invokeIfDefined} from './Common';
+import {IRouter, Router} from '../Router';
+import {Resolver} from '../i18n/Resolver';
+import {EventPipeline} from './GlobalEvent';
 
 export const unmanagedNode: string = "__UNMANAGED__"
 
 
 export type AppEvent = () => void;
+export type ComponentEvent = (comp: Component) => void;
 export type FunctionHolder = [boolean, AppEvent];
+export type ComponentFunctionHolder = [boolean, ComponentEvent];
 
 export interface NodeOptions {
     attrs?: Attribute[];
@@ -79,31 +81,44 @@ export class VApp {
         return this.router;
     }
 
-   /**
+    /**
      * Adds a callback to the initial render of this app, its executed after the initial render is done and all elements of it are on the dom.
      * @param listener
      */ public addInitialRenderEventlistener(listener: AppEvent) {
         this.eventListeners.push(listener);
     }
 
-   /**
+    /**
      * Mounts a component to this app
      * @param component The component to mount
      * @param mount the mountpoint for the Component
      * @param props Any properties, passed into the Component
      */
     public mountComponent(component: Component, mount: VNode, props: Props): VNode {
-        if (props == undefined) {
-            props = new Props(this);
-        }
-
         let compMount = this.k("div");
         compMount.parent = mount;
         mount.$getChildren().push(compMount);
-        let compProps = component.build(this)(compMount, props);
-        this.compProps.push(new ComponentHolder(compProps, compMount));
+        component.props = props;
+        let mounted = component.render(props);
+        compMount.$getChildren().push(mounted);
+        component.$mount = compMount;
+        if (component.lifeCycle) {
+            this.compProps.push(new ComponentHolder(component.lifeCycle(), component));
+        } else {
+            this.compProps.push(new ComponentHolder({}, component));
+        }
+
+
         this.notifyDirty();
         return compMount;
+    }
+
+    public rerenderComponent(component: Component, props: Props): void {
+        if(!component.$mount) {
+            return;
+        }
+        component.$mount.children = [component.render(props)];
+        this.notifyDirty();
     }
 
     /**
@@ -113,40 +128,42 @@ export class VApp {
      * @param props
      */
     public routerMountComponent(component: Component, mount: VNode, props: Props): ComponentHolder {
-        if (this.router == undefined) {
-            console.error("No router mounted");
-            return undefined;
-        }
-        if (props == undefined) {
-            props = new Props(this);
+        component.props = props;
+        let compMount = this.k("div");
+        let mnt = component.render(props);
+        compMount.children = [mnt];
+        mount.children.push(compMount);
+
+        let holder;
+        if (component.lifeCycle) {
+            holder = new ComponentHolder(component.lifeCycle(), component);
+        } else {
+            holder = new ComponentHolder({}, component);
         }
 
-        let compMount = this.createElement("div", undefined, mount);
-        let compProps = component.build(this)(compMount, props);
-        const holder = new ComponentHolder(compProps, compMount);
         this.compProps.push(holder);
         return holder;
     }
 
     /**
-      * Remounts a previously mounted component. Primarily used by the Router
-      * @param holder The ComponentHolder object, holds necessary callbacks
-      * @param mount Mountpoint for this component
-      */
+     * Remounts a previously mounted component. Primarily used by the Router
+     * @param holder The ComponentHolder object, holds necessary callbacks
+     * @param mount Mountpoint for this component
+     */
     public remountComponent(holder: ComponentHolder, mount: VNode) {
         holder.remount[0] = false;
-        mount.appendChild(holder.mount);
-        if(!this.compProps.includes(holder)) {
+        mount.appendChild(holder.component.$mount);
+        if (!this.compProps.includes(holder)) {
             this.compProps.push(holder);
         }
     }
 
     /**
-      * Unmounts a component that was mounted on this app
-      * @param mount Mountpoint, returned by VApp.mountComponent
-      */
+     * Unmounts a component that was mounted on this app
+     * @param mount Mountpoint, returned by VApp.mountComponent
+     */
     public unmountComponent(mount: VNode) {
-        const filteredComps = this.compProps.filter(it => it.mount == mount);
+        const filteredComps = this.compProps.filter(it => it.component.$mount == mount);
 
         if (filteredComps.length == 0) {
             console.error("Node is not component mount");
@@ -158,7 +175,13 @@ export class VApp {
 
         let target = filteredComps[0];
 
-        target.mount.parent.removeChild(target.mount);
+
+        if(!target.component.$mount.parent) {
+            console.error("Component is not on dom");
+            return;
+        }
+
+        target.component.$mount.parent.removeChild(target.component.$mount);
         this.compProps.splice(this.compProps.indexOf(target), 1);
         this.compsToNotifyUnmount.push(target.unmounted);
     }
@@ -175,7 +198,7 @@ export class VApp {
             }
 
             let patch = this.renderer.diffAgainstLatest(this);
-            patch(this.rootNode.htmlElement);
+            patch(this.rootNode.htmlElement!);
             this.dirty = false;
             this.snapshots.push(this.clone());
 
@@ -185,14 +208,14 @@ export class VApp {
                 this.eventListeners.forEach(f => f())
             }
 
-            this.compProps.filter(prop => !prop.mounted[0]).forEach(prop => {
+            this.compProps.filter(prop => prop.mounted !== undefined).filter(prop => !prop.mounted[0]).forEach(prop => {
                 prop.mounted[0] = true;
-                invokeIfDefined(prop.mounted[1])
+                getOrNoop(prop.mounted[1])(prop.component)
             });
 
-            this.compProps.filter(prop => !prop.remount[0]).forEach(prop => {
+            this.compProps.filter(prop => prop.remount !== undefined).filter(prop => !prop.remount[0]).forEach(prop => {
                 prop.remount[0] = true;
-                invokeIfDefined(prop.remount[1])
+                getOrNoop(prop.remount[1](prop.component))
             });
 
             this.compsToNotifyUnmount.forEach(f => invokeIfDefined(f));
@@ -206,7 +229,7 @@ export class VApp {
         this.dirty = true;
     }
 
-    public getLatestSnapshot(): VApp {
+    public getLatestSnapshot(): VApp | undefined {
         if (this.snapshots.length < 1) {
             return undefined;
         }
@@ -214,7 +237,7 @@ export class VApp {
         return this.snapshots[this.snapshots.length - 1];
     }
 
-    public getPreviousSnapshot(): VApp {
+    public getPreviousSnapshot(): VApp | undefined {
         if (this.snapshots.length < 2) {
             return undefined;
         }
@@ -266,9 +289,9 @@ export class VApp {
     }
 
     /**
-      * Creates an unmanagedNode (its childnodes are ignored by the renderer) at a specified mountpoint. This operation does not cause a re-render
-      * @param mount
-      */
+     * Creates an unmanagedNode (its childnodes are ignored by the renderer) at a specified mountpoint. This operation does not cause a re-render
+     * @param mount
+     */
     public createUnmanagedNoDirty(mount: VNode) {
         let unmanagedNode = new VNode(this, "div", [], "", new Props(this), [], mount, "__UNMANAGED__");
         mount.$getChildren().push(unmanagedNode);
