@@ -51,12 +51,14 @@ export class Renderer {
             }
         }
 
+
         if (oldVNode == undefined) {
             return el => {
                 el.appendChild(this.renderTree(newVNode))
                 return el;
             }
         }
+
 
         if (newVNode.id == unmanagedNode) {
             return el => el;
@@ -93,7 +95,6 @@ export class Renderer {
             });
 
             newVNode.htmlElement = oldVNode.htmlElement;
-
             return $node;
         };
     }
@@ -117,38 +118,44 @@ export class Renderer {
             $attributeArray = Array.from(newVNode.htmlElement.attributes).filter($attr => this.$knownAttributes.has($attr.name));
         }
 
-        for (let i = 0; i < Math.max($attributeArray.length, newVNode.$getAttrs().length); i++) {
-            const $attribute = $attributeArray[i];
-            const vAttribute = newVNode.$getAttrs()[i];
+        const setAttrs = new Map<string, string>;
+        const validAttrs = new Map<string, string>;
+        $attributeArray.forEach(attr => {
+            setAttrs.set(attr.name, attr.value);
+        });
+        newVNode.$getAttrs().forEach(attr => {
+            validAttrs.set(attr.attrName, attr.attrValue)
+        });
 
-            if ($attribute == undefined && vAttribute != undefined) {
+
+        setAttrs.forEach((v, k) => {
+            const setVal = validAttrs.get(k);
+            if (setVal === undefined) {
                 patches.push($node => {
-                    $node.setAttribute(vAttribute.attrName, vAttribute.attrValue);
+                    $node.removeAttribute(k);
                     return $node;
                 });
-                continue;
+                validAttrs.delete(k);
+                return;
             }
 
-            if ($attribute !== undefined && vAttribute === undefined) {
+            if (setVal !== v) {
                 patches.push($node => {
-                    $node.removeAttribute($attribute.name);
+                    $node.setAttribute(k, setVal);
                     return $node;
                 });
-                continue;
+                validAttrs.delete(k);
+                return;
             }
+        });
 
-            if (vAttribute === undefined) {
-                continue;
-            }
+        validAttrs.forEach((v, k) => {
+            patches.push($node => {
+                $node.setAttribute(k, v);
+                return $node;
+            });
+        });
 
-            if ($attribute.value != vAttribute.attrValue || $attribute.name != vAttribute.attrName) {
-                patches.push($node => {
-                    $node.setAttribute(vAttribute.attrName, vAttribute.attrValue);
-                    return $node;
-                });
-            }
-
-        }
 
         return $node => {
             patches.forEach(p => p($node));

@@ -149,10 +149,9 @@ export class VNode implements Comparable<VNode> {
     lastResolvedLocale: string = undefined;
     // instanceof seems to be buggy on some cases and returns false answers
     isRouterLink: boolean = undefined;
+    public children: VNode[];
     protected attrs: Attribute[];
     private innerHtml: string;
-    // Way to find out if a given VNode is really a routerlink
-    private children: VNode[];
 
     constructor(app: VApp, nodeName: VNodeType, children: VNode[], innerHtml?: string, props?: Props, attrs?: Attribute[], parent?: VNode, id?: string) {
         if (attrs == undefined) {
@@ -329,17 +328,14 @@ export class VNode implements Comparable<VNode> {
         const children = new Array<VNode>();
 
         this.children.forEach(child => {
-            if (child == undefined) {
-                children.push(undefined);
-            } else {
-                children.push(child.$clone(clonedNode))
-            }
+            children.push(child.$clone(clonedNode))
         });
 
         clonedNode.children = children;
         this.addOnDomEventOrExecute((el) => {
             clonedNode.htmlElement = el
         });
+
         return clonedNode;
     }
 
@@ -383,6 +379,22 @@ export class VNode implements Comparable<VNode> {
         classAttr.attrValue = classAttr.attrValue.replace(name, "");
         return this;
     };
+
+    public $replaceWith(toReplace: VNode, replacement?: VNode): void {
+        let replaceIndex = -1;
+        for (let i = 0; i < this.children.length; i++) {
+            if (this.children[i] == toReplace) {
+                replaceIndex = i;
+                break;
+            }
+        }
+
+        if (replaceIndex != -1 && replacement != undefined) {
+            this.children[replaceIndex] = replacement;
+        } else {
+            this.children.splice(replaceIndex, 1);
+        }
+    }
 
     private resolvei18n(): Promise<void> {
         return new Promise((resolve, reject) => {
@@ -429,20 +441,7 @@ export class VNode implements Comparable<VNode> {
 
     private replaceWith(toReplace: VNode, replacement?: VNode): void {
         this.app.notifyDirty();
-        let replaceIndex = -1;
-        for (let i = 0; i < this.children.length; i++) {
-            if (this.children[i] == toReplace) {
-                replaceIndex = i;
-                break;
-            }
-        }
-
-        if (replaceIndex != -1 && replacement != undefined) {
-            this.children[replaceIndex] = replacement;
-        } else {
-            console.log("deleting", toReplace);
-            this.children.splice(replaceIndex, 1);
-        }
+        this.$replaceWith(toReplace, replacement);
     }
 }
 

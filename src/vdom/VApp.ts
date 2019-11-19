@@ -149,7 +149,7 @@ export class VApp {
         const filteredComps = this.compProps.filter(it => it.mount == mount);
 
         if (filteredComps.length == 0) {
-            console.error("Node is not component mount")
+            console.error("Node is not component mount");
             return;
         } else if (!filteredComps[0].mounted) {
             console.error("Component cannot be unmounted before it was mounted")
