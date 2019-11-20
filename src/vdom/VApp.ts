@@ -114,11 +114,18 @@ export class VApp {
     }
 
     public rerenderComponent(component: Component, props: Props): void {
-        if(!component.$mount) {
+        if (!component.$mount) {
             return;
         }
         component.$mount.children = [component.render(props)];
         this.notifyDirty();
+    }
+
+    public notifyUnmount(node: VNode) {
+        this.compProps.filter(it => it.component.$mount === node).forEach(props => {
+            this.compProps.splice(this.compProps.indexOf(props), 1);
+            invokeIfDefined(props.unmounted);
+        });
     }
 
     /**
@@ -153,7 +160,7 @@ export class VApp {
      */
     public remountComponent(holder: ComponentHolder, mount: VNode) {
         holder.remount[0] = false;
-        console.log(holder)
+        console.log(holder);
         mount.appendChild(holder.component.$mount);
         if (!this.compProps.includes(holder)) {
             this.compProps.push(holder);
@@ -178,7 +185,7 @@ export class VApp {
         let target = filteredComps[0];
 
 
-        if(!target.component.$mount.parent) {
+        if (!target.component.$mount.parent) {
             console.error("Component is not on dom");
             return;
         }
