@@ -14,10 +14,6 @@ export abstract class Component {
     forcedUpdate = () => {
         this.app.rerenderComponent(this, this.props);
     };
-
-    public constructor(app: VApp) {
-        this.app = app;
-    }
 }
 
 export function reactive() {
@@ -35,7 +31,6 @@ export function reactive() {
                     return;
                 }
 
-                const oldValue = this[cachedValueKey];
                 this[cachedValueKey] = value;
                 this["forcedUpdate"]();
             },

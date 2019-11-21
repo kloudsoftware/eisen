@@ -1,14 +1,14 @@
 import { VApp, AppEvent } from "./VApp";
 import { Cloneable } from "./Common";
 
-export type PropValue = string | number | any & Cloneable<any>;
+export type PropValue = any;
 
 export type PropFunc = (val: PropValue) => void;
 
 export class Props implements Cloneable<Props>{
     private props: Map<string, any>;
-    private app: VApp;
-    private callbacks: Map<string, Array<PropFunc>> = new Map()
+    private readonly app: VApp;
+    private callbacks: Map<string, Array<PropFunc>> = new Map();
 
     constructor(app: VApp, props?: Map<string, any>) {
         if (props == undefined) {
@@ -22,7 +22,7 @@ export class Props implements Cloneable<Props>{
         if (this.props.has(key)) {
             let array = this.callbacks.get(key);
             if (array == undefined) {
-                array = new Array();
+                array = [];
             }
 
             array.push(fun);
@@ -55,11 +55,9 @@ export class Props implements Cloneable<Props>{
         const clone = new Props(this.app);
         Array.from(this.props.keys()).forEach(it => {
             let value = this.props.get(it);
-            if (typeof value == 'string' || typeof value == 'number') {
+
                 clone.setProp(it, value);
-            } else {
-                clone.setProp(it, value.clone());
-            }
+
         });
 
         return clone;
@@ -70,10 +68,7 @@ export class Props implements Cloneable<Props>{
         if (value == undefined) {
             return undefined;
         }
-        if (typeof value == 'string' || typeof value == 'number') {
-            return value;
-        }
 
-        return value.clone();
+        return value;
     }
 }
