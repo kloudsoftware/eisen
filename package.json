@@ -1,6 +1,6 @@
 {
     "name": "@kloudsoftware/eisen",
-    "version": "2.0.1",
+    "version": "2.1.0",
     "description": "Declarative and expressive TypeScript framework for building modern web applications",
     "main": "lib/index.js",
     "source": "src/index.ts",
@@ -8,7 +8,7 @@
         "build": "microbundle"
     },
     "author": "Kloudsoftware",
-    "license": "GPLv3",
+    "license": "Apache-2.0",
     "types": "lib/index.d.ts",
     "dependencies": {},
     "devDependencies": {
