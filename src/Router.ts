@@ -143,10 +143,10 @@ export class RouterLink extends VNode {
 
     clickFunction(event: Event, link: VNode) {
         const ln = link as RouterLink;
-        if (ln.app.router.hasRouteRegistered(ln.target)) {
+        if (ln.app.router!.hasRouteRegistered(ln.target)) {
             event.preventDefault();
             history.pushState({}, "", document.location.pathname)
-            ln.app.router.resolveRoute(ln.target).catch(err => console.error("Error occured in routing: ", err));
+            ln.app.router!.resolveRoute(ln.target).catch(err => console.error("Error occured in routing: ", err));
             return;
         }
     }

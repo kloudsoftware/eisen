@@ -1,11 +1,13 @@
 import {VNode} from './VNode';
-import {AppEvent, ComponentFunctionHolder, FunctionHolder, VApp} from './VApp';
+import {AppEvent, ComponentFunctionHolder, VApp} from './VApp';
 import {Props} from "./Props";
+import {EventPipeline} from "./GlobalEvent";
 
 export abstract class Component {
     public app: VApp;
     public $mount: VNode;
     public props: Props;
+    public componentEvent: EventPipeline = new EventPipeline();
 
     abstract render(props: Props): VNode;
 

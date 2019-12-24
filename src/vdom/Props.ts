@@ -7,8 +7,8 @@ export type PropFunc = (val: PropValue) => void;
 
 export class Props implements Cloneable<Props>{
     private props: Map<string, any>;
-    private app: VApp;
-    private callbacks: Map<string, Array<PropFunc>> = new Map()
+    private readonly app: VApp;
+    private callbacks: Map<string, Array<PropFunc>> = new Map();
 
     constructor(app: VApp, props?: Map<string, any>) {
         if (props == undefined) {
@@ -22,7 +22,7 @@ export class Props implements Cloneable<Props>{
         if (this.props.has(key)) {
             let array = this.callbacks.get(key);
             if (array == undefined) {
-                array = new Array();
+                array = [];
             }
 
             array.push(fun);

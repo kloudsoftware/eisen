@@ -113,6 +113,11 @@ export class VApp {
         return compMount;
     }
 
+    public mountSubComponent(component: Component, mount: VNode, props: Props, parent: Component) {
+        component.componentEvent = parent.componentEvent;
+        this.mountComponent(component, mount, props);
+    }
+
     public rerenderComponent(component: Component, props: Props): void {
         if (!component.$mount) {
             return;
