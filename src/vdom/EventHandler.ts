@@ -93,7 +93,7 @@ export class EventHandler {
     constructor(app: VApp) {
         const $root = app.rootNode.htmlElement;
         this.events.forEach(evt => {
-            $root.addEventListener(evt, this.handleEvent(this));
+            $root!.addEventListener(evt, this.handleEvent(this));
         })
     }
 
@@ -161,10 +161,7 @@ export class EventHandler {
                     handled = true;
 
                     if (!func[1]) {
-                        console.log("Dont bubble");
                         return;
-                    } else {
-                        console.log("bubble")
                     }
 
                     let cont = func[0](event, it);

@@ -201,6 +201,10 @@ export class VApp {
         this.compsToNotifyUnmount.push(target.unmounted);
     }
 
+    public getComponentsWithMountAs(mount: VNode): Array<Component> {
+        return this.compProps.filter(it => it.component.$mount == mount).map(it => it.component);
+    }
+
     public init() {
         this.snapshots.push(this.clone());
         this.tick();
