@@ -17,6 +17,10 @@ export abstract class Component {
         this.app.rerenderComponent(this, this.props);
     };
 
+    emit = (name: string, data?: any) => {
+        this.componentEvent.callEvent(name, data)
+    };
+
     public constructor(app: VApp) {
         this.app = app;
     }
