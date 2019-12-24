@@ -195,6 +195,7 @@ export class VApp {
             return;
         }
 
+        target.component.componentEvent.removeComponent(target.component);
         target.component.$mount.parent.removeChild(target.component.$mount);
         this.compProps.splice(this.compProps.indexOf(target), 1);
         this.compsToNotifyUnmount.push(target.unmounted);

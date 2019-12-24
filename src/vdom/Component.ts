@@ -1,13 +1,13 @@
 import {VNode} from './VNode';
 import {AppEvent, ComponentFunctionHolder, VApp} from './VApp';
 import {Props} from "./Props";
-import {EventPipeline} from "./GlobalEvent";
+import {ComponentEventPipeline, EventPipeline} from "./GlobalEvent";
 
 export abstract class Component {
     public app: VApp;
     public $mount: VNode;
     public props: Props;
-    public componentEvent: EventPipeline = new EventPipeline();
+    public componentEvent: ComponentEventPipeline = new ComponentEventPipeline();
 
     abstract render(props: Props): VNode;
 
@@ -18,7 +18,7 @@ export abstract class Component {
     };
 
     emit = (name: string, data?: any) => {
-        this.componentEvent.callEvent(name, data)
+        this.componentEvent.callEventComponent(name, data)
     };
 
     public constructor(app: VApp) {

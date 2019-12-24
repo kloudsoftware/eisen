@@ -1,3 +1,5 @@
+import {Component} from "./Component";
+
 export type PipelineEvent = (data?: any) => void;
 
 export class EventPipeline {
@@ -19,5 +21,17 @@ export class EventPipeline {
         }
 
         event.forEach(f => f(data));
+    }
+}
+
+export class ComponentEventPipeline extends EventPipeline {
+    public components: Array<Component> = [];
+
+    public callEventComponent(name: string, data?: any) {
+        this.components.map(comp => comp[name]).filter(fun => fun != undefined && fun !== null).forEach(fun => fun(data));
+    }
+
+    public removeComponent(component: Component) {
+        this.components.splice(this.components.indexOf(component), 1)
     }
 }
