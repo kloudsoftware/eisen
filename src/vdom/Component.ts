@@ -41,7 +41,6 @@ export function reactive() {
                     return;
                 }
 
-                const oldValue = this[cachedValueKey];
                 this[cachedValueKey] = value;
                 this["forcedUpdate"]();
             },

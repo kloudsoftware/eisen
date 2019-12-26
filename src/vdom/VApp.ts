@@ -97,8 +97,9 @@ export class VApp {
     public mountComponent(component: Component, mount: VNode, props: Props): VNode {
         let compMount = this.k("div");
         compMount.parent = mount;
-        mount.$getChildren().push(compMount);
+        component.app = this;
         component.props = props;
+        mount.$getChildren().push(compMount);
         let mounted = component.render(props);
         compMount.$getChildren().push(mounted);
         component.$mount = compMount;
@@ -140,6 +141,7 @@ export class VApp {
      * @param props
      */
     public routerMountComponent(component: Component, mount: VNode, props: Props): ComponentHolder {
+        component.app = this;
         component.props = props;
         let compMount = this.k("div");
         let mnt = component.render(props);

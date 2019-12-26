@@ -1,7 +1,7 @@
 import { VApp, AppEvent } from "./VApp";
 import { Cloneable } from "./Common";
 
-export type PropValue = string | number | any & Cloneable<any>;
+export type PropValue = any;
 
 export type PropFunc = (val: PropValue) => void;
 
@@ -55,11 +55,9 @@ export class Props implements Cloneable<Props>{
         const clone = new Props(this.app);
         Array.from(this.props.keys()).forEach(it => {
             let value = this.props.get(it);
-            if (typeof value == 'string' || typeof value == 'number') {
+
                 clone.setProp(it, value);
-            } else {
-                clone.setProp(it, value.clone());
-            }
+
         });
 
         return clone;
@@ -70,10 +68,7 @@ export class Props implements Cloneable<Props>{
         if (value == undefined) {
             return undefined;
         }
-        if (typeof value == 'string' || typeof value == 'number') {
-            return value;
-        }
 
-        return value.clone();
+        return value;
     }
 }
