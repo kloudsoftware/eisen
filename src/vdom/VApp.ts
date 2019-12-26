@@ -129,6 +129,7 @@ export class VApp {
 
     public notifyUnmount(node: VNode) {
         this.compProps.filter(it => it.component.$mount === node).forEach(props => {
+            props.component.componentEvent.removeComponent(props.component);
             this.compProps.splice(this.compProps.indexOf(props), 1);
             invokeIfDefined(props.unmounted);
         });
