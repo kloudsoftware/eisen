@@ -148,7 +148,7 @@ export class VNode implements Comparable<VNode> {
     rawInnerHtml: string = undefined;
     lastResolvedLocale: string = undefined;
     // instanceof seems to be buggy on some cases and returns false answers
-    isRouterLink: boolean = undefined;
+    isRouterLink: boolean = false;
     public children: VNode[];
     protected attrs: Attribute[];
     private innerHtml: string;

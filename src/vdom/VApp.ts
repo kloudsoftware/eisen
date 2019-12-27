@@ -38,7 +38,7 @@ export class VApp {
     router?: IRouter;
     pluginMap: Map<string, any> = new Map();
     oneTimeRenderCallbacks = new Array<AppEvent>();
-    i18nResolver: Array<Resolver>;
+    i18nResolver?: Array<Resolver>;
     eventPipeLine: EventPipeline = new EventPipeline();
 
     /**

@@ -1,15 +1,18 @@
-import { VApp } from './vdom/VApp';
-import { Component, ComponentHolder } from './vdom/Component';
-import { VNode, Attribute, VNodeType } from './vdom/VNode';
-import { Props } from './vdom/Props';
-import { splitPathVars, splitAtSlash, stringIncludesCurlyBrace, matchSubPath } from './RouterCommon';
+import {VApp} from './vdom/VApp';
+import {Component, ComponentHolder} from './vdom/Component';
+import {Attribute, VNode} from './vdom/VNode';
+import {Props} from './vdom/Props';
+import {matchSubPath, splitAtSlash, splitPathVars, stringIncludesCurlyBrace} from './RouterCommon';
 
 type ComponentPropsHolder = [Component, Props];
 
 export interface IRouter {
     resolveRoute(path: string): Promise<boolean>;
+
     registerRoute(path: string, component: Component, props?: Props): void;
+
     hasRouteRegistered(path: string): boolean;
+
     useMiddleWare(middleWare: MiddleWare): void;
 }
 
@@ -22,7 +25,7 @@ export class Router implements IRouter {
     private resolvedRouterMap: Map<string, ComponentHolder> = new Map<string, ComponentHolder>();
     public componentMap: Map<string, ComponentPropsHolder> = new Map();
     private mount: VNode;
-    private currPath: string = undefined;
+    private currPath: string | undefined = undefined;
     private middleWares: Array<MiddleWare> = new Array<MiddleWare>();
     private pathVariables: Array<string> = [];
 
@@ -56,7 +59,7 @@ export class Router implements IRouter {
         return this.findMatchingPath(path) != undefined;
     }
 
-    private findMatchingPath(path: string): string {
+    private findMatchingPath(path: string): string | undefined {
         // Short path
         if (this.componentMap.has(path)) {
             return path;
@@ -111,7 +114,7 @@ export class Router implements IRouter {
                 const foundVars = splitAtSlash(foundPath);
                 const givenVars = splitAtSlash(path);
                 //@ts-ignore
-                const props: any  = cmp[1].props as any;
+                const props: any = cmp[1].props as any;
 
                 for (let i = 0; i < foundVars.length; i++) {
                     if (stringIncludesCurlyBrace(foundVars[i])) {
@@ -120,13 +123,14 @@ export class Router implements IRouter {
                     }
                 }
             }
-            this.resolvedRouterMap.set(path, this.app.routerMountComponent(cmp[0], this.mount, cmp[1]));
+            this.resolvedRouterMap.set(path, this.app.routerMountComponent(cmp![0], this.mount, cmp![1]));
             return Promise.resolve(true);
         });
     }
 }
 
-export const isRouterLink = (node: VNode) => node.isRouterLink != undefined && node.isRouterLink == true;
+export const isRouterLink = (node: VNode) => node.isRouterLink;
+
 export class RouterLink extends VNode {
     target: string;
     // Way to find out if a given VNode is really a routerlink
