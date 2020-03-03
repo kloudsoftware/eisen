@@ -28,6 +28,7 @@ export class ComponentEventPipeline extends EventPipeline {
     public components: Array<Component> = [];
 
     public callEventComponent(name: string, data?: any) {
+        // @ts-ignore
         this.components.map(comp => comp[name]).filter(fun => fun != undefined && fun !== null).forEach(fun => fun(data));
     }
 
