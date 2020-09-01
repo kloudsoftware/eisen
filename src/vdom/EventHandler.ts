@@ -1,4 +1,4 @@
-import {kloudAppId, VNode} from './VNode'
+import {VNode} from './VNode'
 import {VApp} from './VApp'
 import {isRouterLink, RouterLink} from '../Router';
 
@@ -129,8 +129,6 @@ export class EventHandler {
             if (!(event.target instanceof HTMLElement)) return;
 
             const $target = event.target as HTMLElement;
-
-            if (!$target.hasAttribute(kloudAppId)) return;
 
             const scopedHandlers = handler.handlers.get(event.type as EvtType);
 

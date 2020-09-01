@@ -4,8 +4,6 @@ import {Props} from './Props';
 import {EvtHandlerFunc, EvtType} from './EventHandler';
 import {getLocale} from '../i18n/Resolver';
 
-export const kloudAppId = "data-kloudappid";
-
 export type VNodeType =
     '!--...--'
     | '!DOCTYPE '
@@ -180,17 +178,9 @@ export class VNode implements Comparable<VNode> {
             }
         }
 
-        if (!this.attrs.some(attr => attr.attrName == kloudAppId)) {
-            this.attrs.push(new Attribute(kloudAppId, this.id));
-        }
-
         this.attrs.map(a => a.attrName).forEach(attrName => {
             this.app.renderer.$knownAttributes.add(attrName);
         })
-    }
-
-    public static builder(): VNodeBuilder {
-        return new VNodeBuilder();
     }
 
     public addFocusListener(func: EvtHandlerFunc) {
@@ -442,84 +432,6 @@ export class VNode implements Comparable<VNode> {
     private replaceWith(toReplace: VNode, replacement?: VNode): void {
         this.app.notifyDirty();
         this.$replaceWith(toReplace, replacement);
-    }
-}
-
-export class VNodeBuilder {
-    private app: VApp;
-    private id: string;
-    private attrs: Attribute[];
-    private nodeName: VNodeType;
-    private innerHtml: string;
-    private parent?: VNode;
-    private children: VNode[];
-    private props: Props;
-
-    constructor() {
-        this.children = [];
-        this.attrs = [];
-    }
-
-    public setApp(app: VApp): VNodeBuilder {
-        this.app = app;
-        return this;
-    }
-
-    public setNodeName(name: VNodeType): VNodeBuilder {
-        this.nodeName = name;
-        return this;
-    }
-
-    public setChildren(childs: VNode[]): VNodeBuilder {
-        this.children = childs;
-        return this;
-    }
-
-    public setInnerHtml(html: string) {
-        this.innerHtml = html;
-    }
-
-    public setProps(props: Props): VNodeBuilder {
-        this.props = props;
-        return this;
-    }
-
-    public setAttrs(attrs: Attribute[]): VNodeBuilder {
-        this.attrs = attrs;
-        return this;
-    }
-
-    public setParent(parent: VNode): VNodeBuilder {
-        this.parent = parent;
-        return this;
-    }
-
-    public setId(id: string): VNodeBuilder {
-        this.id = id;
-        return this;
-    }
-
-    public build(): VNode {
-        if (this.app == undefined) {
-            console.error("VNode cant be constructed without an app");
-            return undefined;
-        }
-
-        if (this.nodeName == undefined) {
-            console.error("VNode cant be constructed without a node name");
-            return undefined;
-        }
-
-        return new VNode(
-            this.app,
-            this.nodeName,
-            this.children,
-            this.innerHtml,
-            this.props,
-            this.attrs,
-            this.parent,
-            this.id
-        );
     }
 }
 
