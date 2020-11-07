@@ -12,7 +12,7 @@ export abstract class Component {
 
     abstract render(props: Props): VNode;
 
-    rerender(): void {
+    rerender  = () => {
         this.forcedUpdate();
         this.subComponents.forEach(comp => comp.rerender());
     }
