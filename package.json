@@ -12,7 +12,7 @@
     "types": "lib/index.d.ts",
     "dependencies": {},
     "devDependencies": {
-        "microbundle": "^0.11.0",
+        "microbundle": "^0.12.4",
         "typescript": "^3.3.3333",
         "lodash": "^4.17.15"
     },
