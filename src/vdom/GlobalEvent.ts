@@ -29,7 +29,7 @@ export class ComponentEventPipeline extends EventPipeline {
 
     public callEventComponent(name: string, data?: any) {
         // @ts-ignore
-        this.components.map(comp => comp[name]).filter(fun => fun != undefined && fun !== null).forEach(fun => fun(data));
+        this.components.map(comp => comp[name]).filter(fun => fun !== undefined && fun !== null).forEach(fun => fun(data));
     }
 
     public removeComponent(component: Component) {

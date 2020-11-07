@@ -1,21 +1,34 @@
 import {VNode} from './VNode';
 import {AppEvent, ComponentFunctionHolder, VApp} from './VApp';
 import {Props} from "./Props";
-import {ComponentEventPipeline, EventPipeline} from "./GlobalEvent";
+import {ComponentEventPipeline} from "./GlobalEvent";
 
 export abstract class Component {
     public app: VApp;
     public $mount: VNode;
     public props: Props;
+    public subComponents: Array<Component> = [];
     public componentEvent: ComponentEventPipeline = new ComponentEventPipeline();
 
     abstract render(props: Props): VNode;
 
-    abstract lifeCycle(): ComponentProps;
+    rerender(): void {
+        this.forcedUpdate();
+        this.subComponents.forEach(comp => comp.rerender());
+    }
 
-    forcedUpdate = () => {
+    mount = (component: Component, mount: VNode, props?: Props) => {
+        if (this.subComponents.indexOf(component) == -1) {
+            this.subComponents.push(component);
+            this.app.mountSubComponent(component, mount, props, this);
+        }
+    }
+
+    private forcedUpdate = () => {
         this.app.rerenderComponent(this, this.props);
     };
+
+    abstract lifeCycle(): ComponentProps;
 
     emit = (name: string, data?: any) => {
         this.componentEvent.callEventComponent(name, data)
@@ -42,7 +55,7 @@ export function reactive() {
                 }
 
                 this[cachedValueKey] = value;
-                this["forcedUpdate"]();
+                this["rerender"]();
             },
             get: function () {
                 return this[cachedValueKey];
