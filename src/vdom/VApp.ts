@@ -60,7 +60,8 @@ export class VApp {
             this.rootNode.htmlElement = $root;
         }
 
-        this.eventHandler = new EventHandler(this);
+        this.eventHandler = new EventHandler();
+        this.eventHandler.init(this);
     }
 
     /**

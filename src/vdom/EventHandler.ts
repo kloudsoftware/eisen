@@ -86,38 +86,47 @@ export class EventHandler {
         "mouseup", "offline", "online", "open", "orientationchange", "pagehide", "pageshow", "paste", "pause", "play", "playing", "progress", "readystatechange", "reset", "scroll", "seeked", "seeking", "select", "show", "stalled",
         "storage", "submit", "success", "suspend", "timeout", "timeupdate", "touchcancel", "touchend", "touchenter", "touchleave", "touchmove", "touchstart", "visibilitychange", "volumechange", "waiting", "wheel"];
 
-    handlers: Map<EvtType, Map<VNode, Array<EventHanderFuncHolder>>>;
+    handlers: Map<EvtType, Map<VNode, Array<EventHanderFuncHolder>>> = new Map();
     routerLnks = new Array<RouterLink>();
 
 
-    constructor(app: VApp) {
+    init(app: VApp) {
         const $root = app.rootNode.htmlElement;
         this.events.forEach(evt => {
             $root!.addEventListener(evt, this.handleEvent(this));
         })
     }
 
+    purgeDuplicates() {
+        this.handlers.forEach(map => {
+            const arr = Array.from(map.entries())
+
+        })
+    }
+
     registerEventListener(evt: EvtType, handler: EvtHandlerFunc, target: VNode, bubble = true) {
-        if (isRouterLink(target)) {
-            this.routerLnks.push(target as RouterLink);
-        }
+        target.addOnDomEventOrExecute(() => {
+            if (isRouterLink(target)) {
+                this.routerLnks.push(target as RouterLink);
+            }
 
-        if (this.handlers == undefined) {
-            this.handlers = new Map<EvtType, Map<VNode, Array<EventHanderFuncHolder>>>();
-        }
+            if (this.handlers == undefined) {
+                this.handlers = new Map<EvtType, Map<VNode, Array<EventHanderFuncHolder>>>();
+            }
 
-        let handlerMap = this.handlers.get(evt);
-        if (handlerMap == undefined) {
-            handlerMap = new Map();
-        }
+            let handlerMap = this.handlers.get(evt);
+            if (handlerMap == undefined) {
+                handlerMap = new Map();
+            }
 
-        if (handlerMap.get(target) != undefined) {
-            handlerMap.get(target).push([handler, bubble])
-        } else {
-            handlerMap.set(target, [[handler, bubble]]);
-        }
+            if (handlerMap.get(target) != undefined) {
+                handlerMap.get(target).push([handler, bubble])
+            } else {
+                handlerMap.set(target, [[handler, bubble]]);
+            }
 
-        this.handlers.set(evt, handlerMap)
+            this.handlers.set(evt, handlerMap)
+        })
     }
 
     handleEvent(handler: EventHandler) {
@@ -125,8 +134,6 @@ export class EventHandler {
             if (handler.handlers == undefined) {
                 return;
             }
-
-            if (!(event.target instanceof HTMLElement)) return;
 
             const $target = event.target as HTMLElement;
 
@@ -137,7 +144,6 @@ export class EventHandler {
             }
 
             let bubbled = false;
-
             function elemOrParentsEqual(elem: HTMLElement, needle: HTMLElement): boolean {
                 if (elem == needle) {
                     return true;

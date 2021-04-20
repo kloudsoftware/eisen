@@ -1,11 +1,12 @@
 {
     "name": "@kloudsoftware/eisen",
-    "version": "2.2.2",
+    "version": "2.2.3",
     "description": "Declarative and expressive TypeScript framework for building modern web applications",
     "main": "lib/index.js",
     "source": "src/index.ts",
     "scripts": {
-        "build": "microbundle"
+        "build": "microbundle",
+        "dev": "microbundle watch"
     },
     "author": "Kloudsoftware",
     "license": "Apache-2.0",
