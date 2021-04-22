@@ -351,7 +351,7 @@ export class VApp {
 
         let node: VInputNode | VNode;
 
-        if (nodeName == "input") {
+        if (nodeName == "input" || nodeName == "textarea" || nodeName == "select") {
             node = new VInputNode(this, nodeName, cleaned, value, props, attrs)
         } else {
             node = new VNode(this, nodeName, cleaned, value, props, attrs);
