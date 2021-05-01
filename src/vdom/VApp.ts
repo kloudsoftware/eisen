@@ -60,8 +60,7 @@ export class VApp {
             this.rootNode.htmlElement = $root;
         }
 
-        this.eventHandler = new EventHandler();
-        this.eventHandler.init(this);
+        this.eventHandler = new EventHandler(this);
     }
 
     /**
@@ -129,6 +128,7 @@ export class VApp {
     }
 
     public notifyUnmount(node: VNode) {
+        this.eventHandler.purge(node);
         this.compProps.filter(it => it.component.$mount === node).forEach(props => {
             props.component.componentEvent.removeComponent(props.component);
             this.compProps.splice(this.compProps.indexOf(props), 1);

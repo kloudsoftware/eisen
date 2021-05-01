@@ -1,6 +1,6 @@
 {
     "name": "@kloudsoftware/eisen",
-    "version": "2.2.4",
+    "version": "2.2.6",
     "description": "Declarative and expressive TypeScript framework for building modern web applications",
     "main": "lib/index.js",
     "source": "src/index.ts",

@@ -89,18 +89,16 @@ export class EventHandler {
     handlers: Map<EvtType, Map<VNode, Array<EventHanderFuncHolder>>> = new Map();
     routerLnks = new Array<RouterLink>();
 
-
-    init(app: VApp) {
+    constructor(app: VApp) {
         const $root = app.rootNode.htmlElement;
         this.events.forEach(evt => {
             $root!.addEventListener(evt, this.handleEvent(this));
         })
     }
 
-    purgeDuplicates() {
-        this.handlers.forEach(map => {
-            const arr = Array.from(map.entries())
-
+    purge(node: VNode) {
+        this.handlers.forEach(handler => {
+            handler.delete(node)
         })
     }
 
@@ -144,6 +142,7 @@ export class EventHandler {
             }
 
             let bubbled = false;
+
             function elemOrParentsEqual(elem: HTMLElement, needle: HTMLElement): boolean {
                 if (elem == needle) {
                     return true;
