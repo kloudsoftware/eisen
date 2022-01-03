@@ -12,7 +12,7 @@ export abstract class Component {
 
     abstract render(props: Props): VNode;
 
-    rerender  = () => {
+    rerender = () => {
         this.forcedUpdate();
         this.subComponents.forEach(comp => comp.rerender());
     }
@@ -59,7 +59,9 @@ export function reactive() {
             },
             get: function () {
                 return this[cachedValueKey];
-            }
+            },
+
+            configurable: true
         });
     };
 }

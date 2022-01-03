@@ -145,11 +145,9 @@ export class VApp {
     public routerMountComponent(component: Component, mount: VNode, props: Props): ComponentHolder {
         component.app = this;
         component.props = props;
-        let compMount = this.k("div");
         let mnt = component.render(props);
-        compMount.children = [mnt];
-        mount.children.push(compMount);
-        component.$mount = compMount;
+        mount.children.push(mnt);
+        component.$mount = mnt;
 
         let holder;
         if (component.lifeCycle) {
