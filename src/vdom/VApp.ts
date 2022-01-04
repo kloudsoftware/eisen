@@ -123,6 +123,8 @@ export class VApp {
         if (!component.$mount) {
             return;
         }
+
+        component.props.clearCallbacks()
         component.$mount.children = [component.render(props)];
         this.notifyDirty();
     }

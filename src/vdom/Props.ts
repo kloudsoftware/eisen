@@ -1,11 +1,11 @@
-import { VApp, AppEvent } from "./VApp";
-import { Cloneable } from "./Common";
+import {VApp, AppEvent} from "./VApp";
+import {Cloneable} from "./Common";
 
 export type PropValue = any;
 
 export type PropFunc = (val: PropValue) => void;
 
-export class Props implements Cloneable<Props>{
+export class Props implements Cloneable<Props> {
     private props: Map<string, any>;
     private readonly app: VApp;
     private callbacks: Map<string, Array<PropFunc>> = new Map();
@@ -19,18 +19,14 @@ export class Props implements Cloneable<Props>{
     }
 
     public registerCallback(key: string, fun: PropFunc): void {
-        if (this.props.has(key)) {
-            let array = this.callbacks.get(key);
-            if (array == undefined) {
-                array = [];
-            }
-
-            array.push(fun);
-
-            this.callbacks.set(key, array);
-        } else {
-            console.log("There is no key: " + key + " on this Props object");
+        let array = this.callbacks.get(key);
+        if (array == undefined) {
+            array = [];
         }
+
+        array.push(fun);
+
+        this.callbacks.set(key, array);
     }
 
     public setPropSilent(key: string, value: PropValue) {
@@ -56,7 +52,7 @@ export class Props implements Cloneable<Props>{
         Array.from(this.props.keys()).forEach(it => {
             let value = this.props.get(it);
 
-                clone.setProp(it, value);
+            clone.setProp(it, value);
 
         });
 
@@ -70,5 +66,9 @@ export class Props implements Cloneable<Props>{
         }
 
         return value;
+    }
+
+    public clearCallbacks() {
+        this.callbacks.clear();
     }
 }
