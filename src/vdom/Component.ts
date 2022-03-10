@@ -7,22 +7,29 @@ export abstract class Component {
     public app: VApp;
     public $mount: VNode;
     public props: Props;
-    public subComponents: Array<Component> = [];
+    public subComponents: Map<string, Component> = new Map<string, Component>();
     public componentEvent: ComponentEventPipeline = new ComponentEventPipeline();
 
     abstract render(props: Props): VNode;
+
+    private mount<T extends Component>(ctor: { new(app: VApp): T }, app: VApp, node: VNode, key: string): T {
+        if (this.subComponents.has(key)) {
+            // @ts-ignore
+            return this.subComponents.get(key);
+        }
+
+        const val = new ctor(app);
+        this.subComponents.set(key, val);
+        this.app.mountSubComponent(val, node, this.props, this);
+        return val;
+    }
+
 
     rerender = () => {
         this.forcedUpdate();
         this.subComponents.forEach(comp => comp.rerender());
     }
 
-    mount = (component: Component, mount: VNode, props?: Props) => {
-        if (this.subComponents.indexOf(component) == -1) {
-            this.subComponents.push(component);
-            this.app.mountSubComponent(component, mount, props, this);
-        }
-    }
 
     private forcedUpdate = () => {
         this.app.rerenderComponent(this, this.props);
