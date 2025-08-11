@@ -1,14 +1,14 @@
 import {VApp, AppEvent} from "./VApp";
-import {Cloneable} from "./Common";
 
 export type PropValue = any;
 
 export type PropFunc = (val: PropValue) => void;
 
-export class Props implements Cloneable<Props> {
+export class Props {
     private props: Map<string, any>;
     private readonly app: VApp;
-    private callbacks: Map<string, Array<PropFunc>> = new Map();
+    public cbs: Map<string, Array<PropFunc>> = new Map<string, Array<PropFunc>>();
+    public callbacksExclusive: Map<string, PropFunc>;
 
     constructor(app: VApp, props?: Map<string, any>) {
         if (props == undefined) {
@@ -16,17 +16,21 @@ export class Props implements Cloneable<Props> {
         }
         this.props = props;
         this.app = app;
+        this.callbacksExclusive = new Map<string, PropFunc>();
     }
 
-    public registerCallback(key: string, fun: PropFunc): void {
-        let array = this.callbacks.get(key);
-        if (array == undefined) {
-            array = [];
+    public registerCallback(key: string, fun: PropFunc, exclusive = false): void {
+        if (!exclusive) {
+            if (this.cbs.has(key)) {
+                this.cbs.get(key).push(fun)
+            } else {
+                const arr = [fun];
+                this.cbs.set(key, arr);
+                this.cbs.set(key, arr);
+            }
+        } else {
+            this.callbacksExclusive.set(key, fun);
         }
-
-        array.push(fun);
-
-        this.callbacks.set(key, array);
     }
 
     public setPropSilent(key: string, value: PropValue) {
@@ -35,28 +39,20 @@ export class Props implements Cloneable<Props> {
     }
 
     public setProp(key: string, value: PropValue) {
-        this.app.notifyDirty();
         this.props.set(key, value);
         this.notifyCallbacks(key, value);
+        this.app.notifyDirty();
     }
 
     private notifyCallbacks(key: string, value: PropValue) {
-        if (this.callbacks.has(key)) {
-            let array = this.callbacks.get(key);
+        if (this.cbs.has(key)) {
+            let array = this.cbs.get(key);
             array.forEach(f => f(value))
         }
-    }
 
-    public clone(): Props {
-        const clone = new Props(this.app);
-        Array.from(this.props.keys()).forEach(it => {
-            let value = this.props.get(it);
-
-            clone.setProp(it, value);
-
-        });
-
-        return clone;
+        if (this.callbacksExclusive.has(key)) {
+            this.callbacksExclusive.get(key)(value);
+        }
     }
 
     public getProp(key: string): PropValue {
@@ -69,6 +65,6 @@ export class Props implements Cloneable<Props> {
     }
 
     public clearCallbacks() {
-        this.callbacks.clear();
+        //NOOP
     }
 }

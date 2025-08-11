@@ -24,10 +24,6 @@ export function arraysEquals<T extends Comparable<T>>(arrayA: T[], arrayB: T[]):
     return true;
 }
 
-export interface Cloneable<T> {
-    clone(): T;
-}
-
 export const dataRegex = /{{(.*?)}}/g;
 
 export class Stringparser {
@@ -108,7 +104,6 @@ export const parseStrIntoVNode = (htmlString: string, app: VApp): VNode  =>  {
         container.$getChildren().push(child);
     });
 
-    console.log(container);
     return container;
 };
 

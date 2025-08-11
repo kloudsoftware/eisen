@@ -9,7 +9,7 @@ export class Renderer {
     private static removeElement(parent: HTMLElement, toRemove: VNode) {
         // We need to notify the component here, as it was just unmounted
         toRemove.app.notifyUnmount(toRemove);
-        parent.removeChild(toRemove.htmlElement);
+        toRemove.htmlElement.remove()
     }
 
     //Proxy for calling

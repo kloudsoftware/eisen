@@ -1,9 +1,10 @@
 {
     "name": "@kloudsoftware/eisen",
-    "version": "2.2.9",
+    "version": "2.3.5",
     "description": "Declarative and expressive TypeScript framework for building modern web applications",
-    "main": "lib/index.js",
+    "main": "lib/index.modern.js.js",
     "source": "src/index.ts",
+    "exports": "./dist/eisen.modern.js",
     "scripts": {
         "build": "microbundle",
         "dev": "microbundle watch"

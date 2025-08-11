@@ -514,16 +514,20 @@ export class VInputNode extends VNode {
         }, this);
     }
 
-    bind(object: Props, propKey: string) {
+    bind(props: Props, propKey: string) {
         this.onDomEvenList.push(() => {
-            (this.htmlElement as HTMLInputElement).value = object.getProp(propKey) != undefined ? object.getProp(propKey) : "";
+            (this.htmlElement as HTMLInputElement).value = props.getProp(propKey) != undefined ? props.getProp(propKey) : "";
         });
 
+        props.registerCallback(propKey, (newVal: string) => {
+            if(this.htmlElement == undefined) {
+                return;
+            }
+            (this.htmlElement as HTMLInputElement).value = newVal;
+        }, true);
+
         this.app.eventHandler.registerEventListener("input", (ev, node) => {
-            object.setProp(propKey, (node.htmlElement as HTMLInputElement).value);
-            object.registerCallback(propKey, (newVal: string) => {
-                (this.htmlElement as HTMLInputElement).value = newVal;
-            });
+            props.setProp(propKey, (node.htmlElement as HTMLInputElement).value);
         }, this);
     }
 

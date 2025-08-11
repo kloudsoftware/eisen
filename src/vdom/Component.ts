@@ -12,13 +12,26 @@ export abstract class Component {
 
     abstract render(props: Props): VNode;
 
-    private mount<T extends Component>(ctor: { new(app: VApp): T }, app: VApp, node: VNode, key: string): T {
+    public mount<T extends Component>(ctor: { new(app: VApp): T }, app: VApp, node: VNode, key: string): T {
         if (this.subComponents.has(key)) {
             // @ts-ignore
             return this.subComponents.get(key);
         }
 
         const val = new ctor(app);
+        this.subComponents.set(key, val);
+        this.app.mountSubComponent(val, node, this.props, this);
+        return val;
+    }
+
+
+    public mountArgs<T extends Component>(ctor: { new(app: VApp, ...args: any[]): T }, app: VApp, node: VNode, key: string, ...args:any[]): T {
+        if (this.subComponents.has(key)) {
+            // @ts-ignore
+            return this.subComponents.get(key);
+        }
+
+        const val = new ctor(app, args);
         this.subComponents.set(key, val);
         this.app.mountSubComponent(val, node, this.props, this);
         return val;

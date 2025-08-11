@@ -169,7 +169,6 @@ export class VApp {
      */
     public remountComponent(holder: ComponentHolder, mount: VNode) {
         holder.remount[0] = false;
-        console.log(holder);
         mount.appendChild(holder.component.$mount);
         if (!this.compProps.includes(holder)) {
             this.compProps.push(holder);
@@ -298,7 +297,6 @@ export class VApp {
 
         parentNode.appendChild(newNode);
 
-        //console.log("Adding node: ", newNode)
         return newNode;
     }
 
