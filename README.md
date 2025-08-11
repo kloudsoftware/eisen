@@ -47,6 +47,8 @@ app.createElement('h1', 'Hello world!', app.rootNode);
 <body>
   <div id="target"></div>
   <script type="module" src="./index.ts"></script>
+  or
+  <script type="module" src="./index.tsx"></script>
 </body>
 ```
 
@@ -58,12 +60,22 @@ To encapsulate and reuse logic, extend `Component` and implement `render` and `l
 import { Component, Props, VNode, reactive } from '@kloudsoftware/eisen';
 
 export class Counter extends Component {
-  @reactive count = 0;
+  @reactive() count = 0;
 
   render(props: Props): VNode {
-    const btn = this.app.k('button', { value: `Clicked ${this.count} times` });
-    btn.addEventListener('click', () => this.count++);
-    return btn;
+      // explicit js version
+      const btn = this.app.k('button', {value: `Clicked ${this.count} times`});
+
+      //OR
+      
+      //tsx version
+      const btn = <button>clicked {this.count.toString()} times</button>
+
+      btn.setInnerHtml(`clicked ${this.count} times`)
+      btn.addEventlistener('click', () => {
+          this.count++
+      });
+      return btn;
   }
 
   lifeCycle() {

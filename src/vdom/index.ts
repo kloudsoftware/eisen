@@ -6,3 +6,4 @@ export * from './VApp';
 export * from './VNode';
 export * from './render';
 export * from './GlobalEvent'
+export * from './jsx';

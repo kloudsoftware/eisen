@@ -132,6 +132,61 @@ export type VNodeType =
 
 export type OnDomEvent = (html: HTMLElement) => void;
 
+
+export const toggleError = (node: VNode) => {
+    node.addClass("error");
+};
+
+const parse = (node: Element, app: VApp): VNode => {
+    const attributes: Attribute[] = [];
+    for (let i = 0; i < node.attributes.length; i++) {
+        const currAtt = node.attributes.item(i);
+        attributes.push(new Attribute(currAtt.name, currAtt.value));
+    }
+
+    const vNode = app.k(node.nodeName as VNodeType, {
+        attrs: attributes,
+    });
+
+    const nodeArr = Array.from(node.children).filter(el => el.nodeType === Node.TEXT_NODE).map(el => el.nodeValue);
+    const itemText = nodeArr != undefined && nodeArr.length > 0 ? nodeArr[0] : "";
+
+    vNode.$setInnerHtmlNoDirty(itemText);
+
+    const children = Array.from(node.children).map(child => parse(child, app));
+    children.forEach(child => {
+        child.parent = vNode;
+        vNode.$getChildren().push(child);
+    });
+
+    return vNode;
+};
+
+//TODO: This is currently buggy for textNodes
+export const parseStrIntoVNode = (htmlString: string, app: VApp): VNode => {
+    const parser = new DOMParser();
+    const html = parser.parseFromString(htmlString, "text/html");
+
+    let children = Array.from(html.body.children).map(child => parse(child, app));
+    const container = app.k("div", {}, children);
+    children.forEach(child => {
+        child.parent = container;
+        container.$getChildren().push(child);
+    });
+
+    return container;
+};
+
+export const parseIntoUnmanaged = (htmlString: string, mount: VNode): VNode => {
+    const unmanged = mount.app.createUnmanagedNoDirty(mount);
+
+    unmanged.addOnDomEventOrExecute((htmlEl: HTMLElement) => {
+        htmlEl.innerHTML = htmlString;
+    });
+
+    return unmanged;
+};
+
 export class VNode implements Comparable<VNode> {
     app: VApp;
     id: string;
@@ -274,9 +329,7 @@ export class VNode implements Comparable<VNode> {
     public getInnerHtml(): string {
         const locale = getLocale();
         const htmlToUse = this.rawInnerHtml != undefined ? this.rawInnerHtml : this.innerHtml;
-        if (this.app.i18nResolver != undefined
-            && this.app.i18nResolver.some(resolver => htmlToUse.startsWith(resolver.getPrefix()))
-            && locale != this.lastResolvedLocale) {
+        if (this.app.i18nResolver != undefined && this.app.i18nResolver.some(resolver => htmlToUse.startsWith(resolver.getPrefix())) && locale != this.lastResolvedLocale) {
             this.resolvei18n().catch((e) => console.error(e));
         }
         return new Stringparser().parse(this.innerHtml, this.props);
@@ -520,7 +573,7 @@ export class VInputNode extends VNode {
         });
 
         props.registerCallback(propKey, (newVal: string) => {
-            if(this.htmlElement == undefined) {
+            if (this.htmlElement == undefined) {
                 return;
             }
             (this.htmlElement as HTMLInputElement).value = newVal;
