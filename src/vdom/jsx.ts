@@ -1,6 +1,7 @@
 import { VApp } from './VApp';
 import { Attribute, VNode, VNodeType } from './VNode';
 import { Props } from './Props';
+import {EvtHandlerFunc, EvtType} from "./EventHandler";
 
 let currentApp: VApp | undefined;
 
@@ -13,6 +14,7 @@ export function jsx(nodeName: VNodeType, config?: any, ...children: any[]): VNod
     }
 
     const attrs: Attribute[] = [];
+    const eventHandlers: Array<[EvtType, EvtHandlerFunc]> = [];
     let props: Props = new Props(currentApp);
     let value = '';
 
@@ -28,6 +30,12 @@ export function jsx(nodeName: VNodeType, config?: any, ...children: any[]): VNod
         Object.keys(config).forEach(k => {
             const v = config[k];
             if (v === false || v === undefined || v === null) {
+                return;
+            }
+
+            if (k.startsWith('on') && typeof v === 'function') {
+                const evt = k.substring(2).toLowerCase() as EvtType;
+                eventHandlers.push([evt, v]);
                 return;
             }
             attrs.push(new Attribute(k, String(v)));
@@ -51,8 +59,9 @@ export function jsx(nodeName: VNodeType, config?: any, ...children: any[]): VNod
         }
     });
 
-    return currentApp.k(nodeName, { attrs, props, value }, childNodes);
-}
+    const node = currentApp.k(nodeName, { attrs, props, value }, childNodes);
+    eventHandlers.forEach(([evt, handler]) => node.addEventlistener(evt, handler));
+    return node;}
 
 /**
  * Sets the active {@link VApp} instance used by the JSX factory.
