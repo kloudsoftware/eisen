@@ -56,34 +56,30 @@ app.createElement('h1', 'Hello world!', app.rootNode);
 
 To encapsulate and reuse logic, extend `Component` and implement `render` and `lifeCycle`:
 
-```typescript
-import { Component, Props, VNode, reactive } from '@kloudsoftware/eisen';
+```tsx
+import {Component, Props, reactive, VNode} from '@kloudsoftware/eisen';
 
 export class Counter extends Component {
-  @reactive() count = 0;
+    @reactive() count = 0;
 
-  render(props: Props): VNode {
-      // explicit js version
-      const btn = this.app.k('button', {value: `Clicked ${this.count} times`});
+    render(props: Props): VNode {
+        //tsx version
+        return <div>
+            <button onclick={() => {
+                this.count++;
+            }}>
+                Click me
+            </button>
+            <strong e-if={() => this.count > 0}>Count: {this.count}</strong>
+        </div>;
+    }
 
-      //OR
-      
-      //tsx version
-      const btn = <button>clicked {this.count.toString()} times</button>
-
-      btn.setInnerHtml(`clicked ${this.count} times`)
-      btn.addEventlistener('click', () => {
-          this.count++
-      });
-      return btn;
-  }
-
-  lifeCycle() {
-    return {
-      mounted: () => console.log('mounted'),
-      unmounted: () => console.log('unmounted'),
-    };
-  }
+    lifeCycle() {
+        return {
+            mounted: () => console.log('mounted'),
+            unmounted: () => console.log('unmounted'),
+        };
+    }
 }
 ```
 
