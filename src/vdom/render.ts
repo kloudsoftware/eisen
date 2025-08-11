@@ -8,8 +8,9 @@ export class Renderer {
 
     private static removeElement(parent: HTMLElement, toRemove: VNode) {
         // We need to notify the component here, as it was just unmounted
+        toRemove.app.eventHandler.purge(toRemove, true);
         toRemove.app.notifyUnmount(toRemove);
-        toRemove.htmlElement.remove()
+        toRemove.htmlElement.remove();
     }
 
     //Proxy for calling
@@ -67,6 +68,8 @@ export class Renderer {
 
         if (!oldVNode.equals(newVNode)) {
             return el => {
+                oldVNode.app.eventHandler.purge(oldVNode, true);
+                oldVNode.app.notifyUnmount(oldVNode);
                 el.replaceChild(this.renderTree(newVNode), oldVNode.htmlElement);
                 return el;
             }
@@ -95,7 +98,8 @@ export class Renderer {
                 innerHtmlPatch(el);
             });
 
-            newVNode.htmlElement = oldVNode.htmlElement;
+            newVNode.app.eventHandler.purge(oldVNode);
+            newVNode.setHtmlElement(oldVNode.htmlElement);
             return $node;
         };
     }

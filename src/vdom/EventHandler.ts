@@ -75,6 +75,7 @@ export type EvtType =
     | "volumechange"
     | "waiting"
     | "wheel"
+    | "change"
 
 export type EvtHandlerFunc = (ev: Event, node?: VNode, bubble?: boolean) => boolean | void;
 
@@ -84,7 +85,7 @@ export class EventHandler {
     events = ["click", "close", "complete", "copy", "cut", "deviceorientation", "DOMContentLoaded", "keyup", "drag", "dragend", "dragenter", "dragleave", "dragover", "dragstart", "drop", "durationchange",
         "ended", "endEvent", "error", "focusin", "focusout", "fullscreenchange", "fullscreenerror", "input", "invalid", "keydown", "keypress", "mousedown", "mouseenter", "mouseleave", "mousemove", "mouseout", "mouseover",
         "mouseup", "offline", "online", "open", "orientationchange", "pagehide", "pageshow", "paste", "pause", "play", "playing", "progress", "readystatechange", "reset", "scroll", "seeked", "seeking", "select", "show", "stalled",
-        "storage", "submit", "success", "suspend", "timeout", "timeupdate", "touchcancel", "touchend", "touchenter", "touchleave", "touchmove", "touchstart", "visibilitychange", "volumechange", "waiting", "wheel"];
+        "storage", "submit", "success", "suspend", "timeout", "timeupdate", "touchcancel", "touchend", "touchenter", "touchleave", "touchmove", "touchstart", "visibilitychange", "volumechange", "waiting", "wheel", "change"];
 
     handlers: Map<EvtType, Map<VNode, Array<EventHanderFuncHolder>>> = new Map();
     routerLnks = new Array<RouterLink>();
@@ -96,7 +97,11 @@ export class EventHandler {
         })
     }
 
-    purge(node: VNode) {
+    purge(node: VNode, deep = false) {
+        if (deep) {
+            node.$getChildren().forEach(child => this.purge(child, true));
+        }
+
         this.handlers.forEach(handler => {
             handler.delete(node)
         })
@@ -167,10 +172,8 @@ export class EventHandler {
                         return;
                     }
 
-                    let cont = func[0](event, it);
-                    cont = cont != undefined ? cont : false;
-
-                    if (!cont) {
+                    const cont = func[0](event, it);
+                    if (cont === false) {
                         event.preventDefault();
                     }
                     //Handles propagation of buttons that already have click listeners

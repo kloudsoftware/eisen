@@ -17,6 +17,7 @@ export function jsx(nodeName: VNodeType, config?: any, ...children: any[]): VNod
     const eventHandlers: Array<[EvtType, EvtHandlerFunc]> = [];
     let props: Props = new Props(currentApp);
     let value = '';
+    let refFunc = undefined;
 
     if (config) {
         if (config.props && config.props instanceof Props) {
@@ -28,6 +29,7 @@ export function jsx(nodeName: VNodeType, config?: any, ...children: any[]): VNod
             delete config.value;
         }
         let shouldDisplay = true;
+
         Object.keys(config).forEach(k => {
             const v = config[k];
             if (v === false || v === undefined || v === null) {
@@ -36,6 +38,10 @@ export function jsx(nodeName: VNodeType, config?: any, ...children: any[]): VNod
 
             if (k.startsWith("e-if") && typeof v === 'function') {
                 shouldDisplay = v()
+            }
+
+            if (k === "ref" && typeof v === 'function') {
+                refFunc = v;
             }
 
             if (k.startsWith('on') && typeof v === 'function') {
@@ -70,6 +76,12 @@ export function jsx(nodeName: VNodeType, config?: any, ...children: any[]): VNod
 
     const node = currentApp.k(nodeName, {attrs, props, value}, childNodes);
     eventHandlers.forEach(([evt, handler]) => node.addEventlistener(evt, handler));
+
+    if (refFunc) {
+        // @ts-ignore
+        refFunc(node);
+    }
+
     return node;
 }
 

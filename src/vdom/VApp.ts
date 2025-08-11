@@ -125,12 +125,13 @@ export class VApp {
         }
 
         component.props.clearCallbacks()
+        component.$mount.children.forEach(child => this.eventHandler.purge(child, true))
         component.$mount.children = [component.render(props)];
         this.notifyDirty();
     }
 
     public notifyUnmount(node: VNode) {
-        this.eventHandler.purge(node);
+        this.eventHandler.purge(node, true);
         this.compProps.filter(it => it.component.$mount === node).forEach(props => {
             props.component.componentEvent.removeComponent(props.component);
             this.compProps.splice(this.compProps.indexOf(props), 1);
@@ -213,39 +214,6 @@ export class VApp {
         this.tick();
     }
 
-    private tick() {
-        setInterval(() => {
-            if (!this.dirty) {
-                return;
-            }
-
-            let patch = this.renderer.diffAgainstLatest(this);
-            patch(this.rootNode.htmlElement!);
-            this.dirty = false;
-            this.snapshots.push(this.clone());
-
-
-            if (this.initial) {
-                this.initial = false;
-                this.eventListeners.forEach(f => f())
-            }
-
-            this.compProps.filter(prop => prop.mounted !== undefined).filter(prop => !prop.mounted[0]).forEach(prop => {
-                prop.mounted[0] = true;
-                getOrNoop(prop.mounted[1])(prop.component)
-            });
-
-            this.compProps.filter(prop => prop.remount !== undefined).filter(prop => !prop.remount[0]).forEach(prop => {
-                prop.remount[0] = true;
-                getOrNoop(prop.remount[1])(prop.component)
-            });
-
-            this.compsToNotifyUnmount.forEach(f => invokeIfDefined(f));
-            this.compsToNotifyUnmount = [];
-
-        }, 50);
-    }
-
     /** Notifies that a redraw of the app is needed */
     public notifyDirty() {
         this.dirty = true;
@@ -319,7 +287,6 @@ export class VApp {
         return unmanagedNode;
     }
 
-
     /**
      * Creates a VNode, useful for cleanly modelling a DOM structure using the children array and optional nodeOptions
      * @param nodeName Type of the HTML tag
@@ -389,5 +356,38 @@ export class VApp {
         }
 
         this.i18nResolver.push(resolver);
+    }
+
+    private tick() {
+        setInterval(() => {
+            if (!this.dirty) {
+                return;
+            }
+
+            let patch = this.renderer.diffAgainstLatest(this);
+            patch(this.rootNode.htmlElement!);
+            this.dirty = false;
+            this.snapshots.push(this.clone());
+
+
+            if (this.initial) {
+                this.initial = false;
+                this.eventListeners.forEach(f => f())
+            }
+
+            this.compProps.filter(prop => prop.mounted !== undefined).filter(prop => !prop.mounted[0]).forEach(prop => {
+                prop.mounted[0] = true;
+                getOrNoop(prop.mounted[1])(prop.component)
+            });
+
+            this.compProps.filter(prop => prop.remount !== undefined).filter(prop => !prop.remount[0]).forEach(prop => {
+                prop.remount[0] = true;
+                getOrNoop(prop.remount[1])(prop.component)
+            });
+
+            this.compsToNotifyUnmount.forEach(f => invokeIfDefined(f));
+            this.compsToNotifyUnmount = [];
+
+        }, 50);
     }
 }

@@ -39,8 +39,10 @@ export abstract class Component {
 
 
     rerender = () => {
+        this.lifeCycle().beforererender?.();
         this.forcedUpdate();
         this.subComponents.forEach(comp => comp.rerender());
+        this.lifeCycle().afterrerender?.();
     }
 
 
@@ -92,6 +94,10 @@ export abstract class ComponentProps {
     remount?(comp: Component): void;
 
     unmounted?(): void;
+
+    beforererender?(): void;
+
+    afterrerender?(): void;
 }
 
 
