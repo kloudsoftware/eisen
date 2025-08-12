@@ -97,23 +97,21 @@ export class VApp {
      * @param props Any properties, passed into the Component
      */
     public mountComponent(component: Component, mount: VNode, props: Props): VNode {
-        let compMount = this.k("div");
-        compMount.parent = mount;
         component.app = this;
         component.props = props;
-        mount.$getChildren().push(compMount);
-        let mounted = component.render(props);
-        compMount.$getChildren().push(mounted);
-        component.$mount = compMount;
+
+        const mounted = component.render(props);
+        mount.appendChild(mounted);
+        component.$mount = mounted;
+
         if (component.lifeCycle) {
             this.compProps.push(new ComponentHolder(component.lifeCycle(), component));
         } else {
             this.compProps.push(new ComponentHolder({}, component));
         }
 
-
         this.notifyDirty();
-        return compMount;
+        return mounted;
     }
 
     public mountSubComponent(component: Component, mount: VNode, props: Props, parent: Component) {
@@ -129,12 +127,20 @@ export class VApp {
         component.props.clearCallbacks();
         this.eventHandler.purge(component.$mount, true);
 
-        const oldRoot = component.$mount.children[0];
+        const oldRoot = component.$mount;
+        const parent = oldRoot.parent;
         const newRoot = component.render(props);
         if (oldRoot) {
             newRoot.id = oldRoot.id;
         }
-        component.$mount.children = [newRoot];
+        if (parent) {
+            const idx = parent.$getChildren().indexOf(oldRoot);
+            if (idx >= 0) {
+                parent.$getChildren()[idx] = newRoot;
+            }
+            newRoot.parent = parent;
+        }
+        component.$mount = newRoot;
         this.notifyDirty();
     }
 
@@ -156,8 +162,8 @@ export class VApp {
     public routerMountComponent(component: Component, mount: VNode, props: Props): ComponentHolder {
         component.app = this;
         component.props = props;
-        let mnt = component.render(props);
-        mount.children.push(mnt);
+        const mnt = component.render(props);
+        mount.appendChild(mnt);
         component.$mount = mnt;
 
         let holder;
