@@ -127,8 +127,14 @@ export class VApp {
         }
 
         component.props.clearCallbacks();
-        this.eventHandler.purge(component.$mount, true)
-        component.$mount.children = [component.render(props)];
+        this.eventHandler.purge(component.$mount, true);
+
+        const oldRoot = component.$mount.children[0];
+        const newRoot = component.render(props);
+        if (oldRoot) {
+            newRoot.id = oldRoot.id;
+        }
+        component.$mount.children = [newRoot];
         this.notifyDirty();
     }
 
@@ -369,7 +375,6 @@ export class VApp {
             let patch = this.renderer.diffAgainstLatest(this);
             patch(this.rootNode.htmlElement!);
             this.dirty = false;
-            this.snapshots.push(this.clone());
 
 
             if (this.initial) {

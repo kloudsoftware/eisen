@@ -103,33 +103,35 @@ export class EventHandler {
         }
 
         this.handlers.forEach(handler => {
-            handler.delete(node)
-        })
+            handler.forEach((_, key) => {
+                if (key === node) {
+                    handler.delete(key);
+                }
+            });
+        });
     }
 
     registerEventListener(evt: EvtType, handler: EvtHandlerFunc, target: VNode, bubble = true) {
-        target.addOnDomEventOrExecute(() => {
-            if (isRouterLink(target)) {
-                this.routerLnks.push(target as RouterLink);
-            }
+        if (isRouterLink(target)) {
+            this.routerLnks.push(target as RouterLink);
+        }
 
-            if (this.handlers == undefined) {
-                this.handlers = new Map<EvtType, Map<VNode, Array<EventHanderFuncHolder>>>();
-            }
+        if (this.handlers == undefined) {
+            this.handlers = new Map<EvtType, Map<VNode, Array<EventHanderFuncHolder>>>();
+        }
 
-            let handlerMap = this.handlers.get(evt);
-            if (handlerMap == undefined) {
-                handlerMap = new Map();
-            }
+        let handlerMap = this.handlers.get(evt);
+        if (handlerMap == undefined) {
+            handlerMap = new Map();
+        }
 
-            if (handlerMap.get(target) != undefined) {
-                handlerMap.get(target).push([handler, bubble])
-            } else {
-                handlerMap.set(target, [[handler, bubble]]);
-            }
+        if (handlerMap.get(target) != undefined) {
+            handlerMap.get(target).push([handler, bubble])
+        } else {
+            handlerMap.set(target, [[handler, bubble]]);
+        }
 
-            this.handlers.set(evt, handlerMap)
-        })
+        this.handlers.set(evt, handlerMap)
     }
 
     handleEvent(handler: EventHandler) {

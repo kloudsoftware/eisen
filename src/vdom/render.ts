@@ -15,14 +15,14 @@ export class Renderer {
 
     //Proxy for calling
     public diffAgainstLatest(app: VApp): PatchFunction {
-        let latest = app.getLatestSnapshot();
-        if (latest == undefined) {
-            return el => {
-                return el;
-            }
-        }
+        const latest = app.getLatestSnapshot();
+        const patch = latest ? this.diff(latest, app) : ((el: HTMLElement) => el);
 
-        return this.diff(latest, app);
+        return (el: HTMLElement) => {
+            const result = patch(el);
+            app.snapshots.push(app.clone());
+            return result;
+        };
     }
 
     public diff(snapshot: VApp, vApp: VApp): PatchFunction {
@@ -75,14 +75,47 @@ export class Renderer {
             }
         }
 
-        let childPatches: PatchFunction[] = [];
-        oldVNode.$getChildren().forEach((child, i) => {
-            childPatches.push(this.diffElement(child, newVNode.$getChildren()[i]));
+        const childPatches: PatchFunction[] = [];
+        const oldChildren = oldVNode.$getChildren();
+        const newChildren = newVNode.$getChildren();
+
+        // When no keys are present and the child count remains the same, reuse
+        // the previous IDs so inputs keep their DOM nodes across rerenders.
+        if (oldChildren.length === newChildren.length) {
+            newChildren.forEach((child, i) => {
+                if (child.key === undefined && oldChildren[i] && oldChildren[i].key === undefined) {
+                    child.id = oldChildren[i].id;
+                }
+            });
+        }
+
+        const oldMap = new Map<string, VNode>();
+        oldChildren.forEach(c => oldMap.set(c.id, c));
+
+        newChildren.forEach((child, i) => {
+            const match = oldMap.get(child.id);
+            if (match) {
+                childPatches.push(parent => {
+                    const ref = parent.children[i] ?? null;
+                    if (match.htmlElement && match.htmlElement !== ref) {
+                        parent.insertBefore(match.htmlElement, ref);
+                    }
+                    return parent;
+                });
+                childPatches.push(this.diffElement(match, child));
+                oldMap.delete(child.id);
+            } else {
+                childPatches.push(parent => {
+                    const ref = parent.children[i] ?? null;
+                    parent.insertBefore(this.renderTree(child), ref);
+                    return parent;
+                });
+            }
         });
 
-        newVNode.$getChildren().slice(oldVNode.$getChildren().length).forEach(child => {
+        oldMap.forEach(rem => {
             childPatches.push(parent => {
-                parent.appendChild(this.renderTree(child));
+                Renderer.removeElement(parent, rem);
                 return parent;
             });
         });

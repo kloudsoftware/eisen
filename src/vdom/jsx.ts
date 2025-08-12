@@ -18,6 +18,7 @@ export function jsx(nodeName: VNodeType, config?: any, ...children: any[]): VNod
     let props: Props = new Props(currentApp);
     let value = '';
     let refFunc = undefined;
+    let keyOverride: string | undefined = undefined;
 
     if (config) {
         if (config.props && config.props instanceof Props) {
@@ -42,6 +43,11 @@ export function jsx(nodeName: VNodeType, config?: any, ...children: any[]): VNod
 
             if (k === "ref" && typeof v === 'function') {
                 refFunc = v;
+            }
+
+            if (k === 'key') {
+                keyOverride = String(v);
+                return;
             }
 
             if (k.startsWith('on') && typeof v === 'function') {
@@ -75,6 +81,10 @@ export function jsx(nodeName: VNodeType, config?: any, ...children: any[]): VNod
     });
 
     const node = currentApp.k(nodeName, {attrs, props, value}, childNodes);
+    if (keyOverride !== undefined) {
+        node.id = keyOverride;
+        node.key = keyOverride;
+    }
     eventHandlers.forEach(([evt, handler]) => node.addEventlistener(evt, handler));
 
     if (refFunc) {

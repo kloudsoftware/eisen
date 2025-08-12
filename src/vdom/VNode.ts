@@ -191,6 +191,7 @@ export const parseIntoUnmanaged = (htmlString: string, mount: VNode): VNode => {
 export class VNode implements Comparable<VNode> {
     app: VApp;
     id: string;
+    key?: string;
     nodeName: VNodeType;
     parent?: VNode;
     htmlElement?: HTMLElement | undefined;
@@ -227,6 +228,8 @@ export class VNode implements Comparable<VNode> {
         this.value = value;
         if (id != undefined) {
             this.id = id;
+        } else {
+            this.id = Math.random().toString(36).substr(2, 9);
         }
 
         if (innerHtml != undefined) {
@@ -370,12 +373,14 @@ export class VNode implements Comparable<VNode> {
         const nodeName = this.nodeName;
         const innerHtml = this.innerHtml;
         const value = this.value;
+        const key = this.key;
         const props = Object.assign(this.props, {}) as Props;
 
         const htmlElement = this.htmlElement;
         const attrs = this.attrs.map(a => a.clone());
 
         const clonedNode = new VNode(this.app, nodeName, [], innerHtml, props, attrs, parent, id, value);
+        clonedNode.key = key;
         const children = new Array<VNode>();
 
         this.children.forEach(child => {
