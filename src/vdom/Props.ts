@@ -1,4 +1,4 @@
-import {VApp, AppEvent} from "./VApp";
+import {VApp} from "./VApp";
 
 export type PropValue = any;
 

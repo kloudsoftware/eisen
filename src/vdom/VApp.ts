@@ -7,6 +7,7 @@ import {getOrNoop, invokeIfDefined} from './Common';
 import {IRouter, Router} from '../Router';
 import {Resolver} from '../i18n/Resolver';
 import {EventPipeline} from './GlobalEvent';
+import {setJSXApp} from "./jsx";
 
 export const unmanagedNode: string = "__UNMANAGED__"
 
@@ -48,6 +49,7 @@ export class VApp {
      * @param rootNode Used to clone the VApp, ignore on creation of a new one
      */
     constructor(targetId: string, renderer: Renderer, rootNode?: VNode) {
+        setJSXApp(this);
         this.targetId = targetId;
         this.renderer = renderer;
         let $root = document.getElementById(targetId);
@@ -124,8 +126,8 @@ export class VApp {
             return;
         }
 
-        component.props.clearCallbacks()
-        component.$mount.children.forEach(child => this.eventHandler.purge(child, true))
+        component.props.clearCallbacks();
+        this.eventHandler.purge(component.$mount, true)
         component.$mount.children = [component.render(props)];
         this.notifyDirty();
     }
@@ -317,7 +319,7 @@ export class VApp {
         let node: VInputNode | VNode;
 
         if (nodeName == "input" || nodeName == "textarea" || nodeName == "select") {
-            node = new VInputNode(this, nodeName, cleaned, value, props, attrs)
+            node = new VInputNode(this, nodeName, cleaned, value, props, attrs, undefined, undefined, value)
         } else {
             node = new VNode(this, nodeName, cleaned, value, props, attrs);
         }

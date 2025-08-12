@@ -61,6 +61,8 @@ export abstract class Component {
     }
 }
 
+export const reactiveWatchersKey = Symbol("reactiveWatchers");
+
 export function reactive() {
     const cachedValueKey = Symbol();
     const isFirstChangeKey = Symbol();
@@ -77,6 +79,13 @@ export function reactive() {
                 }
 
                 this[cachedValueKey] = value;
+
+                const watchers = this[reactiveWatchersKey]?.[key];
+                if (watchers) {
+                    watchers.forEach((f: (v: any) => void) => f(value));
+                    this[reactiveWatchersKey][key] = []
+                }
+
                 this["rerender"]();
             },
             get: function () {

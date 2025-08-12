@@ -1,5 +1,5 @@
 import {unmanagedNode, VApp} from "./VApp"
-import {VNode} from "./VNode"
+import {VInputNode, VNode} from "./VNode"
 
 type PatchFunction = (parent: HTMLElement) => HTMLElement;
 
@@ -90,12 +90,14 @@ export class Renderer {
 
         let attributePatch = this.diffAttributes(oldVNode, newVNode);
         let innerHtmlPatch = this.diffInnerHtml(oldVNode, newVNode);
+        let valuePatch = this.diffValue(oldVNode, newVNode);
 
         return $node => {
             oldVNode.addOnDomEventOrExecute((el) => {
                 childPatches.forEach(patch => patch(el));
                 attributePatch(el);
                 innerHtmlPatch(el);
+                valuePatch(el);
             });
 
             newVNode.app.eventHandler.purge(oldVNode);
@@ -132,7 +134,6 @@ export class Renderer {
             validAttrs.set(attr.attrName, attr.attrValue)
         });
 
-
         setAttrs.forEach((v, k) => {
             const setVal = validAttrs.get(k);
             if (setVal === undefined) {
@@ -166,5 +167,19 @@ export class Renderer {
             patches.forEach(p => p($node));
             return $node;
         }
+    }
+
+    private diffValue(oldVNode: VNode, newVNode: VNode): PatchFunction {
+        if (oldVNode.value !== newVNode.value) {
+            return $node => {
+                if ($node instanceof HTMLInputElement) {
+                    $node.value = newVNode.value
+                }
+
+                return $node;
+            }
+        }
+
+        return $node => $node;
     }
 }

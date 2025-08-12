@@ -3,6 +3,7 @@ import {VApp} from './VApp'
 import {Props} from './Props';
 import {EvtHandlerFunc, EvtType} from './EventHandler';
 import {getLocale} from '../i18n/Resolver';
+import {reactiveWatchersKey} from "./Component";
 
 export type VNodeType =
     '!--...--'
@@ -205,8 +206,9 @@ export class VNode implements Comparable<VNode> {
     public children: VNode[];
     protected attrs: Attribute[];
     private innerHtml: string;
+    value?: string = undefined;
 
-    constructor(app: VApp, nodeName: VNodeType, children: VNode[], innerHtml?: string, props?: Props, attrs?: Attribute[], parent?: VNode, id?: string) {
+    constructor(app: VApp, nodeName: VNodeType, children: VNode[], innerHtml?: string, props?: Props, attrs?: Attribute[], parent?: VNode, id?: string, value?: string) {
         if (attrs == undefined) {
             this.attrs = [];
         } else {
@@ -222,6 +224,7 @@ export class VNode implements Comparable<VNode> {
         this.innerHtml = innerHtml;
         this.parent = parent;
         this.children = children;
+        this.value = value;
         if (id != undefined) {
             this.id = id;
         }
@@ -299,7 +302,11 @@ export class VNode implements Comparable<VNode> {
     }
 
     public setAttribute(name: string, value: string) {
+        this.$setAttribute(name, value)
         this.app.notifyDirty();
+    }
+
+    public $setAttribute(name: string, value: string) {
         const isSet = this.attrs.filter(a => a.attrName == name).length > 0;
         this.app.renderer.$knownAttributes.add(name);
 
@@ -362,12 +369,13 @@ export class VNode implements Comparable<VNode> {
         const id = this.id;
         const nodeName = this.nodeName;
         const innerHtml = this.innerHtml;
+        const value = this.value;
         const props = Object.assign(this.props, {}) as Props;
 
         const htmlElement = this.htmlElement;
         const attrs = this.attrs.map(a => a.clone());
 
-        const clonedNode = new VNode(this.app, nodeName, [], innerHtml, props, attrs, parent, id);
+        const clonedNode = new VNode(this.app, nodeName, [], innerHtml, props, attrs, parent, id, value);
         const children = new Array<VNode>();
 
         this.children.forEach(child => {
@@ -557,11 +565,26 @@ export class VInputNode extends VNode {
     hasValidateBlurFunction = false;
 
     bindObject(obj: any, key: string) {
+        if (obj[reactiveWatchersKey] == undefined) {
+            obj[reactiveWatchersKey] = {};
+        }
+
+        if (obj[reactiveWatchersKey][key] == undefined) {
+            obj[reactiveWatchersKey][key] = new Array<(v: string) => void>();
+        }
+
+        const watcher = (v: string) => {
+            this.value = v;
+        };
+
+        obj[reactiveWatchersKey][key].push(watcher);
+
         this.app.eventHandler.registerEventListener("input", (ev, node) => {
             if (node.getAttributeValue("type") == "file") {
                 const fileList = (node.htmlElement as HTMLInputElement).files;
                 obj[key] = fileList != null ? fileList[0] : null;
             } else {
+                this.value = (node.htmlElement as HTMLInputElement).value;
                 obj[key] = (node.htmlElement as HTMLInputElement).value;
             }
         }, this);
@@ -570,17 +593,20 @@ export class VInputNode extends VNode {
     bind(props: Props, propKey: string) {
         this.onDomEvenList.push(() => {
             (this.htmlElement as HTMLInputElement).value = props.getProp(propKey) != undefined ? props.getProp(propKey) : "";
+            this.value = (this.htmlElement as HTMLInputElement).value;
         });
 
         props.registerCallback(propKey, (newVal: string) => {
             if (this.htmlElement == undefined) {
                 return;
             }
+            this.value = newVal;
             (this.htmlElement as HTMLInputElement).value = newVal;
         }, true);
 
         this.app.eventHandler.registerEventListener("input", (ev, node) => {
             props.setProp(propKey, (node.htmlElement as HTMLInputElement).value);
+            this.value = (node.htmlElement as HTMLInputElement).value;
         }, this);
     }
 
