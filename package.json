@@ -7,14 +7,17 @@
     "exports": "./dist/eisen.modern.js",
     "scripts": {
         "build": "microbundle",
-        "dev": "microbundle watch"
+        "dev": "microbundle watch",
+        "test": "npm run build && mocha"
     },
     "author": "Kloudsoftware",
     "license": "Apache-2.0",
     "types": "lib/index.d.ts",
     "devDependencies": {
-        "lodash": "^4.17.15",
+        "jsdom": "^26.1.0",
+        "lodash": "4.17.21",
         "microbundle": "^0.12.4",
+        "mocha": "^11.7.1",
         "typescript": "^3.3.3333"
     },
     "repository": {
