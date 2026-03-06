@@ -1,13 +1,15 @@
 import {Attribute, VInputNode, VNode, VNodeType} from './VNode'
 import {Renderer} from './render';
 import {Props} from './Props';
-import {Component, ComponentHolder} from './Component';
+import {Component, ComponentHolder, _setHookComponent, _cleanupHooks} from './Component';
 import {EventHandler} from './EventHandler';
 import {getOrNoop, invokeIfDefined} from './Common';
+import {warnRenderUndefined, warnRenderNull} from './dev';
 import {IRouter, Router} from '../Router';
 import {Resolver} from '../i18n/Resolver';
 import {EventPipeline} from './GlobalEvent';
 import {setJSXApp} from "./jsx";
+import {_hmrTrack, _hmrUntrack} from "./hmr";
 
 export const unmanagedNode: string = "__UNMANAGED__"
 
@@ -29,7 +31,7 @@ export class VApp {
     rootNode: VNode;
     targetId: string;
     dirty: boolean;
-    snapshots: VApp[] = [];
+    private latestSnapshot: VApp | undefined;
     renderer: Renderer;
     eventListeners: AppEvent[] = [];
     initial = true;
@@ -48,21 +50,44 @@ export class VApp {
      * @param renderer an Instance of the Renderer
      * @param rootNode Used to clone the VApp, ignore on creation of a new one
      */
-    constructor(targetId: string, renderer: Renderer, rootNode?: VNode) {
-        setJSXApp(this);
+    private initialized = false;
+    private pending = false;
+    private dirtyComponents = new Set<Component>();
+    /** Pending diffs from flushDirtyComponents: old subtree → new subtree */
+    public _pendingDiffs: Array<{ old: VNode; new: VNode }> = [];
+    /** Shared empty Props instance — avoids allocating a new one per VNode */
+    public defaultProps: Props;
+
+    constructor(targetId: string, renderer: Renderer, rootNode?: VNode, attachEventListeners = true) {
+        if (attachEventListeners) {
+            setJSXApp(this);
+        }
         this.targetId = targetId;
         this.renderer = renderer;
-        let $root = document.getElementById(targetId);
-        let $tagName = $root.tagName.toLowerCase() as VNodeType;
         this.dirty = false;
+        this.defaultProps = new Props(this);
+
         if (rootNode != undefined) {
+            // Snapshot clone path — skip DOM query and event handler setup
             this.rootNode = rootNode.$clone(undefined);
-        } else {
-            this.rootNode = new VNode(this, $tagName, new Array(), "", new Props(this), [new Attribute("id", $root.id)], undefined);
-            this.rootNode.htmlElement = $root;
+            return;
         }
 
-        this.eventHandler = new EventHandler(this);
+        // Headless mode (SSR) — no DOM access
+        if (typeof document === 'undefined') {
+            this.rootNode = new VNode(this, 'div', new Array(), "", new Props(this), [new Attribute("id", targetId)], undefined);
+            this.eventHandler = new EventHandler(this, false);
+            return;
+        }
+
+        let $root = document.getElementById(targetId);
+        if (!$root) {
+            throw new Error(`VApp mount target #${targetId} not found in the DOM`);
+        }
+        let $tagName = $root.tagName.toLowerCase() as VNodeType;
+        this.rootNode = new VNode(this, $tagName, new Array(), "", new Props(this), [new Attribute("id", $root.id)], undefined);
+        this.rootNode.htmlElement = $root;
+        this.eventHandler = new EventHandler(this, attachEventListeners);
     }
 
     /**
@@ -100,9 +125,17 @@ export class VApp {
         component.app = this;
         component.props = props;
 
+        _setHookComponent(component);
         const mounted = component.render(props);
+        _setHookComponent(null);
+        if (mounted === undefined) {
+            warnRenderUndefined(component.constructor.name);
+        } else if (mounted === null) {
+            warnRenderNull(component.constructor.name);
+        }
         mount.appendChild(mounted);
         component.$mount = mounted;
+        _hmrTrack(component);
 
         if (component.lifeCycle) {
             this.compProps.push(new ComponentHolder(component.lifeCycle(), component));
@@ -116,6 +149,7 @@ export class VApp {
 
     public mountSubComponent(component: Component, mount: VNode, props: Props, parent: Component) {
         component.componentEvent = parent.componentEvent;
+        component._parentComponent = parent;
         this.mountComponent(component, mount, props);
     }
 
@@ -129,7 +163,9 @@ export class VApp {
 
         const oldRoot = component.$mount;
         const parent = oldRoot.parent;
+        _setHookComponent(component);
         const newRoot = component.render(props);
+        _setHookComponent(null);
         if (oldRoot) {
             newRoot.id = oldRoot.id;
         }
@@ -146,11 +182,15 @@ export class VApp {
 
     public notifyUnmount(node: VNode) {
         this.eventHandler.purge(node, true);
-        this.compProps.filter(it => it.component.$mount === node).forEach(props => {
+        const toRemove = this.compProps.filter(it => it.component.$mount && it.component.$mount.id === node.id);
+        toRemove.forEach(props => {
+            props.component._unmounted = true;
             props.component.componentEvent.removeComponent(props.component);
-            this.compProps.splice(this.compProps.indexOf(props), 1);
+            _cleanupHooks(props.component);
+            _hmrUntrack(props.component);
             invokeIfDefined(props.unmounted);
         });
+        this.compProps = this.compProps.filter(it => !toRemove.includes(it));
     }
 
     /**
@@ -162,7 +202,9 @@ export class VApp {
     public routerMountComponent(component: Component, mount: VNode, props: Props): ComponentHolder {
         component.app = this;
         component.props = props;
+        _setHookComponent(component);
         const mnt = component.render(props);
+        _setHookComponent(null);
         mount.appendChild(mnt);
         component.$mount = mnt;
 
@@ -200,7 +242,7 @@ export class VApp {
         if (filteredComps.length == 0) {
             console.error("Node is not component mount");
             return;
-        } else if (!filteredComps[0].mounted) {
+        } else if (!filteredComps[0].mounted[0]) {
             console.error("Component cannot be unmounted before it was mounted")
             return;
         }
@@ -213,6 +255,7 @@ export class VApp {
             return;
         }
 
+        target.component._unmounted = true;
         target.component.componentEvent.removeComponent(target.component);
         target.component.$mount.parent.removeChild(target.component.$mount);
         this.compProps.splice(this.compProps.indexOf(target), 1);
@@ -224,32 +267,31 @@ export class VApp {
     }
 
     public init() {
-        this.snapshots.push(this.clone());
-        this.tick();
+        this.initialized = true;
+        this.saveSnapshot();
+        if (this.dirty) {
+            this.scheduleFlush();
+        }
     }
 
     /** Notifies that a redraw of the app is needed */
     public notifyDirty() {
         this.dirty = true;
+        if (this.initialized) {
+            this.scheduleFlush();
+        }
+    }
+
+    public saveSnapshot() {
+        this.latestSnapshot = this.clone();
     }
 
     public getLatestSnapshot(): VApp | undefined {
-        if (this.snapshots.length < 1) {
-            return undefined;
-        }
-
-        return this.snapshots[this.snapshots.length - 1];
-    }
-
-    public getPreviousSnapshot(): VApp | undefined {
-        if (this.snapshots.length < 2) {
-            return undefined;
-        }
-        return this.snapshots[this.snapshots.length - 2]
+        return this.latestSnapshot;
     }
 
     public clone(): VApp {
-        return new VApp(this.targetId, this.renderer, this.rootNode);
+        return new VApp(this.targetId, this.renderer, this.rootNode, false);
     }
 
     /**
@@ -319,26 +361,24 @@ export class VApp {
         if (options == undefined) {
             attrs = [];
             value = "";
-            props = new Props(this);
+            props = this.defaultProps;
         } else {
             attrs = options.attrs != undefined ? options.attrs : [];
-            props = options.props != undefined ? options.props : new Props(this);
+            props = options.props != undefined ? options.props : this.defaultProps;
             value = options.value != undefined ? options.value : "";
         }
-
-        let cleaned = children.filter(child => true);
 
         let node: VInputNode | VNode;
 
         if (nodeName == "input" || nodeName == "textarea" || nodeName == "select") {
-            node = new VInputNode(this, nodeName, cleaned, value, props, attrs, undefined, undefined, value)
+            node = new VInputNode(this, nodeName, children, value, props, attrs, undefined, undefined, value)
         } else {
-            node = new VNode(this, nodeName, cleaned, value, props, attrs);
+            node = new VNode(this, nodeName, children, value, props, attrs);
         }
 
-        cleaned.forEach(child => {
-            child.parent = node;
-        });
+        for (let i = 0; i < children.length; i++) {
+            children[i].parent = node;
+        }
 
         return node;
     }
@@ -372,35 +412,101 @@ export class VApp {
         this.i18nResolver.push(resolver);
     }
 
-    private tick() {
-        setInterval(() => {
-            if (!this.dirty) {
-                return;
+    public markComponentDirty(component: Component) {
+        this.dirtyComponents.add(component);
+        this.notifyDirty();
+    }
+
+    public flushDirtyComponents() {
+        if (this.dirtyComponents.size === 0) return;
+        const comps = [...this.dirtyComponents];
+        this.dirtyComponents.clear();
+        comps.forEach(comp => {
+            if (!comp.$mount || !comp.shouldUpdate()) return;
+
+            try {
+                comp.lifeCycle().beforererender?.();
+
+                // Rebuild VDOM directly (without re-triggering notifyDirty)
+                comp.props.clearCallbacks();
+                this.eventHandler.purge(comp.$mount, true);
+
+                const oldRoot = comp.$mount;
+                const parent = oldRoot.parent;
+                _setHookComponent(comp);
+                const newRoot = comp.render(comp.props);
+                _setHookComponent(null);
+                if (newRoot === undefined) {
+                    warnRenderUndefined(comp.constructor.name);
+                } else if (newRoot === null) {
+                    warnRenderNull(comp.constructor.name);
+                }
+                if (oldRoot) {
+                    newRoot.id = oldRoot.id;
+                }
+
+                // Save old/new pair for targeted diffing (avoids full tree clone)
+                this._pendingDiffs.push({ old: oldRoot, new: newRoot });
+
+                if (parent) {
+                    const idx = parent.$getChildren().indexOf(oldRoot);
+                    if (idx >= 0) {
+                        parent.$getChildren()[idx] = newRoot;
+                    }
+                    newRoot.parent = parent;
+                }
+                comp.$mount = newRoot;
+
+                comp.subComponents.forEach(sub => sub.rerender());
+                comp.lifeCycle().afterrerender?.();
+            } catch (err) {
+                const name = comp.constructor.name || '<anonymous>';
+                console.error(
+                    `[eisen] Error rendering <${name}>:\n`,
+                    err,
+                    `\n\nComponent instance:`, comp
+                );
+                // Keep the old mount — don't crash the whole app
             }
+        });
+    }
 
-            let patch = this.renderer.diffAgainstLatest(this);
-            patch(this.rootNode.htmlElement!);
-            this.dirty = false;
+    private scheduleFlush() {
+        if (this.pending) {
+            return;
+        }
+        this.pending = true;
+        queueMicrotask(() => {
+            this.pending = false;
+            this.flush();
+        });
+    }
 
+    private flush() {
+        if (!this.dirty) {
+            return;
+        }
 
-            if (this.initial) {
-                this.initial = false;
-                this.eventListeners.forEach(f => f())
-            }
+        let patch = this.renderer.diffAgainstLatest(this);
+        patch(this.rootNode.htmlElement!);
+        this.dirty = false;
 
-            this.compProps.filter(prop => prop.mounted !== undefined).filter(prop => !prop.mounted[0]).forEach(prop => {
-                prop.mounted[0] = true;
-                getOrNoop(prop.mounted[1])(prop.component)
-            });
+        if (this.initial) {
+            this.initial = false;
+            this.eventListeners.forEach(f => f());
+        }
 
-            this.compProps.filter(prop => prop.remount !== undefined).filter(prop => !prop.remount[0]).forEach(prop => {
-                prop.remount[0] = true;
-                getOrNoop(prop.remount[1])(prop.component)
-            });
+        this.compProps.filter(prop => prop.mounted !== undefined).filter(prop => !prop.mounted[0]).forEach(prop => {
+            prop.mounted[0] = true;
+            getOrNoop(prop.mounted[1])(prop.component);
+        });
 
-            this.compsToNotifyUnmount.forEach(f => invokeIfDefined(f));
-            this.compsToNotifyUnmount = [];
+        this.compProps.filter(prop => prop.remount !== undefined).filter(prop => !prop.remount[0]).forEach(prop => {
+            prop.remount[0] = true;
+            getOrNoop(prop.remount[1])(prop.component);
+        });
 
-        }, 50);
+        this.compsToNotifyUnmount.forEach(f => invokeIfDefined(f));
+        this.compsToNotifyUnmount = [];
     }
 }

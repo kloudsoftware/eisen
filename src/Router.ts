@@ -66,7 +66,7 @@ export class Router implements IRouter {
         }
 
         if (path.endsWith("/")) {
-            path = path.substr(0, path.length - 1)
+            path = path.slice(0, -1)
         }
 
         const splitted = splitAtSlash(path);
@@ -88,13 +88,12 @@ export class Router implements IRouter {
 
     resolveRoute(path: string): Promise<boolean> {
         return Promise.all(this.middleWares.map(it => it.check(path))).then(() => {
-            history.replaceState(null, "", path)
-
             if (this.currPath == path) {
                 return Promise.resolve(true);
             }
 
             if (this.resolvedRouterMap.has(path)) {
+                history.replaceState(null, "", path);
                 this.mount.$getChildren().forEach(child => this.mount.removeChild(child));
                 this.app.remountComponent(this.resolvedRouterMap.get(path) as ComponentHolder, this.mount);
                 this.currPath = path;
@@ -107,6 +106,7 @@ export class Router implements IRouter {
                 return Promise.reject("No component registered with the router for " + path + " register one using 'registerRoute()'");
             }
 
+            history.replaceState(null, "", path);
             this.mount.$getChildren().forEach(child => this.mount.removeChild(child));
             this.currPath = path;
             let cmp = this.componentMap.get(foundPath);
@@ -149,7 +149,7 @@ export class RouterLink extends VNode {
         const ln = link as RouterLink;
         if (ln.app.router!.hasRouteRegistered(ln.target)) {
             event.preventDefault();
-            history.pushState({}, "", document.location.pathname)
+            history.pushState({}, "", ln.target)
             ln.app.router!.resolveRoute(ln.target).catch(err => console.error("Error occured in routing: ", err));
             return;
         }

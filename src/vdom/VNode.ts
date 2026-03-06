@@ -133,6 +133,7 @@ export type VNodeType =
 
 export type OnDomEvent = (html: HTMLElement) => void;
 
+let nodeIdCounter = 0;
 
 export const toggleError = (node: VNode) => {
     node.addClass("error");
@@ -204,10 +205,16 @@ export class VNode implements Comparable<VNode> {
     lastResolvedLocale: string = undefined;
     // instanceof seems to be buggy on some cases and returns false answers
     isRouterLink: boolean = false;
+    isTextNode: boolean = false;
+    portalTarget?: string;
+    dangerousHtml?: string;
+    beforeRemove?: (el: HTMLElement) => Promise<void>;
     public children: VNode[];
     protected attrs: Attribute[];
     private innerHtml: string;
     value?: string = undefined;
+    /** Structural content hash for fast diff skip. 0 = not computed / dynamic. */
+    contentHash: number = 0;
 
     constructor(app: VApp, nodeName: VNodeType, children: VNode[], innerHtml?: string, props?: Props, attrs?: Attribute[], parent?: VNode, id?: string, value?: string) {
         if (attrs == undefined) {
@@ -217,10 +224,7 @@ export class VNode implements Comparable<VNode> {
         }
 
         this.app = app;
-        if (props == undefined) {
-            props = new Props(app);
-        }
-        this.props = props;
+        this.props = props || app.defaultProps;
         this.nodeName = nodeName;
         this.innerHtml = innerHtml;
         this.parent = parent;
@@ -229,19 +233,16 @@ export class VNode implements Comparable<VNode> {
         if (id != undefined) {
             this.id = id;
         } else {
-            this.id = Math.random().toString(36).substr(2, 9);
+            this.id = String(++nodeIdCounter);
         }
 
-        if (innerHtml != undefined) {
-            let parsed = innerHtml.match(dataRegex);
-            if (parsed != null && parsed.length != 0) {
-                this.dynamicContent = true;
-            }
+        if (innerHtml != undefined && innerHtml.indexOf('{{') !== -1 && dataRegex.test(innerHtml)) {
+            this.dynamicContent = true;
         }
 
-        this.attrs.map(a => a.attrName).forEach(attrName => {
-            this.app.renderer.$knownAttributes.add(attrName);
-        })
+        for (let i = 0; i < this.attrs.length; i++) {
+            this.app.renderer.$knownAttributes.add(this.attrs[i].attrName);
+        }
     }
 
     public addFocusListener(func: EvtHandlerFunc) {
@@ -298,7 +299,7 @@ export class VNode implements Comparable<VNode> {
         const isSet = this.attrs.filter(a => a.attrName == attribute);
 
         if (isSet != undefined && isSet.length != 0) {
-            this.attrs.splice(this.attrs.indexOf(isSet[0], 1));
+            this.attrs.splice(this.attrs.indexOf(isSet[0]), 1);
             this.app.notifyDirty();
             return;
         }
@@ -337,6 +338,9 @@ export class VNode implements Comparable<VNode> {
     }
 
     public getInnerHtml(): string {
+        if (!this.dynamicContent) {
+            return this.innerHtml;
+        }
         const locale = getLocale();
         const htmlToUse = this.rawInnerHtml != undefined ? this.rawInnerHtml : this.innerHtml;
         if (this.app.i18nResolver != undefined && this.app.i18nResolver.some(resolver => htmlToUse.startsWith(resolver.getPrefix())) && locale != this.lastResolvedLocale) {
@@ -369,34 +373,38 @@ export class VNode implements Comparable<VNode> {
     }
 
     public $clone(parent: VNode): VNode {
-        const id = this.id;
-        const nodeName = this.nodeName;
-        const innerHtml = this.innerHtml;
-        const value = this.value;
-        const key = this.key;
-        const props = Object.assign(this.props, {}) as Props;
+        const cloned = Object.create(VNode.prototype) as VNode;
+        cloned.app = this.app;
+        cloned.id = this.id;
+        cloned.key = this.key;
+        cloned.nodeName = this.nodeName;
+        cloned.parent = parent;
+        cloned.props = this.props;
+        cloned.innerHtml = this.innerHtml;
+        cloned.value = this.value;
+        cloned.dynamicContent = this.dynamicContent;
+        cloned.modifiedInnerHtml = this.modifiedInnerHtml;
+        cloned.rawInnerHtml = this.rawInnerHtml;
+        cloned.lastResolvedLocale = this.lastResolvedLocale;
+        cloned.isRouterLink = this.isRouterLink;
+        cloned.isTextNode = this.isTextNode;
+        cloned.portalTarget = this.portalTarget;
+        cloned.dangerousHtml = this.dangerousHtml;
+        cloned.beforeRemove = this.beforeRemove;
+        cloned.contentHash = this.contentHash;
+        cloned.onDomEvenList = [];
+        cloned.attrs = this.attrs.map(a => a.clone());
+        cloned.children = this.children.map(child => child.$clone(cloned));
 
-        const htmlElement = this.htmlElement;
-        const attrs = this.attrs.map(a => a.clone());
+        // Copy htmlElement directly instead of via closure to prevent memory leaks
+        cloned.htmlElement = this.htmlElement;
 
-        const clonedNode = new VNode(this.app, nodeName, [], innerHtml, props, attrs, parent, id, value);
-        clonedNode.key = key;
-        const children = new Array<VNode>();
-
-        this.children.forEach(child => {
-            children.push(child.$clone(clonedNode))
-        });
-
-        clonedNode.children = children;
-        this.addOnDomEventOrExecute((el) => {
-            clonedNode.htmlElement = el
-        });
-
-        return clonedNode;
+        return cloned;
     }
 
     equals(o: VNode): boolean {
         if (o == undefined) return false;
+        if (this.isTextNode !== o.isTextNode) return false;
 
         return this.nodeName == o.nodeName;
     }
@@ -445,7 +453,11 @@ export class VNode implements Comparable<VNode> {
             }
         }
 
-        if (replaceIndex != -1 && replacement != undefined) {
+        if (replaceIndex === -1) {
+            return;
+        }
+
+        if (replacement != undefined) {
             this.children[replaceIndex] = replacement;
         } else {
             this.children.splice(replaceIndex, 1);
@@ -499,6 +511,18 @@ export class VNode implements Comparable<VNode> {
         this.app.notifyDirty();
         this.$replaceWith(toReplace, replacement);
     }
+}
+
+export function textVNode(app: VApp, text: string): VNode {
+    const node = new VNode(app, 'span', [], text);
+    node.isTextNode = true;
+    // Compute content hash for text nodes
+    let h = 0x811c9dc5;
+    for (let i = 0; i < text.length; i++) {
+        h = Math.imul(h ^ text.charCodeAt(i), 0x01000193);
+    }
+    node.contentHash = h === 0 ? 1 : h;
+    return node;
 }
 
 export const cssClass = (...classNames: string[]) => {

@@ -7,3 +7,8 @@ export * from './VNode';
 export * from './render';
 export * from './GlobalEvent'
 export * from './jsx';
+export * from './dev';
+export * from './store';
+export * from './testing';
+export * from './Route';
+export * from './hmr';

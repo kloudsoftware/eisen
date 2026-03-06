@@ -26,7 +26,6 @@ export class Props {
             } else {
                 const arr = [fun];
                 this.cbs.set(key, arr);
-                this.cbs.set(key, arr);
             }
         } else {
             this.callbacksExclusive.set(key, fun);
@@ -65,6 +64,7 @@ export class Props {
     }
 
     public clearCallbacks() {
-        //NOOP
+        this.cbs.clear();
+        this.callbacksExclusive.clear();
     }
 }

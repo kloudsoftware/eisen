@@ -5,8 +5,8 @@ export interface Comparable<T> {
 }
 
 export function arraysEquals<T extends Comparable<T>>(arrayA: T[], arrayB: T[]): boolean {
-    if (arrayA == undefined && arrayB == undefined) {
-        return true;
+    if (arrayA == undefined || arrayB == undefined) {
+        return arrayA === arrayB;
     }
 
     if (arrayA.length != arrayB.length) {
@@ -39,12 +39,10 @@ export class Stringparser {
     }
 
     public parse(str: string, props: Props): string {
-        let parsed = dataRegex.exec(str);
-        if (parsed == null || parsed.length == 0) {
+        let parse = str.match(dataRegex);
+        if (parse == null || parse.length == 0) {
             return str;
         }
-
-        let parse = str.match(dataRegex);
 
         let currStr = "";
 

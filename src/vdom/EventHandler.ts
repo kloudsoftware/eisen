@@ -2,99 +2,42 @@ import {VNode} from './VNode'
 import {VApp} from './VApp'
 import {isRouterLink, RouterLink} from '../Router';
 
-export type EvtType =
-    "click"
-    | "close"
-    | "complete"
-    | "copy"
-    | "cut"
-    | "deviceorientation"
-    | "DOMContentLoaded"
-    | "drag"
-    | "dragend"
-    | "dragenter"
-    | "dragleave"
-    | "dragover"
-    | "dragstart"
-    | "drop"
-    | "durationchange"
-    |
-    "ended"
-    | "endEvent"
-    | "error"
-    | "focusin"
-    | "keyup"
-    | "focusout"
-    | "fullscreenchange"
-    | "fullscreenerror"
-    | "input"
-    | "invalid"
-    | "keydown"
-    | "keypress"
-    | "mousedown"
-    | "mouseenter"
-    | "mouseleave"
-    | "mousemove"
-    | "mouseout"
-    | "mouseover"
-    |
-    "mouseup"
-    | "offline"
-    | "online"
-    | "open"
-    | "orientationchange"
-    | "pagehide"
-    | "pageshow"
-    | "paste"
-    | "pause"
-    | "play"
-    | "playing"
-    | "progress"
-    | "readystatechange"
-    | "reset"
-    | "scroll"
-    | "seeked"
-    | "seeking"
-    | "select"
-    | "show"
-    | "stalled"
-    |
-    "storage"
-    | "submit"
-    | "success"
-    | "suspend"
-    | "timeout"
-    | "timeupdate"
-    | "touchcancel"
-    | "touchend"
-    | "touchenter"
-    | "touchleave"
-    | "touchmove"
-    | "touchstart"
-    | "visibilitychange"
-    | "volumechange"
-    | "waiting"
-    | "wheel"
-    | "change"
+const EVENT_NAMES = [
+    "click", "dblclick", "close", "complete", "copy", "cut", "deviceorientation", "DOMContentLoaded",
+    "keyup", "drag", "dragend", "dragenter", "dragleave", "dragover", "dragstart", "drop",
+    "durationchange", "ended", "endEvent", "error", "focus", "blur", "focusin", "focusout",
+    "fullscreenchange", "fullscreenerror", "input", "invalid", "keydown", "keypress",
+    "mousedown", "mouseenter", "mouseleave", "mousemove", "mouseout", "mouseover", "mouseup",
+    "offline", "online", "open", "orientationchange", "pagehide", "pageshow", "paste", "pause",
+    "play", "playing", "progress", "readystatechange", "reset", "scroll", "seeked", "seeking",
+    "select", "show", "stalled", "storage", "submit", "success", "suspend", "timeout",
+    "timeupdate", "touchcancel", "touchend", "touchenter", "touchleave", "touchmove",
+    "touchstart", "visibilitychange", "volumechange", "waiting", "wheel", "change",
+] as const;
+
+export type EvtType = (typeof EVENT_NAMES)[number];
 
 export type EvtHandlerFunc = (ev: Event, node?: VNode, bubble?: boolean) => boolean | void;
 
-type EventHanderFuncHolder = [EvtHandlerFunc, boolean];
+type HandlerEntry = [EvtHandlerFunc, boolean];
+
+type ListenerRecord = {
+    node: VNode;
+    handlers: Array<HandlerEntry>;
+};
 
 export class EventHandler {
-    events = ["click", "close", "complete", "copy", "cut", "deviceorientation", "DOMContentLoaded", "keyup", "drag", "dragend", "dragenter", "dragleave", "dragover", "dragstart", "drop", "durationchange",
-        "ended", "endEvent", "error", "focusin", "focusout", "fullscreenchange", "fullscreenerror", "input", "invalid", "keydown", "keypress", "mousedown", "mouseenter", "mouseleave", "mousemove", "mouseout", "mouseover",
-        "mouseup", "offline", "online", "open", "orientationchange", "pagehide", "pageshow", "paste", "pause", "play", "playing", "progress", "readystatechange", "reset", "scroll", "seeked", "seeking", "select", "show", "stalled",
-        "storage", "submit", "success", "suspend", "timeout", "timeupdate", "touchcancel", "touchend", "touchenter", "touchleave", "touchmove", "touchstart", "visibilitychange", "volumechange", "waiting", "wheel", "change"];
-
-    handlers: Map<EvtType, Map<VNode, Array<EventHanderFuncHolder>>> = new Map();
+    private handlers: Map<EvtType, Map<string, ListenerRecord>> = new Map();
     routerLnks = new Array<RouterLink>();
 
-    constructor(app: VApp) {
-        const $root = app.rootNode.htmlElement;
-        this.events.forEach(evt => {
-            $root!.addEventListener(evt, this.handleEvent(this));
-        })
+    private $root: HTMLElement | undefined;
+    private boundHandler = this.dispatch.bind(this);
+    private attachedEvents = new Set<EvtType>();
+
+    constructor(app: VApp, attachDomListeners = true) {
+        if (attachDomListeners) {
+            this.$root = app.rootNode.htmlElement;
+        }
     }
 
     purge(node: VNode, deep = false) {
@@ -102,13 +45,11 @@ export class EventHandler {
             node.$getChildren().forEach(child => this.purge(child, true));
         }
 
-        this.handlers.forEach(handler => {
-            handler.forEach((_, key) => {
-                if (key === node) {
-                    handler.delete(key);
-                }
-            });
+        this.handlers.forEach(handlerMap => {
+            handlerMap.delete(node.id);
         });
+
+        this.routerLnks = this.routerLnks.filter(link => link.id !== node.id);
     }
 
     registerEventListener(evt: EvtType, handler: EvtHandlerFunc, target: VNode, bubble = true) {
@@ -116,94 +57,99 @@ export class EventHandler {
             this.routerLnks.push(target as RouterLink);
         }
 
-        if (this.handlers == undefined) {
-            this.handlers = new Map<EvtType, Map<VNode, Array<EventHanderFuncHolder>>>();
-        }
+        this.ensureAttached(evt);
 
         let handlerMap = this.handlers.get(evt);
         if (handlerMap == undefined) {
             handlerMap = new Map();
+            this.handlers.set(evt, handlerMap);
         }
 
-        if (handlerMap.get(target) != undefined) {
-            handlerMap.get(target).push([handler, bubble])
-        } else {
-            handlerMap.set(target, [[handler, bubble]]);
+        const existing = handlerMap.get(target.id);
+        if (existing && existing.node !== target) {
+            existing.node = target;
+            existing.handlers = [];
         }
 
-        this.handlers.set(evt, handlerMap)
+        const record = existing ?? {node: target, handlers: []};
+        record.handlers.push([handler, bubble]);
+        handlerMap.set(target.id, record);
     }
 
-    handleEvent(handler: EventHandler) {
-        return (event: Event) => {
-            if (handler.handlers == undefined) {
-                return;
+    reassign(target: VNode, previousId: string, nextId: string) {
+        if (previousId === nextId) {
+            return;
+        }
+
+        this.handlers.forEach(handlerMap => {
+            const record = handlerMap.get(previousId);
+            if (record) {
+                handlerMap.delete(previousId);
+                record.node = target;
+                handlerMap.set(nextId, record);
             }
+        });
+    }
 
-            const $target = event.target as HTMLElement;
+    private ensureAttached(evt: EvtType) {
+        if (!this.$root || this.attachedEvents.has(evt)) {
+            return;
+        }
+        this.$root.addEventListener(evt, this.boundHandler);
+        this.attachedEvents.add(evt);
+    }
 
-            const scopedHandlers = handler.handlers.get(event.type as EvtType);
+    private dispatch(event: Event) {
+        const scopedHandlers = this.handlers.get(event.type as EvtType);
+        if (!scopedHandlers) {
+            return;
+        }
 
-            if (scopedHandlers == undefined) {
-                return;
+        const $target = event.target as HTMLElement;
+        if (!$target) {
+            return;
+        }
+
+        // Build a temporary reverse map: htmlElement -> record (scoped to this event type)
+        const elementMap = new Map<HTMLElement, ListenerRecord>();
+        scopedHandlers.forEach(record => {
+            if (record.node.htmlElement) {
+                elementMap.set(record.node.htmlElement, record);
             }
+        });
 
-            let bubbled = false;
+        let handled = false;
 
-            function elemOrParentsEqual(elem: HTMLElement, needle: HTMLElement): boolean {
-                if (elem == needle) {
-                    return true;
-                }
-
-                if (needle.parentElement != undefined) {
-                    bubbled = true;
-                    return elemOrParentsEqual(elem, needle.parentElement);
-                }
-
-                return false;
-            }
-
-            let handled = false;
-            const result = Array.from(scopedHandlers.keys());
-            result.filter(res => elemOrParentsEqual(res.htmlElement, $target)).forEach(it => {
-                let evtHandlers = scopedHandlers.get(it);
-                evtHandlers.forEach(func => {
+        // Walk from target up through ancestors — O(depth) lookups
+        let current: HTMLElement | null = $target;
+        while (current && current !== this.$root?.parentElement) {
+            const record = elementMap.get(current);
+            if (record) {
+                const bubbled = current !== $target;
+                record.handlers.forEach(([fn, listenBubble]) => {
                     handled = true;
-
-                    if (!func[1]) {
+                    if (bubbled && !listenBubble) {
                         return;
                     }
-
-                    const cont = func[0](event, it);
+                    const cont = fn(event, record.node, bubbled);
                     if (cont === false) {
                         event.preventDefault();
                     }
-                    //Handles propagation of buttons that already have click listeners
-                    if (cont && isRouterLink(it.parent) && event.type == "click") {
-                        (it.parent as RouterLink).clickFunction(event, it.parent);
+                    if (cont && isRouterLink(record.node.parent) && event.type === "click") {
+                        (record.node.parent as RouterLink).clickFunction(event, record.node.parent);
                     }
                 });
-            });
+            }
+            current = current.parentElement;
+        }
 
-            //We need to check if the direct parent of the target element is a RouterLink
-            if (!handled) {
-                this.routerLnks.filter(res => res.htmlElement == $target.parentNode).forEach(it => {
+        if (!handled) {
+            this.routerLnks
+                .filter(res => res.htmlElement === $target.parentNode)
+                .forEach(it => {
                     event.preventDefault();
                     it.clickFunction(event, it);
                 });
-            }
-
-
         }
-    }
-}
-
-class Tuple<K, V> {
-    k: K;
-    v: V;
-
-    constructor(k: K, v: V) {
-        this.k = k;
-        this.v = v;
     }
 }

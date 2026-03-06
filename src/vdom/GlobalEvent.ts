@@ -33,8 +33,9 @@ export class ComponentEventPipeline extends EventPipeline {
     }
 
     public removeComponent(component: Component) {
-        if(this.components.indexOf(component) !== -1) {
-            this.components.splice(this.components.indexOf(component), 1)
+        const idx = this.components.indexOf(component);
+        if (idx !== -1) {
+            this.components.splice(idx, 1);
         }
     }
 }
