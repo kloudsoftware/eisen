@@ -1,140 +1,93 @@
 # eisen
 
-declarative and expressive TypeScript framework for building modern web applications.
+Dependency-free TypeScript frontend framework with JSX, hooks, and a fast virtual DOM.
 
-## What is eisen?
+## Features
 
-eisen [ˈaizən] is a dependency‑free frontend framework written entirely in TypeScript. It ships with type definitions, a lean
-~1200 LoC core and first class support for routing and internationalization. Features include:
+- Virtual DOM with content-hashed diffing and memoization
+- JSX/TSX with `Show`, `For`, `Transition`, `Fragment`, portals
+- React-style hooks: `useState`, `useEffect`, `useRef`
+- `@reactive()` decorator with deep mutation tracking
+- `@computed()` cached getters
+- Two-way binding: `bind:value`, `bind:checked`
+- Context (provide/inject), router, i18n
+- Dev warnings for common mistakes
 
-- Virtual DOM with a diffing renderer
-- Component model with lifecycle hooks
-- Reactive state via the `reactive` decorator
-- Two‑way data binding using `Props`
-- Built‑in router and i18n helpers
-
-## Why use eisen?
-
-- Written in TypeScript – excellent editor integration and type safety
-- Dependency free – the full source is easy to understand and extend
-- Lightweight – focuses on essentials without sacrificing features
-
-## Installing
-
-Install the package from npm:
+## Install
 
 ```bash
 npm install @kloudsoftware/eisen
 ```
 
-## Using eisen
-
-### Hello world
-
-**index.ts**
-```typescript
-import { VApp, Renderer } from '@kloudsoftware/eisen';
-
-const renderer = new Renderer();
-const app = new VApp('target', renderer);
-app.init();
-
-app.createElement('h1', 'Hello world!', app.rootNode);
-```
-
-**index.html**
-```html
-<body>
-  <div id="target"></div>
-  <script type="module" src="./index.ts"></script>
-  or
-  <script type="module" src="./index.tsx"></script>
-</body>
-```
-
-## Components
-
-To encapsulate and reuse logic, extend `Component` and implement `render` and `lifeCycle`:
+## Quick Start
 
 ```tsx
-import {Component, Props, reactive, VNode} from '@kloudsoftware/eisen';
+import { createApp, useState } from '@kloudsoftware/eisen';
 
-export class Counter extends Component {
+function App() {
+    const [count, setCount] = useState(0);
+    return (
+        <button onClick={() => setCount(c => c + 1)}>
+            Clicked {count} times
+        </button>
+    );
+}
+
+createApp(App, '#app');
+```
+
+Or with a class component:
+
+```tsx
+import { createApp, Component, reactive } from '@kloudsoftware/eisen';
+
+class App extends Component {
     @reactive() count = 0;
 
-    render(props: Props): VNode {
-        //tsx version
-        return <div>
-            <button onclick={() => {
-                this.count++;
-            }}>
-                Click me
+    render() {
+        return (
+            <button onClick={() => this.count++}>
+                Clicked {this.count} times
             </button>
-            <strong e-if={() => this.count > 0}>Count: {this.count}</strong>
-        </div>;
+        );
     }
+}
 
-    lifeCycle() {
-        return {
-            mounted: () => console.log('mounted'),
-            unmounted: () => console.log('unmounted'),
-        };
+createApp(App, '#app');
+```
+
+Both styles can be mixed freely.
+
+## Docs
+
+- [Getting Started](./docs/getting-started.md) -- Install, TSX config, first app
+- [Hooks](./docs/hooks.md) -- useState, useEffect, useRef
+- [Components](./docs/components.md) -- @reactive, @computed, lifecycle, shouldUpdate
+- [Templates](./docs/templates.md) -- Show, For, Transition, Fragment, className, style, SVG
+- [Forms](./docs/forms.md) -- bind:value, bind:checked, validation
+- [Advanced](./docs/advanced.md) -- Memoization, context, portals, router, i18n, performance tips
+
+## TSX Config
+
+```json
+{
+    "compilerOptions": {
+        "jsx": "react",
+        "jsxFactory": "jsx",
+        "jsxFragmentFactory": "Fragment",
+        "experimentalDecorators": true
     }
 }
 ```
 
-Mount the component:
-
-```typescript
-import { VApp, Renderer, Props } from '@kloudsoftware/eisen';
-
-const renderer = new Renderer();
-const app = new VApp('target', renderer);
-app.init();
-app.mountComponent(new Counter(app), app.rootNode, new Props(app));
-```
-
-### Props and two‑way binding
-
-`Props` provide a simple way to pass data and react to changes.
-
-```typescript
-const props = new Props(app);
-props.setProp('name', 'World');
-
-const heading = app.k('h1', { value: 'Hello {{ name }}!' }, undefined, undefined, props);
-props.registerCallback('name', val => console.log('name changed to', val));
-```
-
-### Input binding and validation
-
-```typescript
-import { VInputNode } from '@kloudsoftware/eisen';
-const user = { name: '' };
-const input = app.k('input') as VInputNode;
-input.bindObj(user, 'name');
-input.validate(() => user.name.length > 3, 'error');
-app.rootNode.appendChild(input);
-```
-
-## Router & i18n
-
-```typescript
-const router = app.useRouter(app.rootNode);
-// register your routes ...
-
-app.useTranslationResolver(key => translations[key]);
-```
-
 ## Build
 
-Use microbundle to compile the source:
-
 ```bash
-npm run build
+npm run build     # compile with tsup
+npm run example   # serve example at http://localhost:5173
+npm test          # run tests
 ```
 
 ## Maintainers
 
-Eisen is written and maintained by [kloudsoftware](https://github.com/orgs/kloudsoftware/people).
-
+Written and maintained by [kloudsoftware](https://github.com/orgs/kloudsoftware/people).
