@@ -1,6 +1,6 @@
 const assert = require('assert');
 const {JSDOM} = require('jsdom');
-const {VApp, Renderer} = require('../lib/index.modern.js.js');
+const {VApp, Renderer} = require('../dist/index.cjs');
 
 describe('event handler cleanup', () => {
     it('removes stale handlers when list items are deleted', () => {
@@ -11,7 +11,7 @@ describe('event handler cleanup', () => {
         global.navigator = dom.window.navigator;
 
         const app = new VApp('root', new Renderer());
-        app.snapshots.push(app.clone());
+        app.saveSnapshot();
         const list = app.createElement('ul');
         const calls = [];
 

@@ -1,6 +1,6 @@
 const assert = require('assert');
 const {JSDOM} = require('jsdom');
-const {VApp, Renderer, Component, Props} = require('../lib/index.modern.js.js');
+const {VApp, Renderer, Component, Props} = require('../dist/index.cjs');
 
 describe('component mounting', () => {
     it('does not wrap component root with an extra element', () => {
@@ -12,7 +12,7 @@ describe('component mounting', () => {
         global.HTMLElement = dom.window.HTMLElement;
 
         const app = new VApp('root', new Renderer());
-        app.snapshots.push(app.clone());
+        app.saveSnapshot();
 
         class SimpleComp extends Component {
             constructor(app) { super(app); }

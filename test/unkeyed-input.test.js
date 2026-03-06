@@ -1,6 +1,6 @@
 const assert = require('assert');
 const {JSDOM} = require('jsdom');
-const {VApp, Renderer, Component, Props, reactive} = require('../lib/index.modern.js.js');
+const {VApp, Renderer, Component, Props, reactive} = require('../dist/index.cjs');
 
 describe('unkeyed input binding', () => {
     it('keeps typed text and focus across rerenders', () => {
@@ -13,7 +13,7 @@ describe('unkeyed input binding', () => {
         global.HTMLInputElement = dom.window.HTMLInputElement;
 
         const app = new VApp('root', new Renderer());
-        app.snapshots.push(app.clone());
+        app.saveSnapshot();
 
         class DraftComp extends Component {
             constructor(app) { super(app); }
