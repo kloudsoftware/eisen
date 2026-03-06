@@ -1,20 +1,21 @@
 {
     "compilerOptions": {
-        "module": "ES2015",
+        "module": "ESNext",
         "moduleResolution": "node",
         "newLine": "LF",
-        "outDir": "./lib/",
-        "target": "es5",
-        "sourceMap": false,
-	"strict": true,
-	"strictNullChecks": false,
+        "outDir": "./dist/",
+        "target": "ES2017",
+        "sourceMap": true,
+        "strict": true,
+        "strictNullChecks": false,
         "declaration": true,
         "jsx": "preserve",
         "lib": [
             "es2017",
             "dom",
             "esnext"
-        ]
+        ],
+        "declarationDir": "./dist/"
     },
     "include": [
         "src/**/*"

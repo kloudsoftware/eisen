@@ -2,23 +2,36 @@
     "name": "@kloudsoftware/eisen",
     "version": "3.0.4",
     "description": "Declarative and expressive TypeScript framework for building modern web applications",
-    "main": "lib/index.modern.js.js",
+    "main": "dist/index.cjs",
     "source": "src/index.ts",
-    "exports": "./dist/eisen.modern.js",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.cjs"
+        },
+        "./vite-plugin": {
+            "types": "./dist/vite-plugin.d.ts",
+            "import": "./dist/vite-plugin.mjs",
+            "require": "./dist/vite-plugin.cjs"
+        }
+    },
     "scripts": {
-        "build": "microbundle",
-        "dev": "microbundle watch",
-        "test": "npm run build && mocha"
+        "build": "tsup",
+        "dev": "tsup --watch",
+        "test": "npm run build && mocha",
+        "example": "npm run build && tsc -p example/tsconfig.json && node scripts/serve-example.mjs"
     },
     "author": "Kloudsoftware",
     "license": "Apache-2.0",
-    "types": "lib/index.d.ts",
+    "types": "dist/index.d.ts",
     "devDependencies": {
         "jsdom": "^26.1.0",
         "lodash": "4.17.21",
-        "microbundle": "^0.12.4",
         "mocha": "^11.7.1",
-        "typescript": "^3.3.3333"
+        "puppeteer-core": "^24.38.0",
+        "tsup": "^8.1.0",
+        "typescript": "^5.4.5"
     },
     "repository": {
         "type": "git",
@@ -28,5 +41,10 @@
         "declarative",
         "expressive",
         "typescript"
+    ],
+    "sideEffects": false,
+    "module": "dist/index.mjs",
+    "files": [
+        "dist"
     ]
 }
