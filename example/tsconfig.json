@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "module": "ESNext",
+        "moduleResolution": "node",
+        "target": "ES2017",
+        "jsx": "react",
+        "jsxFactory": "jsx",
+        "strict": false,
+        "experimentalDecorators": true,
+        "outDir": ".",
+        "sourceMap": true,
+        "lib": ["es2017", "dom", "esnext"],
+        "rootDir": ".",
+        "declaration": false
+    },
+    "include": ["app.tsx"],
+    "exclude": []
+}
